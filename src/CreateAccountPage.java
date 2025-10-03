@@ -1,19 +1,38 @@
-import javax.swing.*;
-import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.font.TextAttribute;
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import javax.swing.*;
+import javax.swing.border.Border;
 
 public class CreateAccountPage extends JFrame {
-    private JTextField emailField;
-    private JTextField usernameField;
-    private JPasswordField passwordField;
-    private JPasswordField confirmPasswordField;
+    private PlaceholderTextField emailField;
+    private PlaceholderTextField usernameField;
+    private PlaceholderPasswordField passwordField;
+    private PlaceholderPasswordField confirmPasswordField;
+    
     private JCheckBox showPasswordCheckBox;
     private JCheckBox ownerCheckBox;
     private JCheckBox clientCheckBox;
     private JButton signUpButton;
+
+    private JLabel passwordErrorLabel;
+    private JLabel emailErrorLabel;
+    private JLabel usernameErrorLabel;
+    private JLabel accountTypeErrorLabel;
+    private JLabel passwordRequirementsLabel;
+    private Border defaultBorder;
+    private Border focusBorder;
+    private Border errorBorder;
+
+    private UserValidator validator = new UserValidator();
+    private UserDataManager userDataManager = new UserDataManager();
 
     public CreateAccountPage() {
         setTitle("Create Account");
@@ -25,7 +44,7 @@ public class CreateAccountPage extends JFrame {
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
-        // --- HEADER PANEL ---
+        //UI component and layout 
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -42,53 +61,66 @@ public class CreateAccountPage extends JFrame {
         loginButton.setContentAreaFilled(false);
         loginButton.setForeground(new Color(44, 116, 132));
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginButton.addActionListener(e -> {
+            dispose();
+            SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
+        });
         headerPanel.add(loginButton, BorderLayout.EAST);
-
-        // --- MAIN CONTENT AREA ---
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
-
-        // --- FORM PANEL ---
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
         mainPanel.setBackground(Color.WHITE);
-
-        // --- LAYOUT LOGIC ---
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.NONE;
         gbc.ipadx = 350;
         gbc.ipady = 0;
         contentArea.add(mainPanel, gbc);
-
-        // --- ADD PANELS TO ROOT ---
         rootPanel.add(headerPanel, BorderLayout.NORTH);
         rootPanel.add(contentArea, BorderLayout.CENTER);
-
-        // --- COMPONENTS ---
         JLabel titleLabel = new JLabel("Create Account");
         titleLabel.setFont(new Font("Georgia", Font.PLAIN, 42));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-
-        JLabel subtitleLabel = new JLabel("Create a free account or login");
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
-        subtitleLabel.setForeground(new Color(100, 100, 100));
-        subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(subtitleLabel);
+        JPanel subtitlePanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        subtitlePanel.setBackground(Color.WHITE);
+        JLabel subtitlePart1 = new JLabel("Create a free account or ");
+        subtitlePart1.setFont(new Font("Arial", Font.PLAIN, 16));
+        subtitlePart1.setForeground(new Color(100, 100, 100));
+        JLabel loginLink = new JLabel("login");
+        loginLink.setFont(new Font("Arial", Font.PLAIN, 16));
+        loginLink.setForeground(new Color(44, 116, 132));
+        loginLink.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        Font font = loginLink.getFont();
+        Map<TextAttribute, Object> attributes = new HashMap<>(font.getAttributes());
+        attributes.put(TextAttribute.UNDERLINE, TextAttribute.UNDERLINE_ON);
+        loginLink.setFont(font.deriveFont(attributes));
+        loginLink.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                dispose();
+                SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
+            }
+        });
+        subtitlePanel.add(subtitlePart1);
+        subtitlePanel.add(loginLink);
+        subtitlePanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(subtitlePanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
-
-        Border defaultBorder = BorderFactory.createCompoundBorder(
+        defaultBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
-
-        Border focusBorder = BorderFactory.createCompoundBorder(
+        focusBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(0, 124, 137), 2),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
-
+        errorBorder = BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.RED, 1),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        );
         FocusAdapter highlightListener = new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -99,7 +131,6 @@ public class CreateAccountPage extends JFrame {
                 ((JComponent) e.getComponent()).setBorder(defaultBorder);
             }
         };
-
         JPanel emailLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         emailLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         emailLabelPanel.setBackground(Color.WHITE);
@@ -108,15 +139,21 @@ public class CreateAccountPage extends JFrame {
         emailLabelPanel.add(emailLabel);
         mainPanel.add(emailLabelPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-
-        emailField = new JTextField();
+        emailField = new PlaceholderTextField("Enter your email");
         emailField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         emailField.setFont(new Font("Arial", Font.PLAIN, 14));
         emailField.setBorder(defaultBorder);
         emailField.addFocusListener(highlightListener);
         mainPanel.add(emailField);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
+        emailErrorLabel = new JLabel(" ");
+        emailErrorLabel.setForeground(Color.RED);
+        emailErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel emailErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        emailErrorPanel.setBackground(Color.WHITE);
+        emailErrorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 15));
+        emailErrorPanel.add(emailErrorLabel);
+        mainPanel.add(emailErrorPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         JPanel usernameLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         usernameLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         usernameLabelPanel.setBackground(Color.WHITE);
@@ -125,15 +162,21 @@ public class CreateAccountPage extends JFrame {
         usernameLabelPanel.add(usernameLabel);
         mainPanel.add(usernameLabelPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-
-        usernameField = new JTextField();
+        usernameField = new PlaceholderTextField("Enter your username");
         usernameField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
         usernameField.setBorder(defaultBorder);
         usernameField.addFocusListener(highlightListener);
         mainPanel.add(usernameField);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
+        usernameErrorLabel = new JLabel(" ");
+        usernameErrorLabel.setForeground(Color.RED);
+        usernameErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel usernameErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        usernameErrorPanel.setBackground(Color.WHITE);
+        usernameErrorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 15));
+        usernameErrorPanel.add(usernameErrorLabel);
+        mainPanel.add(usernameErrorPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         JPanel passwordHeaderPanel = new JPanel(new BorderLayout());
         passwordHeaderPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         passwordHeaderPanel.setBackground(Color.WHITE);
@@ -156,13 +199,27 @@ public class CreateAccountPage extends JFrame {
         passwordHeaderPanel.add(showPasswordCheckBox, BorderLayout.EAST);
         mainPanel.add(passwordHeaderPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-
-        passwordField = new JPasswordField();
+        passwordField = new PlaceholderPasswordField("Enter your password");
         passwordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
         passwordField.setBorder(defaultBorder);
         passwordField.addFocusListener(highlightListener);
         mainPanel.add(passwordField);
+        String requirementsText = "<html><body style='width: 100%'>"
+                + "Must contain at least:<br>"
+                + "  &#8226; 8 characters<br>"
+                + "  &#8226; 1 uppercase & 1 lowercase letter<br>"
+                + "  &#8226; 1 number & 1 special character (!@#...)"
+                + "</body></html>";
+        passwordRequirementsLabel = new JLabel(requirementsText);
+        passwordRequirementsLabel.setForeground(new Color(100, 100, 100));
+        passwordRequirementsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel passwordRequirementsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        passwordRequirementsPanel.setBackground(Color.WHITE);
+        passwordRequirementsPanel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+        passwordRequirementsPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        passwordRequirementsPanel.add(passwordRequirementsLabel);
+        mainPanel.add(passwordRequirementsPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
         // --- CONFIRM PASSWORD FIELD ---
@@ -174,15 +231,21 @@ public class CreateAccountPage extends JFrame {
         confirmPasswordLabelPanel.add(confirmPasswordLabel);
         mainPanel.add(confirmPasswordLabelPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-
-        confirmPasswordField = new JPasswordField();
+        confirmPasswordField = new PlaceholderPasswordField("Re-enter your password");
         confirmPasswordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         confirmPasswordField.setFont(new Font("Arial", Font.PLAIN, 14));
         confirmPasswordField.setBorder(defaultBorder);
         confirmPasswordField.addFocusListener(highlightListener);
         mainPanel.add(confirmPasswordField);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 25)));
-
+        passwordErrorLabel = new JLabel(" ");
+        passwordErrorLabel.setForeground(Color.RED);
+        passwordErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel errorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        errorPanel.setBackground(Color.WHITE);
+        errorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 15));
+        errorPanel.add(passwordErrorLabel);
+        mainPanel.add(errorPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         JPanel accountTypeLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         accountTypeLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         accountTypeLabelPanel.setBackground(Color.WHITE);
@@ -238,7 +301,6 @@ public class CreateAccountPage extends JFrame {
         accountTypeLabelPanel.add(infoIcon);
         mainPanel.add(accountTypeLabelPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-
         JPanel accountTypePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         accountTypePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         accountTypePanel.setBackground(Color.WHITE);
@@ -258,8 +320,15 @@ public class CreateAccountPage extends JFrame {
         accountTypePanel.add(Box.createRigidArea(new Dimension(25, 0)));
         accountTypePanel.add(clientCheckBox);
         mainPanel.add(accountTypePanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
-
+        accountTypeErrorLabel = new JLabel(" ");
+        accountTypeErrorLabel.setForeground(Color.RED);
+        accountTypeErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel accountTypeErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        accountTypeErrorPanel.setBackground(Color.WHITE);
+        accountTypeErrorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 15));
+        accountTypeErrorPanel.add(accountTypeErrorLabel);
+        mainPanel.add(accountTypeErrorPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         signUpButton = new JButton("Sign Up");
         signUpButton.setFont(new Font("Arial", Font.PLAIN, 14));
         signUpButton.setForeground(Color.WHITE);
@@ -279,9 +348,89 @@ public class CreateAccountPage extends JFrame {
                 signUpButton.setBackground(defaultColor);
             }
         });
+        
+        signUpButton.addActionListener(e -> {
+            if (validateForm()) {
+                String accountType = ownerCheckBox.isSelected() ? "Owner" : "Client";
+                userDataManager.addUser(emailField.getText(), usernameField.getText(), new String(passwordField.getPassword()), accountType);
+                JOptionPane.showMessageDialog(this, "Account Created Successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+                SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
+            }
+        });
+        
         mainPanel.add(signUpButton);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
         ToolTipManager.sharedInstance().registerComponent(mainPanel);
+    }
+    
+    private boolean validateForm() {
+        boolean isAllValid = true;
+        
+        if (!validator.isEmailValid(emailField.getText())) {
+            isAllValid = false;
+            emailField.setBorder(errorBorder);
+            emailErrorLabel.setText("Please enter a valid email address.");
+        } else if (userDataManager.isEmailTaken(emailField.getText())) {
+            isAllValid = false;
+            emailField.setBorder(errorBorder);
+            emailErrorLabel.setText("This email is already taken.");
+        } else {
+            emailField.setBorder(defaultBorder);
+            emailErrorLabel.setText(" ");
+        }
+
+        if (!validator.isUsernameValid(usernameField.getText())) {
+            isAllValid = false;
+            usernameField.setBorder(errorBorder);
+            usernameErrorLabel.setText("Username must be longer than 6 characters.");
+        } else if (userDataManager.isUsernameTaken(usernameField.getText())) {
+            isAllValid = false;
+            usernameField.setBorder(errorBorder);
+            usernameErrorLabel.setText("This username is already taken.");
+        } else {
+            usernameField.setBorder(defaultBorder);
+            usernameErrorLabel.setText(" ");
+        }
+        
+        String password = new String(passwordField.getPassword());
+        String green = "#006400";
+        String red = "#C00000";
+        boolean hasLength = validator.hasValidLength(password);
+        boolean hasCase = validator.hasCaseVariety(password);
+        boolean hasNumAndSpecial = validator.hasNumberAndSpecialChar(password);
+        boolean isPasswordStrong = hasLength && hasCase && hasNumAndSpecial;
+        String feedbackText = "<html><body style='width: 100%'>"
+                + "Must contain at least:<br>"
+                + String.format("<span style='color:%s'>&#8226; 8 characters</span><br>", hasLength ? green : red)
+                + String.format("<span style='color:%s'>&#8226; 1 uppercase & 1 lowercase letter</span><br>", hasCase ? green : red)
+                + String.format("<span style='color:%s'>&#8226; 1 number & 1 special character (!@#...)</span>", hasNumAndSpecial ? green : red)
+                + "</body></html>";
+        passwordRequirementsLabel.setText(feedbackText);
+        if (!isPasswordStrong) {
+            isAllValid = false;
+            passwordField.setBorder(errorBorder);
+        } else {
+            passwordField.setBorder(defaultBorder);
+        }
+
+        if (password.isEmpty() || !Arrays.equals(passwordField.getPassword(), confirmPasswordField.getPassword())) {
+             isAllValid = false;
+             confirmPasswordField.setBorder(errorBorder);
+             passwordErrorLabel.setText("Please make sure your passwords match.");
+        } else {
+             confirmPasswordField.setBorder(defaultBorder);
+             passwordErrorLabel.setText(" ");
+        }
+        
+        if (!ownerCheckBox.isSelected() && !clientCheckBox.isSelected()) {
+            isAllValid = false;
+            accountTypeErrorLabel.setText("Please select an account type.");
+        } else {
+            accountTypeErrorLabel.setText(" ");
+        }
+
+        return isAllValid;
     }
 
 
@@ -290,5 +439,36 @@ public class CreateAccountPage extends JFrame {
             CreateAccountPage frame = new CreateAccountPage();
             frame.setVisible(true);
         });
+    }
+
+    private static class PlaceholderTextField extends JTextField {
+        private String placeholder;
+        public PlaceholderTextField(String placeholder) { this.placeholder = placeholder; }
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) return;
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(150, 150, 150));
+            FontMetrics fm = g2.getFontMetrics();
+            int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+            g2.drawString(placeholder, getInsets().left + 5, y);
+        }
+    }
+    private static class PlaceholderPasswordField extends JPasswordField {
+        private String placeholder;
+        public PlaceholderPasswordField(String placeholder) { this.placeholder = placeholder; }
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (placeholder == null || placeholder.isEmpty() || getPassword().length > 0) return;
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(150, 150, 150));
+            FontMetrics fm = g2.getFontMetrics();
+            int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
+            g2.drawString(placeholder, getInsets().left + 5, y);
+        }
     }
 }
