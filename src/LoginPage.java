@@ -158,6 +158,13 @@ public class LoginPage extends JFrame {
                 loginButton.setBackground(defaultColor);
             }
         });
+
+        loginButton.addActionListener(e ->
+        {
+            dispose();
+            new ClientDashboard().setVisible(true);
+        });
+
         mainPanel.add(loginButton);
     }
 
