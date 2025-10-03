@@ -3,12 +3,13 @@ import javax.swing.border.Border;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.io.File;
 
 public class CreateAccountPage extends JFrame {
     private JTextField emailField;
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JPasswordField confirmPasswordField; // Added field
+    private JPasswordField confirmPasswordField;
     private JCheckBox showPasswordCheckBox;
     private JCheckBox ownerCheckBox;
     private JCheckBox clientCheckBox;
@@ -17,7 +18,8 @@ public class CreateAccountPage extends JFrame {
     public CreateAccountPage() {
         setTitle("Create Account");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 800);
+        setSize(900, 800);
+        setResizable(false);
         setLocationRelativeTo(null);
 
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -163,7 +165,7 @@ public class CreateAccountPage extends JFrame {
         mainPanel.add(passwordField);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // --- NEW CONFIRM PASSWORD FIELD ---
+        // --- CONFIRM PASSWORD FIELD ---
         JPanel confirmPasswordLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         confirmPasswordLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         confirmPasswordLabelPanel.setBackground(Color.WHITE);
@@ -181,18 +183,56 @@ public class CreateAccountPage extends JFrame {
         mainPanel.add(confirmPasswordField);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 25)));
 
-
         JPanel accountTypeLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         accountTypeLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         accountTypeLabelPanel.setBackground(Color.WHITE);
         JLabel accountTypeLabel = new JLabel("Account Type");
         accountTypeLabel.setFont(new Font("Arial", Font.BOLD, 14));
         accountTypeLabelPanel.add(accountTypeLabel);
-        JLabel infoIcon = new JLabel(" ⓘ ");
-        infoIcon.setFont(new Font("Arial", Font.BOLD, 12));
-        infoIcon.setForeground(new Color(0, 124, 137));
-        infoIcon.setToolTipText("<html><b>Select \"Owner\" if you are interested in:<br><b>Renting your vehicle for its unused computational power<br><br><b>Select \"Client\" if you are interested in:<br><b>Using a vehicle's computational power to run a job</html>");
+        accountTypeLabelPanel.add(Box.createRigidArea(new Dimension(4, 0)));
+
+        // Prefer a bundled font that contains the circled 'i' to guarantee the glyph across platforms.
+        Font infoFont = null;
+        try {
+            File bundled = new File("assets/NotoSansSymbols-Regular.ttf");
+            System.err.println("[info icon] checking bundled font path: " + bundled.getAbsolutePath());
+            if (bundled.exists()) {
+                System.err.println("[info icon] bundled font FOUND, size=" + bundled.length());
+                infoFont = Font.createFont(Font.TRUETYPE_FONT, bundled).deriveFont(Font.PLAIN, 15f);
+                boolean registered = GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(infoFont);
+                System.err.println("[info icon] registered font? " + registered + ", canDisplay(\u24D8)=" + infoFont.canDisplay('\u24D8'));
+            } else {
+                System.err.println("[info icon] bundled font not found at path");
+            }
+        } catch (Exception e) {
+            // If registration fails, we'll fall back to system fonts below
+            System.err.println("Warning: failed to load bundled info font: " + e.getMessage());
+        }
+
+        if (infoFont == null) {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                infoFont = new Font("Segoe UI Symbol", Font.PLAIN, 15);
+            } else if (os.contains("mac")) {
+                infoFont = new Font("Apple Symbols", Font.PLAIN, 15);
+            } else {
+                infoFont = new Font("Arial Unicode MS", Font.PLAIN, 15);
+            }
+            // If chosen system font can't display the glyph, fall back to Dialog (plain 'i' fallback handled elsewhere)
+            if (!infoFont.canDisplay('\u24D8')) {
+                infoFont = infoFont.deriveFont(Font.PLAIN, 15f);
+            }
+        }
+
+        JLabel infoIcon = new JLabel("\u24D8"); // Unicode for circled 'i'
+        infoIcon.setFont(infoFont);
+        infoIcon.setForeground(Color.BLACK);
+        infoIcon.setVerticalAlignment(SwingConstants.BOTTOM);
+        infoIcon.setBorder(BorderFactory.createEmptyBorder(-4, 0, 0, 0)); // more negative for higher alignment
+        infoIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        infoIcon.setToolTipText("<html><span style='font-size:10px;'><b>Select \"Owner\" if you are interested in:<br><b>Renting your vehicle for its unused computational power<br><br><b>Select \"Client\" if you are interested in:<br><b>Using a vehicle's computational power to run a job</span></html>");
         UIManager.put("ToolTip.background", Color.WHITE);
+        UIManager.put("ToolTip.font", new Font("Arial", Font.PLAIN, 11));
         ToolTipManager.sharedInstance().setInitialDelay(200);
         ToolTipManager.sharedInstance().setDismissDelay(Integer.MAX_VALUE);
         accountTypeLabelPanel.add(infoIcon);
@@ -243,6 +283,7 @@ public class CreateAccountPage extends JFrame {
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
         ToolTipManager.sharedInstance().registerComponent(mainPanel);
     }
+
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
