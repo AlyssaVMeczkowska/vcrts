@@ -12,15 +12,14 @@ import javax.swing.*;
 import javax.swing.border.Border;
 
 public class CreateAccountPage extends JFrame {
-    private PlaceholderTextField emailField, usernameField;
+    private PlaceholderTextField firstNameField, lastNameField, emailField, usernameField, phoneNumberField;
     private PlaceholderPasswordField passwordField, confirmPasswordField;
     private JCheckBox showPasswordCheckBox, ownerCheckBox, clientCheckBox;
     private JButton signUpButton;
-    private JLabel passwordErrorLabel, emailErrorLabel, usernameErrorLabel, accountTypeErrorLabel, passwordRequirementsLabel;
+    private JLabel firstNameErrorLabel, lastNameErrorLabel, passwordErrorLabel, emailErrorLabel, usernameErrorLabel, phoneNumberErrorLabel, accountTypeErrorLabel, passwordRequirementsLabel;
     private Border defaultBorder, focusBorder, errorBorder;
     private UserValidator validator = new UserValidator();
     private UserDataManager userDataManager = new UserDataManager();
-    
     private static final Color TEAL = new Color(44, 116, 132);
     private static final Color TEAL_HOVER = new Color(37, 94, 106);
     private static final Color LINK = new Color(0, 124, 137);
@@ -32,13 +31,20 @@ public class CreateAccountPage extends JFrame {
         setSize(900, 800);
         setResizable(true);
         setLocationRelativeTo(null);
-
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
         rootPanel.add(createHeader(), BorderLayout.NORTH);
-        
+
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(null);
+        rootPanel.add(scrollPane, BorderLayout.CENTER);
+
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
+        scrollPane.setViewportView(contentArea);
+
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
@@ -46,13 +52,12 @@ public class CreateAccountPage extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.ipadx = 350;
         contentArea.add(mainPanel, gbc);
-        rootPanel.add(contentArea, BorderLayout.CENTER);
-        
+
         initBorders();
         buildForm(mainPanel);
         ToolTipManager.sharedInstance().registerComponent(mainPanel);
     }
-    
+
     private JPanel createHeader() {
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(Color.WHITE);
@@ -71,7 +76,7 @@ public class CreateAccountPage extends JFrame {
         header.add(loginBtn, BorderLayout.EAST);
         return header;
     }
-    
+
     private void initBorders() {
         defaultBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
@@ -83,19 +88,19 @@ public class CreateAccountPage extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10));
     }
-    
+
     private void buildForm(JPanel main) {
         JLabel title = new JLabel("Create Account");
         title.setFont(new Font("Georgia", Font.PLAIN, 42));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         main.add(title);
         main.add(Box.createRigidArea(new Dimension(0, 10)));
-        
+
         JPanel subtitle = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         subtitle.setBackground(Color.WHITE);
-        subtitle.add(new JLabel("Create a free account or ") {{ 
-            setFont(new Font("Arial", Font.PLAIN, 16)); 
-            setForeground(GRAY); 
+        subtitle.add(new JLabel("Create a free account or ") {{
+            setFont(new Font("Arial", Font.PLAIN, 16));
+            setForeground(GRAY);
         }});
         JLabel loginLink = new JLabel("login");
         loginLink.setFont(new Font("Arial", Font.PLAIN, 16));
@@ -112,40 +117,75 @@ public class CreateAccountPage extends JFrame {
         subtitle.setAlignmentX(Component.CENTER_ALIGNMENT);
         main.add(subtitle);
         main.add(Box.createRigidArea(new Dimension(0, 40)));
-        
+
         FocusAdapter focus = new FocusAdapter() {
             public void focusGained(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(focusBorder); }
             public void focusLost(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(defaultBorder); }
         };
-        
-        addField(main, "Email", emailField = new PlaceholderTextField("Enter your email"), 
-                 emailErrorLabel = new JLabel(" "), focus);
-        addField(main, "Username", usernameField = new PlaceholderTextField("Enter your username"), 
-                 usernameErrorLabel = new JLabel(" "), focus);
+
+        addNameFieldsInRow(main, focus);
+        addField(main, "Username", usernameField = new PlaceholderTextField("Enter your username"),
+                 usernameErrorLabel = new JLabel(" "), focus, true);
+        addField(main, "Email", emailField = new PlaceholderTextField("Enter your email"),
+                 emailErrorLabel = new JLabel(" "), focus, true);
+        addField(main, "Phone Number", phoneNumberField = new PlaceholderTextField("(123) 456-7890"),
+                 phoneNumberErrorLabel = new JLabel(" "), focus, false);
         addPasswordFields(main, focus);
         addAccountType(main);
         addSignUpBtn(main);
     }
-    
-    private void addField(JPanel main, String label, JTextField field, JLabel error, FocusAdapter focus) {
+
+    private void addNameFieldsInRow(JPanel main, FocusAdapter focus) {
+        JPanel rowPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        rowPanel.setBackground(Color.WHITE);
+        rowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+
+        JPanel leftPanel = createFormFieldPanel("First Name",
+                firstNameField = new PlaceholderTextField("Enter your first name"),
+                firstNameErrorLabel = new JLabel(" "), focus, true);
+        
+        JPanel rightPanel = createFormFieldPanel("Last Name",
+                lastNameField = new PlaceholderTextField("Enter your last name"),
+                lastNameErrorLabel = new JLabel(" "), focus, true);
+
+        rowPanel.add(leftPanel);
+        rowPanel.add(rightPanel);
+        main.add(rowPanel);
+        main.add(Box.createRigidArea(new Dimension(0, 5)));
+    }
+
+    private JPanel createFormFieldPanel(String labelText, JTextField field, JLabel errorLabel, FocusAdapter focus, boolean isRequired) {
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBackground(Color.WHITE);
+
         JPanel lbl = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         lbl.setBackground(Color.WHITE);
-        lbl.add(new JLabel(label) {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
-        main.add(lbl);
-        main.add(Box.createRigidArea(new Dimension(0, 8)));
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+        String labelHtml = isRequired ? "<html>" + labelText + " <font color='red'>*</font></html>" : labelText;
+        lbl.add(new JLabel(labelHtml) {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
+        panel.add(lbl);
+        panel.add(Box.createRigidArea(new Dimension(0, 8)));
+
         field.setFont(new Font("Arial", Font.PLAIN, 14));
         field.setBorder(defaultBorder);
         field.addFocusListener(focus);
-        main.add(field);
-        error.setForeground(Color.RED);
-        error.setFont(new Font("Arial", Font.PLAIN, 12));
+        panel.add(field);
+
+        errorLabel.setForeground(Color.RED);
+        errorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         JPanel err = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         err.setBackground(Color.WHITE);
         err.setMaximumSize(new Dimension(Integer.MAX_VALUE, 15));
-        err.add(error);
-        main.add(err);
+        err.add(errorLabel);
+        panel.add(err);
+
+        return panel;
+    }
+
+    private void addField(JPanel main, String label, JTextField field, JLabel error, FocusAdapter focus, boolean isRequired) {
+        JPanel fieldPanel = createFormFieldPanel(label, field, error, focus, isRequired);
+        fieldPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        main.add(fieldPanel);
         main.add(Box.createRigidArea(new Dimension(0, 5)));
     }
     
@@ -153,7 +193,7 @@ public class CreateAccountPage extends JFrame {
         JPanel header = new JPanel(new BorderLayout());
         header.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         header.setBackground(Color.WHITE);
-        header.add(new JLabel("Password") {{ setFont(new Font("Arial", Font.BOLD, 14)); }}, BorderLayout.WEST);
+        header.add(new JLabel("<html>Password <font color='red'>*</font></html>") {{ setFont(new Font("Arial", Font.BOLD, 14)); }}, BorderLayout.WEST);
         showPasswordCheckBox = new JCheckBox("Show");
         showPasswordCheckBox.setFont(new Font("Arial", Font.PLAIN, 14));
         showPasswordCheckBox.setForeground(LINK);
@@ -190,7 +230,7 @@ public class CreateAccountPage extends JFrame {
         JPanel lbl = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         lbl.setBackground(Color.WHITE);
-        lbl.add(new JLabel("Confirm Password") {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
+        lbl.add(new JLabel("<html>Confirm Password <font color='red'>*</font></html>") {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
         main.add(lbl);
         main.add(Box.createRigidArea(new Dimension(0, 8)));
         
@@ -216,24 +256,16 @@ public class CreateAccountPage extends JFrame {
         JPanel lbl = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         lbl.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
         lbl.setBackground(Color.WHITE);
-        lbl.add(new JLabel("Account Type") {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
+        lbl.add(new JLabel("<html>Account Type <font color='red'>*</font></html>") {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
         lbl.add(Box.createRigidArea(new Dimension(4, 0)));
-
-        // Prefer a bundled font that contains the circled 'i' to guarantee the glyph across platforms.
         Font infoFont = null;
         try {
             File bundled = new File("assets/NotoSansSymbols-Regular.ttf");
-            System.err.println("[info icon] checking bundled font path: " + bundled.getAbsolutePath());
             if (bundled.exists()) {
-                System.err.println("[info icon] bundled font FOUND, size=" + bundled.length());
                 infoFont = Font.createFont(Font.TRUETYPE_FONT, bundled).deriveFont(Font.PLAIN, 15f);
-                boolean registered = GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(infoFont);
-                System.err.println("[info icon] registered font? " + registered + ", canDisplay(\u24D8)=" + infoFont.canDisplay('\u24D8'));
-            } else {
-                System.err.println("[info icon] bundled font not found at path");
+                GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(infoFont);
             }
         } catch (Exception e) {
-            // If registration fails, we'll fall back to system fonts below
             System.err.println("Warning: failed to load bundled info font: " + e.getMessage());
         }
 
@@ -246,17 +278,13 @@ public class CreateAccountPage extends JFrame {
             } else {
                 infoFont = new Font("Arial Unicode MS", Font.PLAIN, 15);
             }
-            // If chosen system font can't display the glyph, fall back to Dialog (plain 'i' fallback handled elsewhere)
-            if (!infoFont.canDisplay('\u24D8')) {
-                infoFont = infoFont.deriveFont(Font.PLAIN, 15f);
-            }
         }
 
-        JLabel infoIcon = new JLabel("\u24D8"); // Unicode for circled 'i'
+        JLabel infoIcon = new JLabel("\u24D8");
         infoIcon.setFont(infoFont);
         infoIcon.setForeground(Color.BLACK);
         infoIcon.setVerticalAlignment(SwingConstants.BOTTOM);
-        infoIcon.setBorder(BorderFactory.createEmptyBorder(-4, 0, 0, 0)); // more negative for higher alignment
+        infoIcon.setBorder(BorderFactory.createEmptyBorder(-4, 0, 0, 0));
         infoIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
         infoIcon.setToolTipText("<html><span style='font-size:10px;'><b>Select \"Owner\" if you are interested in:<br><b>Renting your vehicle for its unused computational power<br><br><b>Select \"Client\" if you are interested in:<br><b>Using a vehicle's computational power to run a job</span></html>");
         UIManager.put("ToolTip.background", Color.WHITE);
@@ -266,7 +294,6 @@ public class CreateAccountPage extends JFrame {
         lbl.add(infoIcon);
         main.add(lbl);
         main.add(Box.createRigidArea(new Dimension(0, 10)));
-        
         JPanel types = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         types.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         types.setBackground(Color.WHITE);
@@ -311,8 +338,16 @@ public class CreateAccountPage extends JFrame {
         signUpButton.addActionListener(e -> {
             if (validateForm()) {
                 String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
-                userDataManager.addUser(emailField.getText(), usernameField.getText(), 
-                                       new String(passwordField.getPassword()), type);
+                userDataManager.addUser(
+                    firstNameField.getText(),
+                    lastNameField.getText(),
+                    emailField.getText(),
+                    usernameField.getText(),
+                    phoneNumberField.getText(),
+                    new String(passwordField.getPassword()),
+                    type
+                );
+  
                 JOptionPane.showMessageDialog(this, "Account Created Successfully!", 
                                             "Success", JOptionPane.INFORMATION_MESSAGE);
                 navToLogin();
@@ -321,15 +356,33 @@ public class CreateAccountPage extends JFrame {
         main.add(signUpButton);
         main.add(Box.createRigidArea(new Dimension(0, 40)));
     }
-    
+
     private void navToLogin() {
         dispose();
         SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
     }
-    
+
     private boolean validateForm() {
         boolean valid = true;
-        
+
+        if (!validator.isNameValid(firstNameField.getText())) {
+            valid = false;
+            firstNameField.setBorder(errorBorder);
+            firstNameErrorLabel.setText("First name is required.");
+        } else {
+            firstNameField.setBorder(defaultBorder);
+            firstNameErrorLabel.setText(" ");
+        }
+
+        if (!validator.isNameValid(lastNameField.getText())) {
+            valid = false;
+            lastNameField.setBorder(errorBorder);
+            lastNameErrorLabel.setText("Last name is required.");
+        } else {
+            lastNameField.setBorder(defaultBorder);
+            lastNameErrorLabel.setText(" ");
+        }
+
         if (!validator.isEmailValid(emailField.getText())) {
             valid = false;
             emailField.setBorder(errorBorder);
@@ -356,6 +409,16 @@ public class CreateAccountPage extends JFrame {
             usernameErrorLabel.setText(" ");
         }
         
+        String phone = phoneNumberField.getText();
+        if (!phone.trim().isEmpty() && !validator.isPhoneNumberValid(phone)) {
+            valid = false;
+            phoneNumberField.setBorder(errorBorder);
+            phoneNumberErrorLabel.setText("Invalid format. Please use a format like (123) 456-7890.");
+        } else {
+            phoneNumberField.setBorder(defaultBorder);
+            phoneNumberErrorLabel.setText(" ");
+        }
+
         String pwd = new String(passwordField.getPassword());
         boolean len = validator.hasValidLength(pwd);
         boolean cas = validator.hasCaseVariety(pwd);

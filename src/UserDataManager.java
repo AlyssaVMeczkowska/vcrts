@@ -19,7 +19,6 @@ public class UserDataManager {
         loadUsersFromFile();
     }
 
-    // Parsing File
     private void loadUsersFromFile() {
         File file = new File(FILE_PATH);
         if (!file.exists()) {
@@ -31,17 +30,19 @@ public class UserDataManager {
             Map<String, String> userData = new HashMap<>();
             while ((line = reader.readLine()) != null) {
                 if (line.equals("---")) {
-                    // This is the end of a user record. Create the User object.
                     if (!userData.isEmpty()) {
                         User user = new User(
+                                userData.get("first_name"),
+                                userData.get("last_name"),
                                 userData.get("email"),
                                 userData.get("username"),
+                                userData.get("phone_number"),
                                 userData.get("password_hash"),
                                 userData.get("account_type"),
                                 userData.get("timestamp")
                         );
                         users.add(user);
-                        userData.clear(); // Reset for the next user
+                        userData.clear();
                     }
                 } else {
                     String[] parts = line.split(": ", 2);
@@ -55,7 +56,6 @@ public class UserDataManager {
         }
     }
 
-    // Writing File
     private void saveUsersToFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (User user : users) {
@@ -63,9 +63,15 @@ public class UserDataManager {
                 writer.newLine();
                 writer.write("account_type: " + user.getAccountType());
                 writer.newLine();
+                writer.write("first_name: " + user.getFirstName());
+                writer.newLine();
+                writer.write("last_name: " + user.getLastName());
+                writer.newLine();
                 writer.write("email: " + user.getEmail());
                 writer.newLine();
                 writer.write("username: " + user.getUsername());
+                writer.newLine();
+                writer.write("phone_number: " + user.getPhoneNumber());
                 writer.newLine();
                 writer.write("password_hash: " + user.getHashedPassword());
                 writer.newLine();
@@ -103,11 +109,11 @@ public class UserDataManager {
         return users.stream().anyMatch(user -> user.getUsername().equalsIgnoreCase(username));
     }
 
-    public void addUser(String email, String username, String password, String accountType) {
+    public void addUser(String firstName, String lastName, String email, String username, String phoneNumber, String password, String accountType) {
         String hashedPassword = hashPassword(password);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         
-        User newUser = new User(email, username, hashedPassword, accountType, timestamp);
+        User newUser = new User(firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp);
         this.users.add(newUser);
         saveUsersToFile();
     }
@@ -117,7 +123,6 @@ public class UserDataManager {
         Optional<User> foundUser = users.stream()
                 .filter(user -> user.getUsername().equalsIgnoreCase(usernameOrEmail) || user.getEmail().equalsIgnoreCase(usernameOrEmail))
                 .findFirst();
-
         return foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword);
     }
 }
