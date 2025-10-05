@@ -14,7 +14,6 @@ public class ClientDashboard extends JFrame {
     private JComboBox<String> jobTypeCombo;
     private JTextField durationField;
     private JTextField deadlineField;
-    private JTextField otherJobTypeField;
     private JTextArea descriptionArea;
     private DefaultTableModel tableModel;
     private int jobCounter = 1;
@@ -105,135 +104,99 @@ public class ClientDashboard extends JFrame {
             }
         };
 
-        // --- FIRST ROW: Job Type and Duration ---
-        JPanel firstRowPanel = new JPanel(new GridLayout(1, 2, 20, 0));
-        firstRowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
-        firstRowPanel.setBackground(Color.WHITE);
+        // --- Job Type Row ---
+        JPanel jobTypeRow = new JPanel(new BorderLayout(10, 0));
+        jobTypeRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        jobTypeRow.setBackground(Color.WHITE);
 
-        // Job Type Column
-        JPanel jobTypeColumn = new JPanel();
-        jobTypeColumn.setLayout(new BoxLayout(jobTypeColumn, BoxLayout.Y_AXIS));
-        jobTypeColumn.setBackground(Color.WHITE);
-        
         JLabel jobTypeLabel = new JLabel("Job Type:");
         jobTypeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        jobTypeLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        jobTypeColumn.add(jobTypeLabel);
-        jobTypeColumn.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+        jobTypeLabel.setPreferredSize(new Dimension(120, 20));
+        jobTypeRow.add(jobTypeLabel, BorderLayout.WEST);
+
         String[] jobTypes = {
             "Data Storage & Transfer",
             "Computational Task",
             "Simulation",
             "Networking & Communication",
             "Real-Time Processing",
-            "Batch Processing",
-            "Other"
+            "Batch Processing"
         };
         jobTypeCombo = new JComboBox<>(jobTypes);
         jobTypeCombo.setFont(new Font("Arial", Font.PLAIN, 14));
         jobTypeCombo.setBackground(Color.WHITE);
-        jobTypeCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
-        jobTypeCombo.setAlignmentX(Component.LEFT_ALIGNMENT);
-        jobTypeColumn.add(jobTypeCombo);
-        
-        firstRowPanel.add(jobTypeColumn);
+        jobTypeCombo.setPreferredSize(new Dimension(250, 20));
+        jobTypeRow.add(jobTypeCombo, BorderLayout.CENTER);
 
-        // Duration Column
-        JPanel durationColumn = new JPanel();
-        durationColumn.setLayout(new BoxLayout(durationColumn, BoxLayout.Y_AXIS));
-        durationColumn.setBackground(Color.WHITE);
-        
+        mainPanel.add(jobTypeRow);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+
+        // --- Duration Row ---
+        JPanel durationRow = new JPanel(new BorderLayout(10, 0));
+        durationRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        durationRow.setBackground(Color.WHITE);
+
         JLabel durationLabel = new JLabel("Duration:");
         durationLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        durationLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        durationColumn.add(durationLabel);
-        durationColumn.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+        durationLabel.setPreferredSize(new Dimension(120, 20));
+        durationRow.add(durationLabel, BorderLayout.WEST);
+
         durationField = new JTextField();
         durationField.setFont(new Font("Arial", Font.PLAIN, 14));
         durationField.setBorder(defaultBorder);
-        durationField.setPreferredSize(new Dimension(250, 35));
-        durationField.setMaximumSize(new Dimension(250, 35));
+        durationField.setPreferredSize(new Dimension(250, 20));
         durationField.addFocusListener(highlightListener);
-        durationField.setAlignmentX(Component.LEFT_ALIGNMENT);
-        durationColumn.add(durationField);
-        
-        firstRowPanel.add(durationColumn);
-        
-        mainPanel.add(firstRowPanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        durationRow.add(durationField, BorderLayout.CENTER);
 
-        // --- SECOND ROW: If Other and Deadline ---
-        JPanel secondRowPanel = new JPanel(new GridLayout(1, 2, 20, 0));
-        secondRowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 75));
-        secondRowPanel.setBackground(Color.WHITE);
+        mainPanel.add(durationRow);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        // Other Job Type Column
-        JPanel otherColumn = new JPanel();
-        otherColumn.setLayout(new BoxLayout(otherColumn, BoxLayout.Y_AXIS));
-        otherColumn.setBackground(Color.WHITE);
-        
-        JLabel otherLabel = new JLabel("If \"Other\", please specify:");
-        otherLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        otherLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        otherColumn.add(otherLabel);
-        otherColumn.add(Box.createRigidArea(new Dimension(0, 8)));
-        
-        otherJobTypeField = new JTextField();
-        otherJobTypeField.setFont(new Font("Arial", Font.PLAIN, 14));
-        otherJobTypeField.setBorder(defaultBorder);
-        otherJobTypeField.setPreferredSize(new Dimension(250, 35));
-        otherJobTypeField.setMaximumSize(new Dimension(250, 35));
-        otherJobTypeField.addFocusListener(highlightListener);
-        otherJobTypeField.setAlignmentX(Component.LEFT_ALIGNMENT);
-        otherColumn.add(otherJobTypeField);
-        
-        secondRowPanel.add(otherColumn);
+        // --- Deadline Row ---
+        JPanel deadlineRow = new JPanel(new BorderLayout(10, 0));
+        deadlineRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        deadlineRow.setBackground(Color.WHITE);
 
-        // Deadline Column
-        JPanel deadlineColumn = new JPanel();
-        deadlineColumn.setLayout(new BoxLayout(deadlineColumn, BoxLayout.Y_AXIS));
-        deadlineColumn.setBackground(Color.WHITE);
-        
         JLabel deadlineLabel = new JLabel("Deadline:");
         deadlineLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        deadlineLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
-        deadlineColumn.add(deadlineLabel);
-        deadlineColumn.add(Box.createRigidArea(new Dimension(0, 8)));
-        
+        deadlineLabel.setPreferredSize(new Dimension(120, 20));
+        deadlineRow.add(deadlineLabel, BorderLayout.WEST);
+
         deadlineField = new JTextField();
         deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
         deadlineField.setBorder(defaultBorder);
-        deadlineField.setPreferredSize(new Dimension(250, 35));
-        deadlineField.setMaximumSize(new Dimension(250, 35));
+        deadlineField.setPreferredSize(new Dimension(250, 20));
         deadlineField.addFocusListener(highlightListener);
-        deadlineField.setAlignmentX(Component.LEFT_ALIGNMENT);
-        deadlineColumn.add(deadlineField);
-        
-        secondRowPanel.add(deadlineColumn);
-        
-        mainPanel.add(secondRowPanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        deadlineRow.add(deadlineField, BorderLayout.CENTER);
 
-        // --- Job Description ---
-        JPanel descriptionLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        descriptionLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
-        descriptionLabelPanel.setBackground(Color.WHITE);
+        mainPanel.add(deadlineRow);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+
+        // --- Job Description Row ---
+        JPanel descriptionRow = new JPanel(new BorderLayout(10, 0));
+        descriptionRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+        descriptionRow.setBackground(Color.WHITE);
+
         JLabel descriptionLabel = new JLabel("Job Description:");
         descriptionLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        descriptionLabelPanel.add(descriptionLabel);
-        mainPanel.add(descriptionLabelPanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+        descriptionLabel.setPreferredSize(new Dimension(120, 20));
+        descriptionLabel.setVerticalAlignment(SwingConstants.TOP); // top-left align
+        descriptionRow.add(descriptionLabel, BorderLayout.WEST);
 
         descriptionArea = new JTextArea(5, 20);
         descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
-        descriptionArea.setBorder(defaultBorder);
         descriptionArea.addFocusListener(highlightListener);
-        descriptionArea.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-        mainPanel.add(descriptionArea);
+
+        // Only scroll pane gets border (prevents double border)
+        descriptionArea.setBorder(null);
+        JScrollPane scrollPane = new JScrollPane(descriptionArea);
+        scrollPane.setPreferredSize(new Dimension(400, 80));
+        scrollPane.setBorder(defaultBorder);
+
+        descriptionRow.add(scrollPane, BorderLayout.CENTER);
+
+        mainPanel.add(descriptionRow);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
 
         // Submit Button
@@ -262,16 +225,6 @@ public class ClientDashboard extends JFrame {
 
     private void submitJob() {
         String jobType = (String) jobTypeCombo.getSelectedItem();
-        
-        // If "Other" is selected, use the custom input
-        if ("Other".equals(jobType)) {
-            String customJobType = otherJobTypeField.getText().trim();
-            if (customJobType.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please specify the job type!");
-                return;
-            }
-            jobType = customJobType;
-        }
         
         String duration = durationField.getText().trim();
         String deadline = deadlineField.getText().trim();
@@ -321,7 +274,6 @@ public class ClientDashboard extends JFrame {
         }
 
         jobTypeCombo.setSelectedIndex(0);
-        otherJobTypeField.setText("");
         durationField.setText("");
         deadlineField.setText("");
         descriptionArea.setText("");
