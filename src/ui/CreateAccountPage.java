@@ -1,3 +1,6 @@
+package ui;
+
+import data.UserDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -10,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.Border;
+import validation.UserValidator;
 
 public class CreateAccountPage extends JFrame {
     private PlaceholderTextField firstNameField, lastNameField, emailField, usernameField, phoneNumberField;
@@ -457,10 +461,6 @@ public class CreateAccountPage extends JFrame {
         return valid;
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new CreateAccountPage().setVisible(true));
-    }
-
     private static class PlaceholderTextField extends JTextField {
         private String placeholder;
         public PlaceholderTextField(String placeholder) { this.placeholder = placeholder; }
@@ -489,5 +489,12 @@ public class CreateAccountPage extends JFrame {
             FontMetrics fm = g2.getFontMetrics();
             g2.drawString(placeholder, getInsets().left + 5, (getHeight() - fm.getHeight()) / 2 + fm.getAscent());
         }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            CreateAccountPage createAccountPage = new CreateAccountPage();
+            createAccountPage.setVisible(true);
+        });
     }
 }

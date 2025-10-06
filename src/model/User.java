@@ -1,3 +1,5 @@
+package model;
+
 public class User {
     private String firstName;
     private String lastName;
@@ -20,18 +22,11 @@ public class User {
     }
 
     public String getFirstName() { return firstName; }
-
     public String getLastName() { return lastName; }
-
     public String getEmail() { return email; }
-
     public String getUsername() { return username; }
-
     public String getPhoneNumber() { return phoneNumber; }
-
     public String getHashedPassword() { return hashedPassword; }
-
     public String getAccountType() { return accountType; }
-
     public String getCreationTimestamp() { return creationTimestamp; }
 }
