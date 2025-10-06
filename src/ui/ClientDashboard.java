@@ -4,6 +4,8 @@ import data.JobDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.swing.*;
 import javax.swing.border.Border;
 import model.Job;
@@ -121,7 +123,7 @@ public class ClientDashboard extends JFrame {
         jobTypeRow.setBackground(Color.WHITE);
         JLabel jobTypeLabel = new JLabel("<html>Job Type: <font color='red'>*</font></html>");
         jobTypeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        jobTypeLabel.setPreferredSize(new Dimension(120, 20));
+        jobTypeLabel.setPreferredSize(new Dimension(150, 20));
         jobTypeRow.add(jobTypeLabel, BorderLayout.WEST);
 
         String[] jobTypes = {
@@ -142,7 +144,7 @@ public class ClientDashboard extends JFrame {
         durationRow.setBackground(Color.WHITE);
         JLabel durationLabel = new JLabel("<html>Duration (Hours): <font color='red'>*</font></html>");
         durationLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        durationLabel.setPreferredSize(new Dimension(120, 20));
+        durationLabel.setPreferredSize(new Dimension(150, 20));
         durationRow.add(durationLabel, BorderLayout.WEST);
 
         durationField = new JTextField();
@@ -157,7 +159,7 @@ public class ClientDashboard extends JFrame {
         durationContainer.setLayout(new BoxLayout(durationContainer, BoxLayout.Y_AXIS));
         durationContainer.setBackground(Color.WHITE);
         durationContainer.add(durationRow);
-        durationContainer.add(createErrorPanel(durationErrorLabel, 130));
+        durationContainer.add(createErrorPanel(durationErrorLabel, 160));
         
         mainPanel.add(durationContainer);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
@@ -168,14 +170,23 @@ public class ClientDashboard extends JFrame {
         deadlineRow.setBackground(Color.WHITE);
         JLabel deadlineLabel = new JLabel("<html>Deadline: <font color='red'>*</font></html>");
         deadlineLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        deadlineLabel.setPreferredSize(new Dimension(120, 20));
+        deadlineLabel.setPreferredSize(new Dimension(150, 20));
         deadlineRow.add(deadlineLabel, BorderLayout.WEST);
 
         deadlineField = new JTextField();
         deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
         deadlineField.setBorder(defaultBorder);
         deadlineField.setPreferredSize(new Dimension(250, 20));
-        deadlineField.addFocusListener(highlightListener);
+        deadlineField.setEditable(false);
+        deadlineField.setBackground(Color.WHITE); // <<< FIX: Set background to white
+        deadlineField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        deadlineField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                showCalendar(deadlineField, true, null);
+            }
+        });
+        
         deadlineRow.add(deadlineField, BorderLayout.CENTER);
         
         deadlineErrorLabel = new JLabel(" ");
@@ -183,7 +194,7 @@ public class ClientDashboard extends JFrame {
         deadlineContainer.setLayout(new BoxLayout(deadlineContainer, BoxLayout.Y_AXIS));
         deadlineContainer.setBackground(Color.WHITE);
         deadlineContainer.add(deadlineRow);
-        deadlineContainer.add(createErrorPanel(deadlineErrorLabel, 130));
+        deadlineContainer.add(createErrorPanel(deadlineErrorLabel, 160));
 
         mainPanel.add(deadlineContainer);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
@@ -194,7 +205,7 @@ public class ClientDashboard extends JFrame {
         descriptionRow.setBackground(Color.WHITE);
         JLabel descriptionLabel = new JLabel("Job Description:");
         descriptionLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        descriptionLabel.setPreferredSize(new Dimension(120, 20));
+        descriptionLabel.setPreferredSize(new Dimension(150, 20));
         descriptionLabel.setVerticalAlignment(SwingConstants.TOP);
         descriptionRow.add(descriptionLabel, BorderLayout.WEST);
 
@@ -225,7 +236,7 @@ public class ClientDashboard extends JFrame {
         descriptionContainer.setLayout(new BoxLayout(descriptionContainer, BoxLayout.Y_AXIS));
         descriptionContainer.setBackground(Color.WHITE);
         descriptionContainer.add(descriptionRow);
-        descriptionContainer.add(createErrorPanel(descriptionErrorLabel, 130));
+        descriptionContainer.add(createErrorPanel(descriptionErrorLabel, 160));
 
         mainPanel.add(descriptionContainer);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
@@ -262,6 +273,20 @@ public class ClientDashboard extends JFrame {
         return errorPanel;
     }
 
+    private void showCalendar(JTextField targetField, boolean restrictToFuture, Date minSelectableDate) {
+        CalendarDialog calendarDialog = new CalendarDialog(this, restrictToFuture, minSelectableDate);
+        calendarDialog.setLocationRelativeTo(targetField);
+        calendarDialog.setVisible(true);
+        if (calendarDialog.getSelectedDate() != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            targetField.setText(dateFormat.format(calendarDialog.getSelectedDate()));
+            targetField.setBorder(defaultBorder);
+            if (targetField == deadlineField) {
+                deadlineErrorLabel.setText(" ");
+            }
+        }
+    }
+
     private boolean validateForm() {
         boolean isValid = true;
         durationField.setBorder(defaultBorder);
@@ -280,22 +305,17 @@ public class ClientDashboard extends JFrame {
             durationErrorLabel.setText("Duration must be a positive number.");
             isValid = false;
         }
-        if (!validator.isDeadlineValid(deadlineField.getText())) {
+        
+        if (deadlineField.getText().isEmpty()) {
             deadlineField.setBorder(errorBorder);
-            deadlineErrorLabel.setText("Deadline must be a valid date (yyyy-MM-dd).");
+            deadlineErrorLabel.setText("Deadline date is required.");
+            isValid = false;
+        } else if (!validator.isDeadlineInFuture(deadlineField.getText())) {
+            deadlineField.setBorder(errorBorder);
+            deadlineErrorLabel.setText("Deadline cannot be in the past.");
             isValid = false;
         }
         
-        // Validation for description field if needed
-        /*
-        if (!validator.isFieldValid(descriptionArea.getText())) {
-            if (scrollPane != null) {
-                scrollPane.setBorder(errorBorder);
-            }
-            descriptionErrorLabel.setText("Description cannot be empty.");
-            isValid = false;
-        }
-        */
         return isValid;
     }
 
