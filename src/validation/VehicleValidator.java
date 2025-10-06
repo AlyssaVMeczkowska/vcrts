@@ -1,3 +1,5 @@
+package validation;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Year;
@@ -15,10 +17,10 @@ public class VehicleValidator {
         }
         try {
             int year = Integer.parseInt(yearStr.trim());
-            int maxYear = Year.now().getValue() + 5; // Get current year and add 5
+            int maxYear = Year.now().getValue() + 5;
             return year >= 1900 && year <= maxYear;
         } catch (NumberFormatException e) {
-            return false; // Not a valid number
+            return false;
         }
     }
 

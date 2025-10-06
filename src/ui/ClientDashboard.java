@@ -1,3 +1,5 @@
+package ui;
+
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -277,12 +279,5 @@ public class ClientDashboard extends JFrame {
         durationField.setText("");
         deadlineField.setText("");
         descriptionArea.setText("");
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            ClientDashboard dashboard = new ClientDashboard();
-            dashboard.setVisible(true);
-        });
     }
 }

@@ -1,3 +1,7 @@
+package data;
+
+import model.User; // Import the User model
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

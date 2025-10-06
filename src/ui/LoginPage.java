@@ -1,3 +1,7 @@
+package ui;
+
+import data.UserDataManager;
+
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -201,13 +205,6 @@ public class LoginPage extends JFrame {
         });
 
         mainPanel.add(loginButton);
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            LoginPage frame = new LoginPage();
-            frame.setVisible(true);
-        });
     }
 
     private static class PlaceholderTextField extends JTextField {

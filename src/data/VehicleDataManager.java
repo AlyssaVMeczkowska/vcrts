@@ -1,3 +1,7 @@
+package data;
+
+import model.Vehicle; // Import the Vehicle model
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -5,7 +9,7 @@ import java.io.IOException;
 public class VehicleDataManager {
 
     private static final String FILE_PATH = "owners_data.txt";
-    
+
     public boolean addVehicle(Vehicle vehicle) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
             writer.write("timestamp: " + vehicle.getSubmissionTimestamp());

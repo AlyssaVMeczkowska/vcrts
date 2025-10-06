@@ -1,3 +1,9 @@
+package ui;
+
+import data.VehicleDataManager;
+import model.Vehicle;
+import validation.VehicleValidator;
+
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -107,6 +113,7 @@ public class OwnerDashboard extends JFrame {
             }
         };
 
+        // UI Component Initialization
         JPanel firstRowPanel = new JPanel(new GridLayout(1, 3, 20, 0));
         firstRowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         firstRowPanel.setBackground(Color.WHITE);
@@ -121,7 +128,6 @@ public class OwnerDashboard extends JFrame {
         firstRowPanel.add(createColumn("Vehicle Year:", vehicleYearField, vehicleYearErrorLabel, highlightListener));
         mainPanel.add(firstRowPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
         JLabel powerLabel = new JLabel("Computing Power Level:");
         powerLabel.setFont(new Font("Arial", Font.BOLD, 14));
         powerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -134,7 +140,6 @@ public class OwnerDashboard extends JFrame {
         computingPowerCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         mainPanel.add(computingPowerCombo);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
         JPanel dateRow = new JPanel(new GridLayout(1, 2, 20, 0));
         dateRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         dateRow.setBackground(Color.WHITE);
@@ -146,7 +151,6 @@ public class OwnerDashboard extends JFrame {
         dateRow.add(createColumn("Residency End Date:", residencyEndField, residencyEndErrorLabel, highlightListener));
         mainPanel.add(dateRow);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
         JButton submitButton = new JButton("Submit Vehicle");
         submitButton.setFont(new Font("Arial", Font.PLAIN, 16));
         submitButton.setForeground(Color.WHITE);
@@ -297,36 +301,24 @@ public class OwnerDashboard extends JFrame {
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
         
-        // Ensure placeholder text re-appears
         repaint();
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new OwnerDashboard().setVisible(true));
-    }
-    
     private static class PlaceholderTextField extends JTextField {
         private String placeholder;
-
-        public PlaceholderTextField(String placeholder) {
-            this.placeholder = placeholder;
-        }
-
+        public PlaceholderTextField(String placeholder) { this.placeholder = placeholder; }
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) {
                 return;
             }
-
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2.setColor(new Color(150, 150, 150)); // Gray color for placeholder
-
+            g2.setColor(new Color(150, 150, 150));
             FontMetrics fm = g2.getFontMetrics();
             int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
             g2.drawString(placeholder, getInsets().left + 5, y);
         }
     }
 }
-

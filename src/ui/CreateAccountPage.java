@@ -1,3 +1,8 @@
+package ui;
+
+import data.UserDataManager;
+import validation.UserValidator;
+
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -455,10 +460,6 @@ public class CreateAccountPage extends JFrame {
         }
 
         return valid;
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new CreateAccountPage().setVisible(true));
     }
 
     private static class PlaceholderTextField extends JTextField {
