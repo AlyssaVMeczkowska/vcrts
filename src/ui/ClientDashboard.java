@@ -17,7 +17,6 @@ public class ClientDashboard extends JFrame {
 
     private final JobDataManager dataManager = new JobDataManager();
     private final JobValidator validator = new JobValidator();
-
     private JLabel durationErrorLabel, deadlineErrorLabel, descriptionErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
 
@@ -26,7 +25,6 @@ public class ClientDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
-
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
@@ -121,10 +119,11 @@ public class ClientDashboard extends JFrame {
         JPanel jobTypeRow = new JPanel(new BorderLayout(10, 0));
         jobTypeRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         jobTypeRow.setBackground(Color.WHITE);
-        JLabel jobTypeLabel = new JLabel("Job Type:");
+        JLabel jobTypeLabel = new JLabel("<html>Job Type: <font color='red'>*</font></html>");
         jobTypeLabel.setFont(new Font("Arial", Font.BOLD, 14));
         jobTypeLabel.setPreferredSize(new Dimension(120, 20));
         jobTypeRow.add(jobTypeLabel, BorderLayout.WEST);
+
         String[] jobTypes = {
             "Data Storage & Transfer", "Computational Task", "Simulation",
             "Networking & Communication", "Real-Time Processing", "Batch Processing"
@@ -141,10 +140,11 @@ public class ClientDashboard extends JFrame {
         JPanel durationRow = new JPanel(new BorderLayout(10, 0));
         durationRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         durationRow.setBackground(Color.WHITE);
-        JLabel durationLabel = new JLabel("Duration (Hours):");
+        JLabel durationLabel = new JLabel("<html>Duration (Hours): <font color='red'>*</font></html>");
         durationLabel.setFont(new Font("Arial", Font.BOLD, 14));
         durationLabel.setPreferredSize(new Dimension(120, 20));
         durationRow.add(durationLabel, BorderLayout.WEST);
+
         durationField = new JTextField();
         durationField.setFont(new Font("Arial", Font.PLAIN, 14));
         durationField.setBorder(defaultBorder);
@@ -166,10 +166,11 @@ public class ClientDashboard extends JFrame {
         JPanel deadlineRow = new JPanel(new BorderLayout(10, 0));
         deadlineRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         deadlineRow.setBackground(Color.WHITE);
-        JLabel deadlineLabel = new JLabel("Deadline:");
+        JLabel deadlineLabel = new JLabel("<html>Deadline: <font color='red'>*</font></html>");
         deadlineLabel.setFont(new Font("Arial", Font.BOLD, 14));
         deadlineLabel.setPreferredSize(new Dimension(120, 20));
         deadlineRow.add(deadlineLabel, BorderLayout.WEST);
+
         deadlineField = new JTextField();
         deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
         deadlineField.setBorder(defaultBorder);
@@ -196,6 +197,7 @@ public class ClientDashboard extends JFrame {
         descriptionLabel.setPreferredSize(new Dimension(120, 20));
         descriptionLabel.setVerticalAlignment(SwingConstants.TOP);
         descriptionRow.add(descriptionLabel, BorderLayout.WEST);
+
         descriptionArea = new JTextArea(5, 20);
         descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
         descriptionArea.setLineWrap(true);
@@ -238,6 +240,7 @@ public class ClientDashboard extends JFrame {
         submitButton.setFocusPainted(false);
         submitButton.setBorderPainted(false);
         submitButton.setOpaque(true);
+
         Color defaultColor = new Color(44, 116, 132);
         Color hoverColor = new Color(37, 94, 106);
         submitButton.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -261,13 +264,13 @@ public class ClientDashboard extends JFrame {
 
     private boolean validateForm() {
         boolean isValid = true;
-        
         durationField.setBorder(defaultBorder);
         deadlineField.setBorder(defaultBorder);
         JScrollPane scrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, descriptionArea);
         if (scrollPane != null) {
             scrollPane.setBorder(defaultBorder);
         }
+
         durationErrorLabel.setText(" ");
         deadlineErrorLabel.setText(" ");
         descriptionErrorLabel.setText(" ");
@@ -282,6 +285,9 @@ public class ClientDashboard extends JFrame {
             deadlineErrorLabel.setText("Deadline must be a valid date (yyyy-MM-dd).");
             isValid = false;
         }
+        
+        // Validation for description field if needed
+        /*
         if (!validator.isFieldValid(descriptionArea.getText())) {
             if (scrollPane != null) {
                 scrollPane.setBorder(errorBorder);
@@ -289,6 +295,7 @@ public class ClientDashboard extends JFrame {
             descriptionErrorLabel.setText("Description cannot be empty.");
             isValid = false;
         }
+        */
         return isValid;
     }
 
@@ -308,7 +315,7 @@ public class ClientDashboard extends JFrame {
             deadline.trim(),
             description.trim()
         );
-        
+
         if (dataManager.addJob(job)) {
             JOptionPane.showMessageDialog(this, "Job submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearForm();

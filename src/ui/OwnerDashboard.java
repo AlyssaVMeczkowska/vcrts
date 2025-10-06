@@ -29,7 +29,6 @@ public class OwnerDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
-
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
@@ -97,6 +96,7 @@ public class OwnerDashboard extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
+
         FocusAdapter highlightListener = new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -127,11 +127,13 @@ public class OwnerDashboard extends JFrame {
         firstRowPanel.add(createColumn("Vehicle Year:", vehicleYearField, vehicleYearErrorLabel, highlightListener));
         mainPanel.add(firstRowPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        JLabel powerLabel = new JLabel("Computing Power Level:");
+
+        JLabel powerLabel = new JLabel("<html>Computing Power Level: <font color='red'>*</font></html>");
         powerLabel.setFont(new Font("Arial", Font.BOLD, 14));
         powerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(powerLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+
         String[] powerLevels = { "Low", "Medium", "High" };
         computingPowerCombo = new JComboBox<>(powerLevels);
         computingPowerCombo.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -139,6 +141,7 @@ public class OwnerDashboard extends JFrame {
         computingPowerCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
         mainPanel.add(computingPowerCombo);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
         JPanel dateRow = new JPanel(new GridLayout(1, 2, 20, 0));
         dateRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         dateRow.setBackground(Color.WHITE);
@@ -150,6 +153,7 @@ public class OwnerDashboard extends JFrame {
         dateRow.add(createColumn("Residency End Date:", residencyEndField, residencyEndErrorLabel, highlightListener));
         mainPanel.add(dateRow);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+
         JButton submitButton = new JButton("Submit Vehicle");
         submitButton.setFont(new Font("Arial", Font.PLAIN, 16));
         submitButton.setForeground(Color.WHITE);
@@ -173,7 +177,7 @@ public class OwnerDashboard extends JFrame {
         JPanel column = new JPanel();
         column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
         column.setBackground(Color.WHITE);
-        JLabel label = new JLabel(labelText);
+        JLabel label = new JLabel("<html>" + labelText + " <font color='red'>*</font></html>");
         label.setFont(new Font("Arial", Font.BOLD, 14));
         label.setAlignmentX(Component.CENTER_ALIGNMENT);
         field.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -269,9 +273,8 @@ public class OwnerDashboard extends JFrame {
                 Integer.parseInt(vehicleYearField.getText().trim()),
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
-                residencyEndField.getText().trim()
+                 residencyEndField.getText().trim()
         );
-
         if (dataManager.addVehicle(vehicle)) {
             JOptionPane.showMessageDialog(this, "Vehicle availability submitted successfully!");
             clearForm();
@@ -299,7 +302,6 @@ public class OwnerDashboard extends JFrame {
         vehicleYearErrorLabel.setText(" ");
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
-        
         repaint();
     }
 
