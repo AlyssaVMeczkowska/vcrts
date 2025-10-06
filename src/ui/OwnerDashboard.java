@@ -1,15 +1,14 @@
 package ui;
 
 import data.VehicleDataManager;
-import model.Vehicle;
-import validation.VehicleValidator;
-
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.time.Year;
 import javax.swing.*;
 import javax.swing.border.Border;
+import model.Vehicle;
+import validation.VehicleValidator;
 
 public class OwnerDashboard extends JFrame {
     private PlaceholderTextField vehicleMakeField;
@@ -320,5 +319,12 @@ public class OwnerDashboard extends JFrame {
             int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
             g2.drawString(placeholder, getInsets().left + 5, y);
         }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            OwnerDashboard dashboard = new OwnerDashboard();
+            dashboard.setVisible(true);
+        });
     }
 }

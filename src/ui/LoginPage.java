@@ -1,8 +1,7 @@
 package ui;
 
 import data.UserDataManager;
-
-import java.awt.*;
+import java.awt.*; // Import the User model
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
@@ -12,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.Border;
+import model.User;
 
 public class LoginPage extends JFrame {
     private PlaceholderTextField usernameField;
@@ -186,18 +186,33 @@ public class LoginPage extends JFrame {
                 loginButton.setBackground(defaultColor);
             }
         });
-        
+
         loginButton.addActionListener(e -> {
             String usernameOrEmail = usernameField.getText();
             String password = new String(passwordField.getPassword());
 
+            // Reset previous errors
             usernameField.setBorder(defaultBorder);
             passwordField.setBorder(defaultBorder);
             loginErrorLabel.setText(" ");
 
-            if (userDataManager.verifyUser(usernameOrEmail, password)) {
-                JOptionPane.showMessageDialog(this, "Login Successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+            // Verify user and get the User object back
+            User loggedInUser = userDataManager.verifyUser(usernameOrEmail, password);
+
+            if (loggedInUser != null) {
+                String accountType = loggedInUser.getAccountType();
+                dispose();
+
+                if ("Owner".equals(accountType)) {
+                    SwingUtilities.invokeLater(() -> new OwnerDashboard().setVisible(true));
+                } else if ("Client".equals(accountType)) {
+                    SwingUtilities.invokeLater(() -> new ClientDashboard().setVisible(true));
+                } else {
+                    // Fallback for an unknown account type
+                    JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);
+                }
             } else {
+                // Login failed, show error message
                 loginErrorLabel.setText("Invalid username/email or password.");
                 usernameField.setBorder(errorBorder);
                 passwordField.setBorder(errorBorder);
@@ -207,19 +222,20 @@ public class LoginPage extends JFrame {
         mainPanel.add(loginButton);
     }
 
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            LoginPage frame = new LoginPage();
+            frame.setVisible(true);
+        });
+    }
+
     private static class PlaceholderTextField extends JTextField {
         private String placeholder;
-
-        public PlaceholderTextField(String placeholder) {
-            this.placeholder = placeholder;
-        }
-
+        public PlaceholderTextField(String placeholder) { this.placeholder = placeholder; }
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) {
-                return;
-            }
+            if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) return;
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(new Color(150, 150, 150));
@@ -231,17 +247,11 @@ public class LoginPage extends JFrame {
 
     private static class PlaceholderPasswordField extends JPasswordField {
         private String placeholder;
-
-        public PlaceholderPasswordField(String placeholder) {
-            this.placeholder = placeholder;
-        }
-
+        public PlaceholderPasswordField(String placeholder) { this.placeholder = placeholder; }
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
-            if (placeholder == null || placeholder.isEmpty() || getPassword().length > 0) {
-                return;
-            }
+            if (placeholder == null || placeholder.isEmpty() || getPassword().length > 0) return;
             Graphics2D g2 = (Graphics2D) g;
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(new Color(150, 150, 150));

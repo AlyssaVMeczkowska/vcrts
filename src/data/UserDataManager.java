@@ -1,7 +1,5 @@
 package data;
 
-import model.User; // Import the User model
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -13,9 +11,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import model.User;
 
 public class UserDataManager {
-    private static final String FILE_PATH = "user_database.txt";
+    private static final String FILE_PATH = "data/user_database.txt";
     private List<User> users;
 
     public UserDataManager() {
@@ -122,11 +121,17 @@ public class UserDataManager {
         saveUsersToFile();
     }
 
-    public boolean verifyUser(String usernameOrEmail, String password) {
+    public User verifyUser(String usernameOrEmail, String password) {
         String hashedPassword = hashPassword(password);
         Optional<User> foundUser = users.stream()
                 .filter(user -> user.getUsername().equalsIgnoreCase(usernameOrEmail) || user.getEmail().equalsIgnoreCase(usernameOrEmail))
                 .findFirst();
-        return foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword);
+
+        // Check if user exists and if the hashed password matches
+        if (foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword)) {
+            return foundUser.get(); // Return the full User object on success
+        }
+
+        return null; // Return null if user not found or password is incorrect
     }
 }
