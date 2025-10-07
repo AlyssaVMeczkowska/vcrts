@@ -10,6 +10,7 @@ import java.time.Year;
 import java.util.Date;
 import javax.swing.*;
 import javax.swing.border.Border;
+import model.User;
 import model.Vehicle;
 import validation.VehicleValidator;
 
@@ -25,11 +26,13 @@ public class OwnerDashboard extends JFrame {
 
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
+    private User currentUser;
 
     private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
 
-    public OwnerDashboard() {
+    public OwnerDashboard(User user) {
+        this.currentUser = user;
         setTitle("Owner Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
@@ -196,13 +199,11 @@ public class OwnerDashboard extends JFrame {
                 Date minEndDate = null;
                 if (!residencyStartField.getText().isEmpty()) {
                     try {
-                        // If start date is chosen, it becomes the minimum date for the end date.
                         minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
                     } catch (ParseException ex) {
                         System.err.println("Error parsing start date: " + ex.getMessage());
                     }
                 } else {
-                    // If no start date, the minimum date is today to prevent picking past dates.
                     minEndDate = new Date();
                 }
                 showCalendar(residencyEndField, false, minEndDate);
@@ -326,10 +327,19 @@ public class OwnerDashboard extends JFrame {
             licensePlateErrorLabel.setText("License plate is required.");
             licensePlateField.setBorder(errorBorder);
             isValid = false;
+        } else if (dataManager.isLicensePlateTaken(licensePlate)) {
+            licensePlateErrorLabel.setText("This license plate is already registered.");
+            licensePlateField.setBorder(errorBorder);
+            isValid = false;
         }
+
 
         if (!validator.isFieldValid(vin)) {
             vinNumberErrorLabel.setText("VIN number is required.");
+            vinNumberField.setBorder(errorBorder);
+            isValid = false;
+        } else if (dataManager.isVinTaken(vin)) {
+            vinNumberErrorLabel.setText("This VIN is already registered.");
             vinNumberField.setBorder(errorBorder);
             isValid = false;
         }
@@ -363,12 +373,15 @@ public class OwnerDashboard extends JFrame {
         }
 
         Vehicle vehicle = new Vehicle(
+                currentUser.getUserId(),
                 vehicleMakeField.getText().trim(),
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),
+                vinNumberField.getText().trim(),
+                licensePlateField.getText().trim(),
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
-                 residencyEndField.getText().trim()
+                residencyEndField.getText().trim()
         );
         if (dataManager.addVehicle(vehicle)) {
             JOptionPane.showMessageDialog(this, "Vehicle availability submitted successfully!");
@@ -447,14 +460,13 @@ public class OwnerDashboard extends JFrame {
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             
-            // Gradient from light (left) to dark (right)
             Color color1, color2;
             if (isHovered) {
-                color1 = new Color(60, 200, 220);  // Light cyan on left
-                color2 = new Color(20, 140, 160);  // Dark teal on right
+                color1 = new Color(60, 200, 220);
+                color2 = new Color(20, 140, 160);
             } else {
-                color1 = new Color(50, 170, 190);  // Light cyan on left
-                color2 = new Color(30, 110, 130);  // Dark teal on right
+                color1 = new Color(50, 170, 190);
+                color2 = new Color(30, 110, 130);
             }
             
             GradientPaint gradient = new GradientPaint(
@@ -471,8 +483,9 @@ public class OwnerDashboard extends JFrame {
     }
 
     public static void main(String[] args) {
+        User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp");
         SwingUtilities.invokeLater(() -> {
-            OwnerDashboard dashboard = new OwnerDashboard();
+            OwnerDashboard dashboard = new OwnerDashboard(testUser);
             dashboard.setVisible(true);
         });
     }
