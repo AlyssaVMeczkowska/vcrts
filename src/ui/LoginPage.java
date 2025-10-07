@@ -178,12 +178,10 @@ public class LoginPage extends JFrame {
             String usernameOrEmail = usernameField.getText();
             String password = new String(passwordField.getPassword());
 
-            // Reset previous errors
             usernameField.setBorder(defaultBorder);
             passwordField.setBorder(defaultBorder);
             loginErrorLabel.setText(" ");
 
-            // Verify user and get the User object back
             User loggedInUser = userDataManager.verifyUser(usernameOrEmail, password);
 
             if (loggedInUser != null) {
@@ -196,11 +194,9 @@ public class LoginPage extends JFrame {
   
                     SwingUtilities.invokeLater(() -> new JobSubmissionPage(loggedInUser).setVisible(true));
                 } else {
-                    // Fallback for an unknown account type
                     JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                // Login failed, show error message
                 loginErrorLabel.setText("Invalid username/email or password.");
                 usernameField.setBorder(errorBorder);
                 passwordField.setBorder(errorBorder);

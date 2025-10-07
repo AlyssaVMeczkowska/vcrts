@@ -1,3 +1,4 @@
+
 package ui;
 
 import data.VehicleDataManager;
@@ -10,6 +11,7 @@ import java.time.Year;
 import java.util.Date;
 import javax.swing.*;
 import javax.swing.border.Border;
+import model.User;
 import model.Vehicle;
 import validation.VehicleValidator;
 
@@ -24,19 +26,11 @@ public class VehicleSubmissionPage extends JFrame {
     private PlaceholderTextField residencyEndField;
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
-<<<<<<< HEAD:src/ui/OwnerDashboard.java
-
-    private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
-    private Border defaultBorder, focusBorder, errorBorder;
-
-    public OwnerDashboard() {
-=======
     private User currentUser;
     private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
     public VehicleSubmissionPage(User user) {
         this.currentUser = user;
->>>>>>> main:src/ui/VehicleSubmissionPage.java
         setTitle("Owner Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
@@ -204,22 +198,13 @@ public class VehicleSubmissionPage extends JFrame {
                 Date minEndDate = null;
                 if (!residencyStartField.getText().isEmpty()) {
                     try {
-<<<<<<< HEAD:src/ui/OwnerDashboard.java
-                        // If start date is chosen, it becomes the minimum date for the end date.
-=======
                 
->>>>>>> main:src/ui/VehicleSubmissionPage.java
                         minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
                     } catch (ParseException ex) {
                         System.err.println("Error parsing start date: " + ex.getMessage());
                     }
-<<<<<<< HEAD:src/ui/OwnerDashboard.java
-                } else {
-                    // If no start date, the minimum date is today to prevent picking past dates.
-=======
                
                  } else {
->>>>>>> main:src/ui/VehicleSubmissionPage.java
                     minEndDate = new Date();
                 }
                 showCalendar(residencyEndField, false, minEndDate);
@@ -341,10 +326,19 @@ public class VehicleSubmissionPage extends JFrame {
             licensePlateErrorLabel.setText("License plate is required.");
             licensePlateField.setBorder(errorBorder);
             isValid = false;
+        } else if (dataManager.isLicensePlateTaken(licensePlate)) {
+            licensePlateErrorLabel.setText("This license plate is already registered.");
+            licensePlateField.setBorder(errorBorder);
+            isValid = false;
         }
+
 
         if (!validator.isFieldValid(vin)) {
             vinNumberErrorLabel.setText("VIN number is required.");
+            vinNumberField.setBorder(errorBorder);
+            isValid = false;
+        } else if (dataManager.isVinTaken(vin)) {
+            vinNumberErrorLabel.setText("This VIN is already registered.");
             vinNumberField.setBorder(errorBorder);
             isValid = false;
         }
@@ -378,18 +372,16 @@ public class VehicleSubmissionPage extends JFrame {
         }
 
         Vehicle vehicle = new Vehicle(
+                currentUser.getUserId(),
                 vehicleMakeField.getText().trim(),
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),
-<<<<<<< HEAD:src/ui/OwnerDashboard.java
-=======
                 vinNumberField.getText().trim(),
         
                 licensePlateField.getText().trim(),
->>>>>>> main:src/ui/VehicleSubmissionPage.java
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
-                 residencyEndField.getText().trim()
+                residencyEndField.getText().trim()
         );
         if (dataManager.addVehicle(vehicle)) {
             CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
@@ -446,62 +438,10 @@ public class VehicleSubmissionPage extends JFrame {
         }
     }
 
-<<<<<<< HEAD:src/ui/OwnerDashboard.java
-    private static class GradientButton extends JButton {
-        private boolean isHovered = false;
-        
-        public GradientButton(String text) {
-            super(text);
-            setOpaque(false);
-            addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    isHovered = true;
-                    repaint();
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    isHovered = false;
-                    repaint();
-                }
-            });
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            // Gradient from light (left) to dark (right)
-            Color color1, color2;
-            if (isHovered) {
-                color1 = new Color(60, 200, 220);  // Light cyan on left
-                color2 = new Color(20, 140, 160);  // Dark teal on right
-            } else {
-                color1 = new Color(50, 170, 190);  // Light cyan on left
-                color2 = new Color(30, 110, 130);  // Dark teal on right
-            }
-            
-            GradientPaint gradient = new GradientPaint(
-                0, 0, color1,
-                getWidth(), 0, color2
-            );
-            
-            g2.setPaint(gradient);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
-            
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    }
-
-=======
->>>>>>> main:src/ui/VehicleSubmissionPage.java
     public static void main(String[] args) {
+        User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp");
         SwingUtilities.invokeLater(() -> {
-<<<<<<< HEAD:src/ui/OwnerDashboard.java
-            OwnerDashboard dashboard = new OwnerDashboard();
-=======
             VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
->>>>>>> main:src/ui/VehicleSubmissionPage.java
             dashboard.setVisible(true);
         });
     }
