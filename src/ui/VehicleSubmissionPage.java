@@ -1,3 +1,4 @@
+
 package ui;
 
 import data.VehicleDataManager;
@@ -393,7 +394,7 @@ public class VehicleSubmissionPage extends JFrame {
         );
         
         if (dataManager.addVehicle(vehicle)) {
-            ConsentForm dialog = new ConsentForm(this, "Success", "Vehicle submitted successfully!");
+            CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
             dialog.setVisible(true);
             clearForm();
         } else {
