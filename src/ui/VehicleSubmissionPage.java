@@ -370,37 +370,31 @@ public class VehicleSubmissionPage extends JFrame {
         if (!validateForm()) {
             return;
         }
-
-        //----------------------NEW--------------------------
-        // TEST FOR CONSENT FORM
-        ConsentForm consentForm = new ConsentForm(this);
-        consentForm.setVisible(true);
-
-        if (!consentForm.isConsentGiven()) {
-            return; 
-        }
-
         Vehicle vehicle = new Vehicle(
                 currentUser.getUserId(),
                 vehicleMakeField.getText().trim(),
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),
                 vinNumberField.getText().trim(),
-                
                 licensePlateField.getText().trim(),
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
                 residencyEndField.getText().trim()
         );
         
-        if (dataManager.addVehicle(vehicle)) {
-            CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
-            dialog.setVisible(true);
-            clearForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "Error writing to file. Please check console.", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+	    if (dataManager.addVehicle(vehicle)) {
+	        JOptionPane.showMessageDialog(this, 
+	            "Vehicle submitted successfully!", 
+	            "Success", 
+	            JOptionPane.INFORMATION_MESSAGE);
+	        clearForm();
+	    } else {
+	        JOptionPane.showMessageDialog(this, 
+	            "Error writing to file. Please check console.", 
+	            "Error", 
+	            JOptionPane.ERROR_MESSAGE);
+	    }
+	}
 
     private void clearForm() {
         vehicleMakeField.setText("");
@@ -449,7 +443,7 @@ public class VehicleSubmissionPage extends JFrame {
     }
 
     public static void main(String[] args) {
-        User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp");
+        User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp", true);
         SwingUtilities.invokeLater(() -> {
             VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
             dashboard.setVisible(true);

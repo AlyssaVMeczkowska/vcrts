@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.Border;
 import validation.UserValidator;
+import ui.ConsentForm;
 
 public class CreateAccountPage extends JFrame {
     private PlaceholderTextField firstNameField, lastNameField, emailField, usernameField, phoneNumberField;
@@ -333,8 +334,23 @@ public class CreateAccountPage extends JFrame {
         signUpButton.setContentAreaFilled(false);
         signUpButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         signUpButton.addActionListener(e -> {
-            if (validateForm()) {
+            if (validateForm()) {            	
                 String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
+                boolean agreed = false;
+                
+                if(type.equals("Owner")) {
+                	ConsentForm consentform = new ConsentForm(this);
+                	consentform.setVisible(true);
+                	
+                	if(!consentform.isConsentGiven()) {
+                		JOptionPane.showMessageDialog(this,
+                				"You must agree to the terms and condition to register as a vehicle owner.",
+                				"Registration Failed",
+                				JOptionPane.WARNING_MESSAGE);
+                		return;
+                	}
+                	agreed = true;
+                }
                 userDataManager.addUser(
                     firstNameField.getText(),
                     lastNameField.getText(),
@@ -342,7 +358,8 @@ public class CreateAccountPage extends JFrame {
                     usernameField.getText(),
                     phoneNumberField.getText(),
                     new String(passwordField.getPassword()),
-                    type
+                    type,
+                    agreed
                 );
                 
                 CustomDialog dialog = new CustomDialog(this, "Success", "Account Created Successfully!");

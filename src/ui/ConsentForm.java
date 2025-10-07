@@ -1,15 +1,11 @@
-/* Class is set up so that there will be a pop up each time an Owner tries to
- * submit a vehicle into the system
- */
-
 package ui;
+
 import java.awt.*;
 import javax.swing.*;
 
 public class ConsentForm extends JDialog {
     private boolean consentGiven = false;
 
-    // Original constructor for consent agreement
     public ConsentForm(JFrame owner) {
         super(owner, "Terms & Conditions", true);
         setSize(600, 500);
@@ -20,16 +16,16 @@ public class ConsentForm extends JDialog {
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        //---------------------------------------------------------------------
+        //----------------------------------------------------------------------
         // TITLE
         JLabel titleLabel = new JLabel("Vehicle Owner Consent Agreement");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setFont(new Font("Georgia", Font.BOLD, 20));
         titleLabel.setForeground(new Color(44, 116, 132));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         mainPanel.add(titleLabel, BorderLayout.NORTH);
 
-        //---------------------------------------------------------------------
-        // Consent Form Message
+        //----------------------------------------------------------------------
+        // Consent Message
         JTextArea consentText = new JTextArea();
         consentText.setEditable(false);
         consentText.setLineWrap(true);
@@ -38,21 +34,17 @@ public class ConsentForm extends JDialog {
         consentText.setBackground(new Color(250, 250, 250));
         consentText.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
-        //---------------------------------------------------------------------
-        // Message if you want to add anything 
         consentText.setText(
-            "VEHICLE OWNER CONSENT AGREEMENT\n\n" +  
-            "By proceeding, you acknowledge and agree to the following\n\n" +
-            "1. You confirm that you are the legal owner of the vehicle.\n" +
-            "2. VCRTS can collect, process and store data about your vehicle.\n" +
-            "3. Line about privacy. \n" +
-            "4. Line about not being able to see the jobs the vehicle is submitted for.\n" +
-            "5. Line about not being able to cancel after submission." +
-            "By clicking 'I Agree', you confirm that you agree to these terms."
+            "Owner Consent Agreement\n\n" +     
+            "By proceeding, you acknowledge and agree to the following:\n\n" +
+            "1. You confirm that you are the legal owner of the every vehicle you register.\n" +
+            "2. VCRTS may collect, process and store data about your vehicle.\n" +
+            "3. Your vehicle information will be handled in accordance with applicable data protection laws. \n" +
+            "4. Once your vehicle is registered into the platform, you will not be able to access the jobs submitted to your vehicle. \n" +
+            "5. Vehicle submissions are final. Once a vehicle has been submitted into the VCRTS platform, you cannot cancel your submission during the specified residency period.\n" +
+            "By clicking 'I Agree', you confirm that you agree to these terms. \n"
         );
 
-        //---------------------------------------------------------------------
-        // Scroll Panel
         JScrollPane scrollPane = new JScrollPane(consentText);
         scrollPane.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
@@ -62,39 +54,36 @@ public class ConsentForm extends JDialog {
 
         JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
         bottomPanel.setBackground(Color.WHITE);
-
-        //---------------------------------------------------------------------
-        // For Terms & conditions
+        
+        //---------------------------------------------------------------------------------
+        // CheckBox for Terms and Conditions
         JCheckBox agreeCheckBox = new JCheckBox("I have read and agree to the terms above");
         agreeCheckBox.setFont(new Font("Arial", Font.BOLD, 12));
         agreeCheckBox.setBackground(Color.WHITE);
         bottomPanel.add(agreeCheckBox, BorderLayout.NORTH);
 
-        //-----------------------------------------------------------------------
+        //------------------------------------------------------------------------
         // BUTTONS 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonPanel.setBackground(Color.WHITE);
-
-        //-----------------------------------------------------------------------
-        // Decline Button
-        JButton declineButton = new JButton("Decline");
+        
+        //------------------------------------------------------------------------
+        // DECLINE Button: White Gradient
+        GradientButton declineButton = new GradientButton("Decline", true);
         declineButton.setFont(new Font("Arial", Font.BOLD, 14));
         declineButton.setForeground(new Color(100, 100, 100));
-        declineButton.setBackground(Color.WHITE);
         declineButton.setPreferredSize(new Dimension(120, 38));
         declineButton.setFocusPainted(false);
-        declineButton.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(new Color(200, 200, 200), 2, true),
-            BorderFactory.createEmptyBorder(5, 20, 5, 20)
-        ));
+        declineButton.setBorderPainted(false);
+        declineButton.setContentAreaFilled(false);
         declineButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         declineButton.addActionListener(e -> {
             consentGiven = false;
             dispose();
         });
 
-        //--------------------------------------------------------
-        // Agree Button
+        //-------------------------------------------------------------------------
+        // AGREE Button: Teal Gradient
         GradientButton agreeButton = new GradientButton("I Agree");
         agreeButton.setFont(new Font("Arial", Font.BOLD, 16));
         agreeButton.setForeground(Color.WHITE);
@@ -111,7 +100,7 @@ public class ConsentForm extends JDialog {
                 JOptionPane.showMessageDialog(this,
                     "Please check the box to confirm you agree to the terms.",
                     "Agreement Required",
-                    JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.WARNING_MESSAGE);
             }
         });
 
@@ -122,8 +111,6 @@ public class ConsentForm extends JDialog {
         mainPanel.add(bottomPanel, BorderLayout.SOUTH);
         setContentPane(mainPanel);
     }
-
-
 
     public boolean isConsentGiven() {
         return consentGiven;
