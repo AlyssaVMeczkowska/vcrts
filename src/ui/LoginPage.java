@@ -195,7 +195,8 @@ public class LoginPage extends JFrame {
                 if ("Owner".equals(accountType)) {
                     SwingUtilities.invokeLater(() -> new OwnerDashboard().setVisible(true));
                 } else if ("Client".equals(accountType)) {
-                    SwingUtilities.invokeLater(() -> new ClientDashboard().setVisible(true));
+                    // Pass the logged-in user to the ClientDashboard
+                    SwingUtilities.invokeLater(() -> new ClientDashboard(loggedInUser).setVisible(true));
                 } else {
                     // Fallback for an unknown account type
                     JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);

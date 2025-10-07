@@ -9,6 +9,7 @@ import java.util.Date;
 import javax.swing.*;
 import javax.swing.border.Border;
 import model.Job;
+import model.User; // Import the User model
 import validation.JobValidator;
 
 public class ClientDashboard extends JFrame {
@@ -21,8 +22,12 @@ public class ClientDashboard extends JFrame {
     private final JobValidator validator = new JobValidator();
     private JLabel durationErrorLabel, deadlineErrorLabel, descriptionErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
+    
+    private User currentUser; 
 
-    public ClientDashboard() {
+    public ClientDashboard(User user) { 
+        this.currentUser = user;
+
         setTitle("Client Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
@@ -349,6 +354,7 @@ public class ClientDashboard extends JFrame {
         String description = descriptionArea.getText();
         
         Job job = new Job(
+            currentUser.getUserId(), 
             jobType,
             Integer.parseInt(duration.trim()),
             deadline.trim(),
@@ -426,8 +432,9 @@ public class ClientDashboard extends JFrame {
     }
 
     public static void main(String[] args) {
+        User testUser = new User(999, "Test", "User", "test@example.com", "testuser", "1234567890", "hash", "Client", "timestamp");
         SwingUtilities.invokeLater(() -> {
-            ClientDashboard dashboard = new ClientDashboard();
+            ClientDashboard dashboard = new ClientDashboard(testUser);
             dashboard.setVisible(true);
         });
     }
