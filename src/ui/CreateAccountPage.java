@@ -42,15 +42,17 @@ public class CreateAccountPage extends JFrame {
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         rootPanel.add(scrollPane, BorderLayout.CENTER);
 
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
+        contentArea.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
         scrollPane.setViewportView(contentArea);
 
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 60, 30, 60));
         mainPanel.setBackground(Color.WHITE);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.ipadx = 350;
@@ -353,7 +355,7 @@ public class CreateAccountPage extends JFrame {
             }
         });
         main.add(signUpButton);
-        main.add(Box.createRigidArea(new Dimension(0, 40)));
+        main.add(Box.createRigidArea(new Dimension(0, 20)));
     }
 
     private void navToLogin() {
