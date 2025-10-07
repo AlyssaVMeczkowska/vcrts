@@ -180,12 +180,10 @@ public class LoginPage extends JFrame {
             String usernameOrEmail = usernameField.getText();
             String password = new String(passwordField.getPassword());
 
-            // Reset previous errors
             usernameField.setBorder(defaultBorder);
             passwordField.setBorder(defaultBorder);
             loginErrorLabel.setText(" ");
 
-            // Verify user and get the User object back
             User loggedInUser = userDataManager.verifyUser(usernameOrEmail, password);
 
             if (loggedInUser != null) {
@@ -193,15 +191,13 @@ public class LoginPage extends JFrame {
                 dispose();
 
                 if ("Owner".equals(accountType)) {
-                    SwingUtilities.invokeLater(() -> new OwnerDashboard().setVisible(true));
+                    SwingUtilities.invokeLater(() -> new OwnerDashboard(loggedInUser).setVisible(true));
                 } else if ("Client".equals(accountType)) {
-                    SwingUtilities.invokeLater(() -> new ClientDashboard().setVisible(true));
+                    SwingUtilities.invokeLater(() -> new ClientDashboard(loggedInUser).setVisible(true));
                 } else {
-                    // Fallback for an unknown account type
                     JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                // Login failed, show error message
                 loginErrorLabel.setText("Invalid username/email or password.");
                 usernameField.setBorder(errorBorder);
                 passwordField.setBorder(errorBorder);
@@ -295,3 +291,4 @@ public class LoginPage extends JFrame {
         }
     }
 }
+

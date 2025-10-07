@@ -3,13 +3,16 @@ package model;
 import java.time.LocalDateTime;
 
 public class Job {
+    private int jobId;
+    private int userId;
     private String jobType;
     private int duration;
     private String deadline;
     private String description;
     private String submissionTimestamp;
 
-    public Job(String jobType, int duration, String deadline, String description) {
+    public Job(int userId, String jobType, int duration, String deadline, String description) {
+        this.userId = userId;
         this.jobType = jobType;
         this.duration = duration;
         this.deadline = deadline;
@@ -17,9 +20,15 @@ public class Job {
         this.submissionTimestamp = LocalDateTime.now().toString();
     }
 
+    // --- Getters ---
+    public int getJobId() { return jobId; }
+    public int getUserId() { return userId; }
     public String getJobType() { return jobType; }
     public int getDuration() { return duration; }
     public String getDeadline() { return deadline; }
     public String getDescription() { return description; }
     public String getSubmissionTimestamp() { return submissionTimestamp; }
+
+    // --- Setters ---
+    public void setJobId(int jobId) { this.jobId = jobId; }
 }
