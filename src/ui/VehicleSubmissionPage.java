@@ -13,27 +13,35 @@ import javax.swing.border.Border;
 import model.Vehicle;
 import validation.VehicleValidator;
 
-public class OwnerDashboard extends JFrame {
+public class VehicleSubmissionPage extends JFrame {
     private PlaceholderTextField vehicleMakeField;
     private PlaceholderTextField vehicleModelField;
     private PlaceholderTextField vehicleYearField;
     private PlaceholderTextField licensePlateField;
     private PlaceholderTextField vinNumberField;
     private JComboBox<String> computingPowerCombo;
-    private JTextField residencyStartField;
-    private JTextField residencyEndField;
-
+    private PlaceholderTextField residencyStartField;
+    private PlaceholderTextField residencyEndField;
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
+<<<<<<< HEAD:src/ui/OwnerDashboard.java
 
     private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
 
     public OwnerDashboard() {
+=======
+    private User currentUser;
+    private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
+    private Border defaultBorder, focusBorder, errorBorder;
+    public VehicleSubmissionPage(User user) {
+        this.currentUser = user;
+>>>>>>> main:src/ui/VehicleSubmissionPage.java
         setTitle("Owner Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
@@ -101,7 +109,6 @@ public class OwnerDashboard extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1),
                 BorderFactory.createEmptyBorder(3, 10, 3, 10)
         );
-
         FocusAdapter highlightListener = new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -116,7 +123,6 @@ public class OwnerDashboard extends JFrame {
                 }
             }
         };
-
         // UI Component Initialization
         JPanel firstRowPanel = new JPanel(new GridLayout(1, 3, 20, 0));
         firstRowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
@@ -149,7 +155,6 @@ public class OwnerDashboard extends JFrame {
         powerLabelPanel.add(powerLabel);
         powerInnerPanel.add(powerLabelPanel);
         powerInnerPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
         String[] powerLevels = { "Low", "Medium", "High" };
         computingPowerCombo = new JComboBox<>(powerLevels);
         computingPowerCombo.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -177,38 +182,49 @@ public class OwnerDashboard extends JFrame {
         dateRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         dateRow.setBackground(Color.WHITE);
         
-        residencyStartField = new JTextField();
+        residencyStartField = new PlaceholderTextField("Select a date");
         residencyStartField.setEditable(false);
         residencyStartField.setBackground(Color.WHITE);
         residencyStartField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        residencyStartField.setFocusable(false);
+
         residencyStartField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 showCalendar(residencyStartField, true, null);
             }
         });
 
-        residencyEndField = new JTextField();
+        residencyEndField = new PlaceholderTextField("Select a date");
         residencyEndField.setEditable(false);
         residencyEndField.setBackground(Color.WHITE);
         residencyEndField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        residencyEndField.setFocusable(false);
         residencyEndField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 Date minEndDate = null;
                 if (!residencyStartField.getText().isEmpty()) {
                     try {
+<<<<<<< HEAD:src/ui/OwnerDashboard.java
                         // If start date is chosen, it becomes the minimum date for the end date.
+=======
+                
+>>>>>>> main:src/ui/VehicleSubmissionPage.java
                         minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
                     } catch (ParseException ex) {
                         System.err.println("Error parsing start date: " + ex.getMessage());
                     }
+<<<<<<< HEAD:src/ui/OwnerDashboard.java
                 } else {
                     // If no start date, the minimum date is today to prevent picking past dates.
+=======
+               
+                 } else {
+>>>>>>> main:src/ui/VehicleSubmissionPage.java
                     minEndDate = new Date();
                 }
                 showCalendar(residencyEndField, false, minEndDate);
             }
         });
-        
         residencyStartErrorLabel = new JLabel(" ");
         residencyEndErrorLabel = new JLabel(" ");
         dateRow.add(createColumn("<html>Residency Start Date: <font color='red'>*</font></html>", residencyStartField, residencyStartErrorLabel, highlightListener));
@@ -302,7 +318,6 @@ public class OwnerDashboard extends JFrame {
         vinNumberErrorLabel.setText(" ");
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
-
         if (!validator.isFieldValid(make)) {
             vehicleMakeErrorLabel.setText("Vehicle make is required.");
             vehicleMakeField.setBorder(errorBorder);
@@ -366,12 +381,19 @@ public class OwnerDashboard extends JFrame {
                 vehicleMakeField.getText().trim(),
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),
+<<<<<<< HEAD:src/ui/OwnerDashboard.java
+=======
+                vinNumberField.getText().trim(),
+        
+                licensePlateField.getText().trim(),
+>>>>>>> main:src/ui/VehicleSubmissionPage.java
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
                  residencyEndField.getText().trim()
         );
         if (dataManager.addVehicle(vehicle)) {
-            JOptionPane.showMessageDialog(this, "Vehicle availability submitted successfully!");
+            CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
+            dialog.setVisible(true);
             clearForm();
         } else {
             JOptionPane.showMessageDialog(this, "Error writing to file. Please check console.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -424,6 +446,7 @@ public class OwnerDashboard extends JFrame {
         }
     }
 
+<<<<<<< HEAD:src/ui/OwnerDashboard.java
     private static class GradientButton extends JButton {
         private boolean isHovered = false;
         
@@ -470,9 +493,15 @@ public class OwnerDashboard extends JFrame {
         }
     }
 
+=======
+>>>>>>> main:src/ui/VehicleSubmissionPage.java
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
+<<<<<<< HEAD:src/ui/OwnerDashboard.java
             OwnerDashboard dashboard = new OwnerDashboard();
+=======
+            VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
+>>>>>>> main:src/ui/VehicleSubmissionPage.java
             dashboard.setVisible(true);
         });
     }
