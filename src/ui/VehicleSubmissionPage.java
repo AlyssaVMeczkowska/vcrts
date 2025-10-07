@@ -1,3 +1,4 @@
+
 package ui;
 
 import data.VehicleDataManager;
@@ -370,18 +371,28 @@ public class VehicleSubmissionPage extends JFrame {
             return;
         }
 
+        //----------------------NEW--------------------------
+        // TEST FOR CONSENT FORM
+        ConsentForm consentForm = new ConsentForm(this);
+        consentForm.setVisible(true);
+
+        if (!consentForm.isConsentGiven()) {
+            return; 
+        }
+
         Vehicle vehicle = new Vehicle(
                 currentUser.getUserId(),
                 vehicleMakeField.getText().trim(),
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),
                 vinNumberField.getText().trim(),
-        
+                
                 licensePlateField.getText().trim(),
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
                 residencyEndField.getText().trim()
         );
+        
         if (dataManager.addVehicle(vehicle)) {
             CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
             dialog.setVisible(true);
