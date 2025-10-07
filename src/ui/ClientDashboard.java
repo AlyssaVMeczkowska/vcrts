@@ -9,21 +9,21 @@ import java.util.Date;
 import javax.swing.*;
 import javax.swing.border.Border;
 import model.Job;
-import model.User; // Import the User model
+import model.User;
 import validation.JobValidator;
 
 public class ClientDashboard extends JFrame {
     private JComboBox<String> jobTypeCombo;
-    private JTextField durationField;
-    private JTextField deadlineField;
-    private JTextArea descriptionArea;
+    private PlaceholderTextField durationField;
+    private PlaceholderTextField deadlineField;
+    private PlaceholderTextArea descriptionArea;
 
     private final JobDataManager dataManager = new JobDataManager();
     private final JobValidator validator = new JobValidator();
     private JLabel durationErrorLabel, deadlineErrorLabel, descriptionErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
     
-    private User currentUser; 
+    private User currentUser;
 
     public ClientDashboard(User user) { 
         this.currentUser = user;
@@ -72,15 +72,12 @@ public class ClientDashboard extends JFrame {
         mainPanel.setPreferredSize(new Dimension(900, 650));
         mainPanel.setMaximumSize(new Dimension(900, 650));
         mainPanel.setMinimumSize(new Dimension(900, 650));
-
         // --- LAYOUT LOGIC ---
         GridBagConstraints gbc = new GridBagConstraints();
         contentArea.add(mainPanel, gbc);
-
         // --- ADD PANELS TO ROOT ---
         rootPanel.add(headerPanel, BorderLayout.NORTH);
         rootPanel.add(contentArea, BorderLayout.CENTER);
-
         // --- FORM COMPONENTS ---
         JLabel titleLabel = new JLabel("Submit A Job");
         titleLabel.setFont(new Font("Georgia", Font.PLAIN, 42));
@@ -118,7 +115,6 @@ public class ClientDashboard extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
-
         FocusAdapter highlightListener = new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -133,7 +129,6 @@ public class ClientDashboard extends JFrame {
                 }
             }
         };
-
         // --- Job Type ---
         JPanel jobTypeContainer = new JPanel();
         jobTypeContainer.setLayout(new BoxLayout(jobTypeContainer, BoxLayout.Y_AXIS));
@@ -148,7 +143,6 @@ public class ClientDashboard extends JFrame {
         jobTypeLabelPanel.add(jobTypeLabel);
         jobTypeContainer.add(jobTypeLabelPanel);
         jobTypeContainer.add(Box.createRigidArea(new Dimension(0, 8)));
-
         String[] jobTypes = {
             "Data Storage & Transfer", "Computational Task", "Simulation",
             "Networking & Communication", "Real-Time Processing", "Batch Processing"
@@ -161,7 +155,6 @@ public class ClientDashboard extends JFrame {
         
         mainPanel.add(jobTypeContainer);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
         // --- Duration ---
         JPanel durationContainer = new JPanel();
         durationContainer.setLayout(new BoxLayout(durationContainer, BoxLayout.Y_AXIS));
@@ -176,8 +169,9 @@ public class ClientDashboard extends JFrame {
         durationLabelPanel.add(durationLabel);
         durationContainer.add(durationLabelPanel);
         durationContainer.add(Box.createRigidArea(new Dimension(0, 8)));
-
-        durationField = new JTextField();
+        
+        durationField = new PlaceholderTextField("Enter number of hours");
+        
         durationField.setFont(new Font("Arial", Font.PLAIN, 14));
         durationField.setBorder(defaultBorder);
         durationField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
@@ -194,7 +188,6 @@ public class ClientDashboard extends JFrame {
         
         mainPanel.add(durationContainer);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
         // --- Deadline ---
         JPanel deadlineContainer = new JPanel();
         deadlineContainer.setLayout(new BoxLayout(deadlineContainer, BoxLayout.Y_AXIS));
@@ -210,14 +203,16 @@ public class ClientDashboard extends JFrame {
         deadlineContainer.add(deadlineLabelPanel);
         deadlineContainer.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        deadlineField = new JTextField();
+        deadlineField = new PlaceholderTextField("Select a date");
+
         deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
         deadlineField.setBorder(defaultBorder);
         deadlineField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         deadlineField.setEditable(false);
         deadlineField.setBackground(Color.WHITE);
         deadlineField.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        
+        deadlineField.setFocusable(false);
+
         deadlineField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 showCalendar(deadlineField, true, null);
@@ -250,8 +245,9 @@ public class ClientDashboard extends JFrame {
         descriptionLabelPanel.add(descriptionLabel);
         descriptionContainer.add(descriptionLabelPanel);
         descriptionContainer.add(Box.createRigidArea(new Dimension(0, 8)));
+        
+        descriptionArea = new PlaceholderTextArea("Enter a description", 5, 20);
 
-        descriptionArea = new JTextArea(5, 20);
         descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
         descriptionArea.setLineWrap(true);
         descriptionArea.setWrapStyleWord(true);
@@ -323,7 +319,6 @@ public class ClientDashboard extends JFrame {
         durationErrorLabel.setText(" ");
         deadlineErrorLabel.setText(" ");
         descriptionErrorLabel.setText(" ");
-
         if (!validator.isDurationValid(durationField.getText())) {
             durationField.setBorder(errorBorder);
             durationErrorLabel.setText("Duration must be a positive number.");
@@ -360,7 +355,6 @@ public class ClientDashboard extends JFrame {
             deadline.trim(),
             description.trim()
         );
-
         if (dataManager.addJob(job)) {
             JOptionPane.showMessageDialog(this, "Job submitted successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
             clearForm();
@@ -386,9 +380,43 @@ public class ClientDashboard extends JFrame {
         descriptionErrorLabel.setText(" ");
     }
 
+    private static class PlaceholderTextField extends JTextField {
+        private String placeholder;
+        public PlaceholderTextField(String placeholder) { this.placeholder = placeholder; }
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) return;
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(150, 150, 150));
+            FontMetrics fm = g2.getFontMetrics();
+            g2.drawString(placeholder, getInsets().left + 5, (getHeight() - fm.getHeight()) / 2 + fm.getAscent());
+        }
+    }
+    
+    private static class PlaceholderTextArea extends JTextArea {
+        private String placeholder;
+
+        public PlaceholderTextArea(String placeholder, int rows, int columns) {
+            super(rows, columns);
+            this.placeholder = placeholder;
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (placeholder == null || placeholder.isEmpty() || !getText().isEmpty()) return;
+            Graphics2D g2 = (Graphics2D) g;
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(new Color(150, 150, 150));
+            FontMetrics fm = g2.getFontMetrics();
+            g2.drawString(placeholder, getInsets().left + 5, getInsets().top + fm.getAscent());
+        }
+    }
+
     private static class GradientButton extends JButton {
         private boolean isHovered = false;
-        
         public GradientButton(String text) {
             super(text);
             setOpaque(false);
@@ -422,7 +450,6 @@ public class ClientDashboard extends JFrame {
                 0, 0, color1,
                 getWidth(), 0, color2
             );
-            
             g2.setPaint(gradient);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
             

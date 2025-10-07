@@ -21,16 +21,13 @@ public class OwnerDashboard extends JFrame {
     private PlaceholderTextField licensePlateField;
     private PlaceholderTextField vinNumberField;
     private JComboBox<String> computingPowerCombo;
-    private JTextField residencyStartField;
-    private JTextField residencyEndField;
-
+    private PlaceholderTextField residencyStartField;
+    private PlaceholderTextField residencyEndField;
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
     private User currentUser;
-
     private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
-
     public OwnerDashboard(User user) {
         this.currentUser = user;
         setTitle("Owner Dashboard");
@@ -104,7 +101,6 @@ public class OwnerDashboard extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1),
                 BorderFactory.createEmptyBorder(3, 10, 3, 10)
         );
-
         FocusAdapter highlightListener = new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -119,7 +115,6 @@ public class OwnerDashboard extends JFrame {
                 }
             }
         };
-
         // UI Component Initialization
         JPanel firstRowPanel = new JPanel(new GridLayout(1, 3, 20, 0));
         firstRowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
@@ -152,7 +147,6 @@ public class OwnerDashboard extends JFrame {
         powerLabelPanel.add(powerLabel);
         powerInnerPanel.add(powerLabelPanel);
         powerInnerPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
         String[] powerLevels = { "Low", "Medium", "High" };
         computingPowerCombo = new JComboBox<>(powerLevels);
         computingPowerCombo.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -180,36 +174,42 @@ public class OwnerDashboard extends JFrame {
         dateRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         dateRow.setBackground(Color.WHITE);
         
-        residencyStartField = new JTextField();
+        residencyStartField = new PlaceholderTextField("Select a date");
         residencyStartField.setEditable(false);
         residencyStartField.setBackground(Color.WHITE);
         residencyStartField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        residencyStartField.setFocusable(false);
+
         residencyStartField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 showCalendar(residencyStartField, true, null);
             }
         });
 
-        residencyEndField = new JTextField();
+        residencyEndField = new PlaceholderTextField("Select a date");
         residencyEndField.setEditable(false);
         residencyEndField.setBackground(Color.WHITE);
         residencyEndField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        residencyEndField.setFocusable(false);
+
+
         residencyEndField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 Date minEndDate = null;
                 if (!residencyStartField.getText().isEmpty()) {
                     try {
+                
                         minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
                     } catch (ParseException ex) {
                         System.err.println("Error parsing start date: " + ex.getMessage());
                     }
-                } else {
+               
+                 } else {
                     minEndDate = new Date();
                 }
                 showCalendar(residencyEndField, false, minEndDate);
             }
         });
-        
         residencyStartErrorLabel = new JLabel(" ");
         residencyEndErrorLabel = new JLabel(" ");
         dateRow.add(createColumn("<html>Residency Start Date: <font color='red'>*</font></html>", residencyStartField, residencyStartErrorLabel, highlightListener));
@@ -303,7 +303,6 @@ public class OwnerDashboard extends JFrame {
         vinNumberErrorLabel.setText(" ");
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
-
         if (!validator.isFieldValid(make)) {
             vehicleMakeErrorLabel.setText("Vehicle make is required.");
             vehicleMakeField.setBorder(errorBorder);
@@ -378,6 +377,7 @@ public class OwnerDashboard extends JFrame {
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),
                 vinNumberField.getText().trim(),
+        
                 licensePlateField.getText().trim(),
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
@@ -439,7 +439,6 @@ public class OwnerDashboard extends JFrame {
 
     private static class GradientButton extends JButton {
         private boolean isHovered = false;
-        
         public GradientButton(String text) {
             super(text);
             setOpaque(false);
@@ -473,7 +472,6 @@ public class OwnerDashboard extends JFrame {
                 0, 0, color1,
                 getWidth(), 0, color2
             );
-            
             g2.setPaint(gradient);
             g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
             
