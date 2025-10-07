@@ -127,9 +127,9 @@ public class OwnerDashboard extends JFrame {
         vehicleMakeErrorLabel = new JLabel(" ");
         vehicleModelErrorLabel = new JLabel(" ");
         vehicleYearErrorLabel = new JLabel(" ");
-        firstRowPanel.add(createColumn("Vehicle Make:", vehicleMakeField, vehicleMakeErrorLabel, highlightListener));
-        firstRowPanel.add(createColumn("Vehicle Model:", vehicleModelField, vehicleModelErrorLabel, highlightListener));
-        firstRowPanel.add(createColumn("Vehicle Year:", vehicleYearField, vehicleYearErrorLabel, highlightListener));
+        firstRowPanel.add(createColumn("<html>Vehicle Make: <font color='red'>*</font></html>", vehicleMakeField, vehicleMakeErrorLabel, highlightListener));
+        firstRowPanel.add(createColumn("<html>Vehicle Model: <font color='red'>*</font></html>", vehicleModelField, vehicleModelErrorLabel, highlightListener));
+        firstRowPanel.add(createColumn("<html>Vehicle Year: <font color='red'>*</font></html>", vehicleYearField, vehicleYearErrorLabel, highlightListener));
         mainPanel.add(firstRowPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
@@ -168,8 +168,8 @@ public class OwnerDashboard extends JFrame {
         vinNumberField = new PlaceholderTextField("Enter VIN number");
         licensePlateErrorLabel = new JLabel(" ");
         vinNumberErrorLabel = new JLabel(" ");
-        secondRowPanel.add(createColumn("License Plate:", licensePlateField, licensePlateErrorLabel, highlightListener));
-        secondRowPanel.add(createColumn("VIN Number:", vinNumberField, vinNumberErrorLabel, highlightListener));
+        secondRowPanel.add(createColumn("<html>License Plate: <font color='red'>*</font></html>", licensePlateField, licensePlateErrorLabel, highlightListener));
+        secondRowPanel.add(createColumn("<html>VIN Number: <font color='red'>*</font></html>", vinNumberField, vinNumberErrorLabel, highlightListener));
         mainPanel.add(secondRowPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
@@ -211,8 +211,8 @@ public class OwnerDashboard extends JFrame {
         
         residencyStartErrorLabel = new JLabel(" ");
         residencyEndErrorLabel = new JLabel(" ");
-        dateRow.add(createColumn("Residency Start Date:", residencyStartField, residencyStartErrorLabel, highlightListener));
-        dateRow.add(createColumn("Residency End Date:", residencyEndField, residencyEndErrorLabel, highlightListener));
+        dateRow.add(createColumn("<html>Residency Start Date: <font color='red'>*</font></html>", residencyStartField, residencyStartErrorLabel, highlightListener));
+        dateRow.add(createColumn("<html>Residency End Date: <font color='red'>*</font></html>", residencyEndField, residencyEndErrorLabel, highlightListener));
         mainPanel.add(dateRow);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
@@ -282,6 +282,8 @@ public class OwnerDashboard extends JFrame {
         String make = vehicleMakeField.getText();
         String model = vehicleModelField.getText();
         String year = vehicleYearField.getText();
+        String licensePlate = licensePlateField.getText();
+        String vin = vinNumberField.getText();
         String startDate = residencyStartField.getText();
         String endDate = residencyEndField.getText();
 
@@ -292,6 +294,7 @@ public class OwnerDashboard extends JFrame {
         vinNumberField.setBorder(defaultBorder);
         residencyStartField.setBorder(defaultBorder);
         residencyEndField.setBorder(defaultBorder);
+        
         vehicleMakeErrorLabel.setText(" ");
         vehicleModelErrorLabel.setText(" ");
         vehicleYearErrorLabel.setText(" ");
@@ -316,6 +319,18 @@ public class OwnerDashboard extends JFrame {
             int maxYear = Year.now().getValue() + 5;
             vehicleYearErrorLabel.setText("Please enter a valid year (1900-" + maxYear + ").");
             vehicleYearField.setBorder(errorBorder);
+            isValid = false;
+        }
+
+        if (!validator.isFieldValid(licensePlate)) {
+            licensePlateErrorLabel.setText("License plate is required.");
+            licensePlateField.setBorder(errorBorder);
+            isValid = false;
+        }
+
+        if (!validator.isFieldValid(vin)) {
+            vinNumberErrorLabel.setText("VIN number is required.");
+            vinNumberField.setBorder(errorBorder);
             isValid = false;
         }
         
