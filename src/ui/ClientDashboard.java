@@ -57,19 +57,19 @@ public class ClientDashboard extends JFrame {
         // --- MAIN CONTENT AREA ---
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
+        contentArea.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
 
         // --- FORM PANEL ---
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
         mainPanel.setBackground(Color.WHITE);
+        mainPanel.setPreferredSize(new Dimension(900, 650));
+        mainPanel.setMaximumSize(new Dimension(900, 650));
+        mainPanel.setMinimumSize(new Dimension(900, 650));
 
         // --- LAYOUT LOGIC ---
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.insets = new Insets(20, 20, 20, 20);
         contentArea.add(mainPanel, gbc);
 
         // --- ADD PANELS TO ROOT ---
@@ -80,25 +80,37 @@ public class ClientDashboard extends JFrame {
         JLabel titleLabel = new JLabel("Submit A Job");
         titleLabel.setFont(new Font("Georgia", Font.PLAIN, 42));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(titleLabel);
+        JPanel titlePanel = new JPanel();
+        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
+        titlePanel.setBackground(Color.WHITE);
+        titlePanel.add(Box.createHorizontalGlue());
+        titlePanel.add(titleLabel);
+        titlePanel.add(Box.createHorizontalGlue());
+        mainPanel.add(titlePanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         JLabel subtitleLabel = new JLabel("Enter job details to submit a new job request");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         subtitleLabel.setForeground(new Color(100, 100, 100));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(subtitleLabel);
+        JPanel subtitlePanel = new JPanel();
+        subtitlePanel.setLayout(new BoxLayout(subtitlePanel, BoxLayout.X_AXIS));
+        subtitlePanel.setBackground(Color.WHITE);
+        subtitlePanel.add(Box.createHorizontalGlue());
+        subtitlePanel.add(subtitleLabel);
+        subtitlePanel.add(Box.createHorizontalGlue());
+        mainPanel.add(subtitlePanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
         defaultBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
         focusBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(0, 124, 137), 2),
+                BorderFactory.createLineBorder(new Color(0, 124, 137), 2, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
         errorBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.RED, 1),
+                BorderFactory.createLineBorder(Color.RED, 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
 
@@ -117,14 +129,20 @@ public class ClientDashboard extends JFrame {
             }
         };
 
-        // --- Job Type Row ---
-        JPanel jobTypeRow = new JPanel(new BorderLayout(10, 0));
-        jobTypeRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        jobTypeRow.setBackground(Color.WHITE);
+        // --- Job Type ---
+        JPanel jobTypeContainer = new JPanel();
+        jobTypeContainer.setLayout(new BoxLayout(jobTypeContainer, BoxLayout.Y_AXIS));
+        jobTypeContainer.setBackground(Color.WHITE);
+        jobTypeContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
+        
+        JPanel jobTypeLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        jobTypeLabelPanel.setBackground(Color.WHITE);
+        jobTypeLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
         JLabel jobTypeLabel = new JLabel("<html>Job Type: <font color='red'>*</font></html>");
         jobTypeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        jobTypeLabel.setPreferredSize(new Dimension(150, 20));
-        jobTypeRow.add(jobTypeLabel, BorderLayout.WEST);
+        jobTypeLabelPanel.add(jobTypeLabel);
+        jobTypeContainer.add(jobTypeLabelPanel);
+        jobTypeContainer.add(Box.createRigidArea(new Dimension(0, 8)));
 
         String[] jobTypes = {
             "Data Storage & Transfer", "Computational Task", "Simulation",
@@ -133,52 +151,66 @@ public class ClientDashboard extends JFrame {
         jobTypeCombo = new JComboBox<>(jobTypes);
         jobTypeCombo.setFont(new Font("Arial", Font.PLAIN, 14));
         jobTypeCombo.setBackground(Color.WHITE);
-        jobTypeCombo.setPreferredSize(new Dimension(250, 20));
-        jobTypeRow.add(jobTypeCombo, BorderLayout.CENTER);
-        mainPanel.add(jobTypeRow);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        jobTypeCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        jobTypeContainer.add(jobTypeCombo);
+        
+        mainPanel.add(jobTypeContainer);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // --- Duration Row ---
-        JPanel durationRow = new JPanel(new BorderLayout(10, 0));
-        durationRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        durationRow.setBackground(Color.WHITE);
+        // --- Duration ---
+        JPanel durationContainer = new JPanel();
+        durationContainer.setLayout(new BoxLayout(durationContainer, BoxLayout.Y_AXIS));
+        durationContainer.setBackground(Color.WHITE);
+        durationContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        
+        JPanel durationLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        durationLabelPanel.setBackground(Color.WHITE);
+        durationLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
         JLabel durationLabel = new JLabel("<html>Duration (Hours): <font color='red'>*</font></html>");
         durationLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        durationLabel.setPreferredSize(new Dimension(150, 20));
-        durationRow.add(durationLabel, BorderLayout.WEST);
+        durationLabelPanel.add(durationLabel);
+        durationContainer.add(durationLabelPanel);
+        durationContainer.add(Box.createRigidArea(new Dimension(0, 8)));
 
         durationField = new JTextField();
         durationField.setFont(new Font("Arial", Font.PLAIN, 14));
         durationField.setBorder(defaultBorder);
-        durationField.setPreferredSize(new Dimension(250, 20));
+        durationField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         durationField.addFocusListener(highlightListener);
-        durationRow.add(durationField, BorderLayout.CENTER);
+        durationContainer.add(durationField);
         
         durationErrorLabel = new JLabel(" ");
-        JPanel durationContainer = new JPanel();
-        durationContainer.setLayout(new BoxLayout(durationContainer, BoxLayout.Y_AXIS));
-        durationContainer.setBackground(Color.WHITE);
-        durationContainer.add(durationRow);
-        durationContainer.add(createErrorPanel(durationErrorLabel, 160));
+        durationErrorLabel.setForeground(Color.RED);
+        durationErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel durationErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        durationErrorPanel.setBackground(Color.WHITE);
+        durationErrorPanel.add(durationErrorLabel);
+        durationContainer.add(durationErrorPanel);
         
         mainPanel.add(durationContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // --- Deadline Row ---
-        JPanel deadlineRow = new JPanel(new BorderLayout(10, 0));
-        deadlineRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        deadlineRow.setBackground(Color.WHITE);
+        // --- Deadline ---
+        JPanel deadlineContainer = new JPanel();
+        deadlineContainer.setLayout(new BoxLayout(deadlineContainer, BoxLayout.Y_AXIS));
+        deadlineContainer.setBackground(Color.WHITE);
+        deadlineContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        
+        JPanel deadlineLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        deadlineLabelPanel.setBackground(Color.WHITE);
+        deadlineLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
         JLabel deadlineLabel = new JLabel("<html>Deadline: <font color='red'>*</font></html>");
         deadlineLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        deadlineLabel.setPreferredSize(new Dimension(150, 20));
-        deadlineRow.add(deadlineLabel, BorderLayout.WEST);
+        deadlineLabelPanel.add(deadlineLabel);
+        deadlineContainer.add(deadlineLabelPanel);
+        deadlineContainer.add(Box.createRigidArea(new Dimension(0, 8)));
 
         deadlineField = new JTextField();
         deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
         deadlineField.setBorder(defaultBorder);
-        deadlineField.setPreferredSize(new Dimension(250, 20));
+        deadlineField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         deadlineField.setEditable(false);
-        deadlineField.setBackground(Color.WHITE); // <<< FIX: Set background to white
+        deadlineField.setBackground(Color.WHITE);
         deadlineField.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         deadlineField.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -186,28 +218,33 @@ public class ClientDashboard extends JFrame {
                 showCalendar(deadlineField, true, null);
             }
         });
-        
-        deadlineRow.add(deadlineField, BorderLayout.CENTER);
+        deadlineContainer.add(deadlineField);
         
         deadlineErrorLabel = new JLabel(" ");
-        JPanel deadlineContainer = new JPanel();
-        deadlineContainer.setLayout(new BoxLayout(deadlineContainer, BoxLayout.Y_AXIS));
-        deadlineContainer.setBackground(Color.WHITE);
-        deadlineContainer.add(deadlineRow);
-        deadlineContainer.add(createErrorPanel(deadlineErrorLabel, 160));
+        deadlineErrorLabel.setForeground(Color.RED);
+        deadlineErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel deadlineErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        deadlineErrorPanel.setBackground(Color.WHITE);
+        deadlineErrorPanel.add(deadlineErrorLabel);
+        deadlineContainer.add(deadlineErrorPanel);
 
         mainPanel.add(deadlineContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // --- Job Description Row ---
-        JPanel descriptionRow = new JPanel(new BorderLayout(10, 0));
-        descriptionRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
-        descriptionRow.setBackground(Color.WHITE);
+        // --- Job Description ---
+        JPanel descriptionContainer = new JPanel();
+        descriptionContainer.setLayout(new BoxLayout(descriptionContainer, BoxLayout.Y_AXIS));
+        descriptionContainer.setBackground(Color.WHITE);
+        descriptionContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
+        
+        JPanel descriptionLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        descriptionLabelPanel.setBackground(Color.WHITE);
+        descriptionLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
         JLabel descriptionLabel = new JLabel("Job Description:");
         descriptionLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        descriptionLabel.setPreferredSize(new Dimension(150, 20));
-        descriptionLabel.setVerticalAlignment(SwingConstants.TOP);
-        descriptionRow.add(descriptionLabel, BorderLayout.WEST);
+        descriptionLabelPanel.add(descriptionLabel);
+        descriptionContainer.add(descriptionLabelPanel);
+        descriptionContainer.add(Box.createRigidArea(new Dimension(0, 8)));
 
         descriptionArea = new JTextArea(5, 20);
         descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
@@ -227,50 +264,34 @@ public class ClientDashboard extends JFrame {
         descriptionArea.addFocusListener(scrollPaneHighlightListener);
         descriptionArea.setBorder(null);
         JScrollPane scrollPane = new JScrollPane(descriptionArea);
-        scrollPane.setPreferredSize(new Dimension(400, 80));
+        scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
         scrollPane.setBorder(defaultBorder);
-        descriptionRow.add(scrollPane, BorderLayout.CENTER);
+        descriptionContainer.add(scrollPane);
         
         descriptionErrorLabel = new JLabel(" ");
-        JPanel descriptionContainer = new JPanel();
-        descriptionContainer.setLayout(new BoxLayout(descriptionContainer, BoxLayout.Y_AXIS));
-        descriptionContainer.setBackground(Color.WHITE);
-        descriptionContainer.add(descriptionRow);
-        descriptionContainer.add(createErrorPanel(descriptionErrorLabel, 160));
+        descriptionErrorLabel.setForeground(Color.RED);
+        descriptionErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        JPanel descriptionErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        descriptionErrorPanel.setBackground(Color.WHITE);
+        descriptionErrorPanel.add(descriptionErrorLabel);
+        descriptionContainer.add(descriptionErrorPanel);
 
         mainPanel.add(descriptionContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
         // --- Submit Button ---
-        JButton submitButton = new JButton("Submit");
-        submitButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        GradientButton submitButton = new GradientButton("Submit");
+        submitButton.setFont(new Font("Arial", Font.BOLD, 16));
         submitButton.setForeground(Color.WHITE);
-        submitButton.setBackground(new Color(44, 116, 132));
-        submitButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        submitButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        submitButton.setPreferredSize(new Dimension(800, 38));
         submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitButton.setFocusPainted(false);
         submitButton.setBorderPainted(false);
-        submitButton.setOpaque(true);
-
-        Color defaultColor = new Color(44, 116, 132);
-        Color hoverColor = new Color(37, 94, 106);
-        submitButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) { submitButton.setBackground(hoverColor); }
-            public void mouseExited(java.awt.event.MouseEvent evt) { submitButton.setBackground(defaultColor); }
-        });
+        submitButton.setContentAreaFilled(false);
+        submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         submitButton.addActionListener(e -> submitJob());
         mainPanel.add(submitButton);
-    }
-
-    private JPanel createErrorPanel(JLabel errorLabel, int leftIndent) {
-        errorLabel.setForeground(Color.RED);
-        errorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        JPanel errorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        errorPanel.setBackground(Color.WHITE);
-        errorPanel.setBorder(BorderFactory.createEmptyBorder(0, leftIndent, 0, 0));
-        errorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        errorPanel.add(errorLabel);
-        return errorPanel;
     }
 
     private void showCalendar(JTextField targetField, boolean restrictToFuture, Date minSelectableDate) {
@@ -281,9 +302,7 @@ public class ClientDashboard extends JFrame {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             targetField.setText(dateFormat.format(calendarDialog.getSelectedDate()));
             targetField.setBorder(defaultBorder);
-            if (targetField == deadlineField) {
-                deadlineErrorLabel.setText(" ");
-            }
+            deadlineErrorLabel.setText(" ");
         }
     }
 
@@ -359,6 +378,51 @@ public class ClientDashboard extends JFrame {
         durationErrorLabel.setText(" ");
         deadlineErrorLabel.setText(" ");
         descriptionErrorLabel.setText(" ");
+    }
+
+    private static class GradientButton extends JButton {
+        private boolean isHovered = false;
+        
+        public GradientButton(String text) {
+            super(text);
+            setOpaque(false);
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    isHovered = true;
+                    repaint();
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    isHovered = false;
+                    repaint();
+                }
+            });
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            Color color1, color2;
+            if (isHovered) {
+                color1 = new Color(60, 200, 220);
+                color2 = new Color(20, 140, 160);
+            } else {
+                color1 = new Color(50, 170, 190);
+                color2 = new Color(30, 110, 130);
+            }
+            
+            GradientPaint gradient = new GradientPaint(
+                0, 0, color1,
+                getWidth(), 0, color2
+            );
+            
+            g2.setPaint(gradient);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
+            
+            g2.dispose();
+            super.paintComponent(g);
+        }
     }
 
     public static void main(String[] args) {

@@ -1,7 +1,7 @@
 package ui;
 
 import data.UserDataManager;
-import java.awt.*; // Import the User model
+import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.MouseAdapter;
@@ -17,7 +17,6 @@ public class LoginPage extends JFrame {
     private PlaceholderTextField usernameField;
     private PlaceholderPasswordField passwordField;
     private JCheckBox showPasswordCheckBox;
-    private JButton loginButton;
     private JLabel loginErrorLabel;
 
     private UserDataManager userDataManager = new UserDataManager();
@@ -98,15 +97,15 @@ public class LoginPage extends JFrame {
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
         Border defaultBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
         Border focusBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(0, 124, 137), 2),
+                BorderFactory.createLineBorder(new Color(0, 124, 137), 2, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
         Border errorBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.RED, 1),
+                BorderFactory.createLineBorder(Color.RED, 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
         FocusAdapter highlightListener = new FocusAdapter() {
@@ -167,25 +166,15 @@ public class LoginPage extends JFrame {
         mainPanel.add(loginErrorLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        loginButton = new JButton("Login");
-        loginButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        GradientButton loginButton = new GradientButton("Login");
+        loginButton.setFont(new Font("Arial", Font.BOLD, 16));
         loginButton.setForeground(Color.WHITE);
-        loginButton.setBackground(new Color(44, 116, 132));
-        loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        loginButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         loginButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         loginButton.setFocusPainted(false);
         loginButton.setBorderPainted(false);
-        loginButton.setOpaque(true);
-        Color defaultColor = new Color(44, 116, 132);
-        Color hoverColor = new Color(37, 94, 106);
-        loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(hoverColor);
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                loginButton.setBackground(defaultColor);
-            }
-        });
+        loginButton.setContentAreaFilled(false);
+        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         loginButton.addActionListener(e -> {
             String usernameOrEmail = usernameField.getText();
@@ -258,6 +247,51 @@ public class LoginPage extends JFrame {
             FontMetrics fm = g2.getFontMetrics();
             int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
             g2.drawString(placeholder, getInsets().left + 5, y);
+        }
+    }
+
+    private static class GradientButton extends JButton {
+        private boolean isHovered = false;
+        
+        public GradientButton(String text) {
+            super(text);
+            setOpaque(false);
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    isHovered = true;
+                    repaint();
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    isHovered = false;
+                    repaint();
+                }
+            });
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            Color color1, color2;
+            if (isHovered) {
+                color1 = new Color(60, 200, 220);
+                color2 = new Color(20, 140, 160);
+            } else {
+                color1 = new Color(50, 170, 190);
+                color2 = new Color(30, 110, 130);
+            }
+            
+            GradientPaint gradient = new GradientPaint(
+                0, 0, color1,
+                getWidth(), 0, color2
+            );
+            
+            g2.setPaint(gradient);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
+            
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 }

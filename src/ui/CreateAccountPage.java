@@ -19,7 +19,6 @@ public class CreateAccountPage extends JFrame {
     private PlaceholderTextField firstNameField, lastNameField, emailField, usernameField, phoneNumberField;
     private PlaceholderPasswordField passwordField, confirmPasswordField;
     private JCheckBox showPasswordCheckBox, ownerCheckBox, clientCheckBox;
-    private JButton signUpButton;
     private JLabel firstNameErrorLabel, lastNameErrorLabel, passwordErrorLabel, emailErrorLabel, usernameErrorLabel, phoneNumberErrorLabel, accountTypeErrorLabel, passwordRequirementsLabel;
     private Border defaultBorder, focusBorder, errorBorder;
     private UserValidator validator = new UserValidator();
@@ -83,13 +82,13 @@ public class CreateAccountPage extends JFrame {
 
     private void initBorders() {
         defaultBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
+                BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10));
         focusBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(LINK, 2),
+                BorderFactory.createLineBorder(LINK, 2, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10));
         errorBorder = BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(Color.RED, 1),
+                BorderFactory.createLineBorder(Color.RED, 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10));
     }
 
@@ -326,19 +325,15 @@ public class CreateAccountPage extends JFrame {
     }
     
     private void addSignUpBtn(JPanel main) {
-        signUpButton = new JButton("Sign Up");
-        signUpButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        GradientButton signUpButton = new GradientButton("Sign Up");
+        signUpButton.setFont(new Font("Arial", Font.BOLD, 16));
         signUpButton.setForeground(Color.WHITE);
-        signUpButton.setBackground(TEAL);
-        signUpButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        signUpButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
         signUpButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         signUpButton.setFocusPainted(false);
         signUpButton.setBorderPainted(false);
-        signUpButton.setOpaque(true);
-        signUpButton.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { signUpButton.setBackground(TEAL_HOVER); }
-            public void mouseExited(MouseEvent e) { signUpButton.setBackground(TEAL); }
-        });
+        signUpButton.setContentAreaFilled(false);
+        signUpButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         signUpButton.addActionListener(e -> {
             if (validateForm()) {
                 String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
@@ -488,6 +483,51 @@ public class CreateAccountPage extends JFrame {
             g2.setColor(new Color(150, 150, 150));
             FontMetrics fm = g2.getFontMetrics();
             g2.drawString(placeholder, getInsets().left + 5, (getHeight() - fm.getHeight()) / 2 + fm.getAscent());
+        }
+    }
+
+    private static class GradientButton extends JButton {
+        private boolean isHovered = false;
+        
+        public GradientButton(String text) {
+            super(text);
+            setOpaque(false);
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    isHovered = true;
+                    repaint();
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    isHovered = false;
+                    repaint();
+                }
+            });
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            Color color1, color2;
+            if (isHovered) {
+                color1 = new Color(60, 200, 220);
+                color2 = new Color(20, 140, 160);
+            } else {
+                color1 = new Color(50, 170, 190);
+                color2 = new Color(30, 110, 130);
+            }
+            
+            GradientPaint gradient = new GradientPaint(
+                0, 0, color1,
+                getWidth(), 0, color2
+            );
+            
+            g2.setPaint(gradient);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
+            
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 
