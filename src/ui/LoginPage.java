@@ -20,12 +20,12 @@ public class LoginPage extends JFrame {
     private JLabel loginErrorLabel;
 
     private UserDataManager userDataManager = new UserDataManager();
-
     public LoginPage() {
         setTitle("Login");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
@@ -60,7 +60,7 @@ public class LoginPage extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.NONE;
         gbc.ipadx = 350;
-        gbc.ipady = 0; 
+        gbc.ipady = 0;
         contentArea.add(mainPanel, gbc);
         rootPanel.add(headerPanel, BorderLayout.NORTH);
         rootPanel.add(contentArea, BorderLayout.CENTER);
@@ -165,7 +165,6 @@ public class LoginPage extends JFrame {
         loginErrorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(loginErrorLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
         GradientButton loginButton = new GradientButton("Login");
         loginButton.setFont(new Font("Arial", Font.BOLD, 16));
         loginButton.setForeground(Color.WHITE);
@@ -175,7 +174,6 @@ public class LoginPage extends JFrame {
         loginButton.setBorderPainted(false);
         loginButton.setContentAreaFilled(false);
         loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
         loginButton.addActionListener(e -> {
             String usernameOrEmail = usernameField.getText();
             String password = new String(passwordField.getPassword());
@@ -191,9 +189,10 @@ public class LoginPage extends JFrame {
                 dispose();
 
                 if ("Owner".equals(accountType)) {
-                    SwingUtilities.invokeLater(() -> new OwnerDashboard(loggedInUser).setVisible(true));
+                    SwingUtilities.invokeLater(() -> new VehicleSubmissionPage(loggedInUser).setVisible(true));
                 } else if ("Client".equals(accountType)) {
-                    SwingUtilities.invokeLater(() -> new ClientDashboard(loggedInUser).setVisible(true));
+  
+                    SwingUtilities.invokeLater(() -> new JobSubmissionPage(loggedInUser).setVisible(true));
                 } else {
                     JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -245,50 +244,4 @@ public class LoginPage extends JFrame {
             g2.drawString(placeholder, getInsets().left + 5, y);
         }
     }
-
-    private static class GradientButton extends JButton {
-        private boolean isHovered = false;
-        
-        public GradientButton(String text) {
-            super(text);
-            setOpaque(false);
-            addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    isHovered = true;
-                    repaint();
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    isHovered = false;
-                    repaint();
-                }
-            });
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            Color color1, color2;
-            if (isHovered) {
-                color1 = new Color(60, 200, 220);
-                color2 = new Color(20, 140, 160);
-            } else {
-                color1 = new Color(50, 170, 190);
-                color2 = new Color(30, 110, 130);
-            }
-            
-            GradientPaint gradient = new GradientPaint(
-                0, 0, color1,
-                getWidth(), 0, color2
-            );
-            
-            g2.setPaint(gradient);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
-            
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    }
 }
-

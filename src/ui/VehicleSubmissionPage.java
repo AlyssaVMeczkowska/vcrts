@@ -14,7 +14,7 @@ import model.User;
 import model.Vehicle;
 import validation.VehicleValidator;
 
-public class OwnerDashboard extends JFrame {
+public class VehicleSubmissionPage extends JFrame {
     private PlaceholderTextField vehicleMakeField;
     private PlaceholderTextField vehicleModelField;
     private PlaceholderTextField vehicleYearField;
@@ -28,12 +28,13 @@ public class OwnerDashboard extends JFrame {
     private User currentUser;
     private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
-    public OwnerDashboard(User user) {
+    public VehicleSubmissionPage(User user) {
         this.currentUser = user;
         setTitle("Owner Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
@@ -191,8 +192,6 @@ public class OwnerDashboard extends JFrame {
         residencyEndField.setBackground(Color.WHITE);
         residencyEndField.setCursor(new Cursor(Cursor.HAND_CURSOR));
         residencyEndField.setFocusable(false);
-
-
         residencyEndField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 Date minEndDate = null;
@@ -384,7 +383,8 @@ public class OwnerDashboard extends JFrame {
                 residencyEndField.getText().trim()
         );
         if (dataManager.addVehicle(vehicle)) {
-            JOptionPane.showMessageDialog(this, "Vehicle availability submitted successfully!");
+            CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
+            dialog.setVisible(true);
             clearForm();
         } else {
             JOptionPane.showMessageDialog(this, "Error writing to file. Please check console.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -437,53 +437,10 @@ public class OwnerDashboard extends JFrame {
         }
     }
 
-    private static class GradientButton extends JButton {
-        private boolean isHovered = false;
-        public GradientButton(String text) {
-            super(text);
-            setOpaque(false);
-            addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    isHovered = true;
-                    repaint();
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    isHovered = false;
-                    repaint();
-                }
-            });
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            Color color1, color2;
-            if (isHovered) {
-                color1 = new Color(60, 200, 220);
-                color2 = new Color(20, 140, 160);
-            } else {
-                color1 = new Color(50, 170, 190);
-                color2 = new Color(30, 110, 130);
-            }
-            
-            GradientPaint gradient = new GradientPaint(
-                0, 0, color1,
-                getWidth(), 0, color2
-            );
-            g2.setPaint(gradient);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
-            
-            g2.dispose();
-            super.paintComponent(g);
-        }
-    }
-
     public static void main(String[] args) {
         User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp");
         SwingUtilities.invokeLater(() -> {
-            OwnerDashboard dashboard = new OwnerDashboard(testUser);
+            VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
             dashboard.setVisible(true);
         });
     }

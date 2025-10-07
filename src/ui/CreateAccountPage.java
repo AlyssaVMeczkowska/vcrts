@@ -27,13 +27,13 @@ public class CreateAccountPage extends JFrame {
     private static final Color TEAL_HOVER = new Color(37, 94, 106);
     private static final Color LINK = new Color(0, 124, 137);
     private static final Color GRAY = new Color(100, 100, 100);
-
     public CreateAccountPage() {
         setTitle("Create Account");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 800);
         setResizable(true);
         setLocationRelativeTo(null);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
         rootPanel.add(createHeader(), BorderLayout.NORTH);
@@ -44,7 +44,6 @@ public class CreateAccountPage extends JFrame {
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         rootPanel.add(scrollPane, BorderLayout.CENTER);
-
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
         contentArea.setBorder(BorderFactory.createEmptyBorder(30, 0, 30, 0));
@@ -148,11 +147,9 @@ public class CreateAccountPage extends JFrame {
         JPanel leftPanel = createFormFieldPanel("First Name",
                 firstNameField = new PlaceholderTextField("Enter your first name"),
                 firstNameErrorLabel = new JLabel(" "), focus, true);
-        
         JPanel rightPanel = createFormFieldPanel("Last Name",
                 lastNameField = new PlaceholderTextField("Enter your last name"),
                 lastNameErrorLabel = new JLabel(" "), focus, true);
-
         rowPanel.add(leftPanel);
         rowPanel.add(rightPanel);
         main.add(rowPanel);
@@ -166,7 +163,8 @@ public class CreateAccountPage extends JFrame {
 
         JPanel lbl = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         lbl.setBackground(Color.WHITE);
-        String labelHtml = isRequired ? "<html>" + labelText + " <font color='red'>*</font></html>" : labelText;
+        String labelHtml = isRequired ?
+        "<html>" + labelText + " <font color='red'>*</font></html>" : labelText;
         lbl.add(new JLabel(labelHtml) {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
         panel.add(lbl);
         panel.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -238,14 +236,12 @@ public class CreateAccountPage extends JFrame {
         lbl.add(new JLabel("<html>Confirm Password <font color='red'>*</font></html>") {{ setFont(new Font("Arial", Font.BOLD, 14)); }});
         main.add(lbl);
         main.add(Box.createRigidArea(new Dimension(0, 8)));
-        
         confirmPasswordField = new PlaceholderPasswordField("Re-enter your password");
         confirmPasswordField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
         confirmPasswordField.setFont(new Font("Arial", Font.PLAIN, 14));
         confirmPasswordField.setBorder(defaultBorder);
         confirmPasswordField.addFocusListener(focus);
         main.add(confirmPasswordField);
-        
         passwordErrorLabel = new JLabel(" ");
         passwordErrorLabel.setForeground(Color.RED);
         passwordErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -348,11 +344,11 @@ public class CreateAccountPage extends JFrame {
                     new String(passwordField.getPassword()),
                     type
                 );
-  
-                JOptionPane.showMessageDialog(this, "Account Created Successfully!", 
-                                            "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                CustomDialog dialog = new CustomDialog(this, "Success", "Account Created Successfully!");
+                dialog.setVisible(true);
                 navToLogin();
-            }
+           }
         });
         main.add(signUpButton);
         main.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -365,7 +361,6 @@ public class CreateAccountPage extends JFrame {
 
     private boolean validateForm() {
         boolean valid = true;
-
         if (!validator.isNameValid(firstNameField.getText())) {
             valid = false;
             firstNameField.setBorder(errorBorder);
@@ -430,7 +425,8 @@ public class CreateAccountPage extends JFrame {
             "<span style='color:%s'>&#8226; 8 characters</span><br>" +
             "<span style='color:%s'>&#8226; 1 uppercase & 1 lowercase letter</span><br>" +
             "<span style='color:%s'>&#8226; 1 number & 1 special character (!@#...)</span></body></html>",
-            len ? "#006400" : "#C00000", cas ? "#006400" : "#C00000", num ? "#006400" : "#C00000"));
+            len ? "#006400" : "#C00000", cas ? "#006400" : "#C00000", num ? "#006400" : 
+            "#C00000"));
         
         if (!strong) {
             valid = false;
@@ -485,51 +481,6 @@ public class CreateAccountPage extends JFrame {
             g2.setColor(new Color(150, 150, 150));
             FontMetrics fm = g2.getFontMetrics();
             g2.drawString(placeholder, getInsets().left + 5, (getHeight() - fm.getHeight()) / 2 + fm.getAscent());
-        }
-    }
-
-    private static class GradientButton extends JButton {
-        private boolean isHovered = false;
-        
-        public GradientButton(String text) {
-            super(text);
-            setOpaque(false);
-            addMouseListener(new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    isHovered = true;
-                    repaint();
-                }
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    isHovered = false;
-                    repaint();
-                }
-            });
-        }
-        
-        @Override
-        protected void paintComponent(Graphics g) {
-            Graphics2D g2 = (Graphics2D) g.create();
-            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            
-            Color color1, color2;
-            if (isHovered) {
-                color1 = new Color(60, 200, 220);
-                color2 = new Color(20, 140, 160);
-            } else {
-                color1 = new Color(50, 170, 190);
-                color2 = new Color(30, 110, 130);
-            }
-            
-            GradientPaint gradient = new GradientPaint(
-                0, 0, color1,
-                getWidth(), 0, color2
-            );
-            
-            g2.setPaint(gradient);
-            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
-            
-            g2.dispose();
-            super.paintComponent(g);
         }
     }
 
