@@ -17,6 +17,8 @@ public class OwnerDashboard extends JFrame {
     private PlaceholderTextField vehicleMakeField;
     private PlaceholderTextField vehicleModelField;
     private PlaceholderTextField vehicleYearField;
+    private PlaceholderTextField licensePlateField;
+    private PlaceholderTextField vinNumberField;
     private JComboBox<String> computingPowerCombo;
     private JTextField residencyStartField;
     private JTextField residencyEndField;
@@ -24,7 +26,7 @@ public class OwnerDashboard extends JFrame {
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
 
-    private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
+    private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
 
     public OwnerDashboard() {
@@ -61,15 +63,15 @@ public class OwnerDashboard extends JFrame {
         // MAIN CONTENT AREA
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
+        contentArea.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
         mainPanel.setBackground(Color.WHITE);
+        mainPanel.setPreferredSize(new Dimension(900, 650));
+        mainPanel.setMaximumSize(new Dimension(900, 650));
+        mainPanel.setMinimumSize(new Dimension(900, 650));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        gbc.insets = new Insets(20, 20, 20, 20);
         contentArea.add(mainPanel, gbc);
         rootPanel.add(headerPanel, BorderLayout.NORTH);
         rootPanel.add(contentArea, BorderLayout.CENTER);
@@ -89,15 +91,15 @@ public class OwnerDashboard extends JFrame {
 
         defaultBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+                BorderFactory.createEmptyBorder(3, 10, 3, 10)
         );
         focusBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(0, 124, 137), 2),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+                BorderFactory.createEmptyBorder(3, 10, 3, 10)
         );
         errorBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.RED, 1),
-                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+                BorderFactory.createEmptyBorder(3, 10, 3, 10)
         );
 
         FocusAdapter highlightListener = new FocusAdapter() {
@@ -130,21 +132,47 @@ public class OwnerDashboard extends JFrame {
         firstRowPanel.add(createColumn("Vehicle Year:", vehicleYearField, vehicleYearErrorLabel, highlightListener));
         mainPanel.add(firstRowPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        
+        JPanel powerPanel = new JPanel(new BorderLayout());
+        powerPanel.setBackground(Color.WHITE);
+        powerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
+        
+        JPanel powerInnerPanel = new JPanel();
+        powerInnerPanel.setLayout(new BoxLayout(powerInnerPanel, BoxLayout.Y_AXIS));
+        powerInnerPanel.setBackground(Color.WHITE);
+        
+        JPanel powerLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        powerLabelPanel.setBackground(Color.WHITE);
 
         JLabel powerLabel = new JLabel("<html>Computing Power Level: <font color='red'>*</font></html>");
         powerLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        powerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        mainPanel.add(powerLabel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-
+        powerLabelPanel.add(powerLabel);
+        powerInnerPanel.add(powerLabelPanel);
+        powerInnerPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+        
         String[] powerLevels = { "Low", "Medium", "High" };
         computingPowerCombo = new JComboBox<>(powerLevels);
         computingPowerCombo.setFont(new Font("Arial", Font.PLAIN, 14));
         computingPowerCombo.setBackground(Color.WHITE);
-        computingPowerCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
-        mainPanel.add(computingPowerCombo);
+        powerInnerPanel.add(computingPowerCombo);
+        
+        powerPanel.add(powerInnerPanel, BorderLayout.CENTER);
+        mainPanel.add(powerPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
+        
+        // Second Row - License Plate and VIN Number
+        JPanel secondRowPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        secondRowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
+        secondRowPanel.setBackground(Color.WHITE);
+        licensePlateField = new PlaceholderTextField("Enter license plate");
+        vinNumberField = new PlaceholderTextField("Enter VIN number");
+        licensePlateErrorLabel = new JLabel(" ");
+        vinNumberErrorLabel = new JLabel(" ");
+        secondRowPanel.add(createColumn("License Plate:", licensePlateField, licensePlateErrorLabel, highlightListener));
+        secondRowPanel.add(createColumn("VIN Number:", vinNumberField, vinNumberErrorLabel, highlightListener));
+        mainPanel.add(secondRowPanel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        
         JPanel dateRow = new JPanel(new GridLayout(1, 2, 20, 0));
         dateRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         dateRow.setBackground(Color.WHITE);
@@ -187,22 +215,17 @@ public class OwnerDashboard extends JFrame {
         dateRow.add(createColumn("Residency End Date:", residencyEndField, residencyEndErrorLabel, highlightListener));
         mainPanel.add(dateRow);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-
-        JButton submitButton = new JButton("Submit Vehicle");
-        submitButton.setFont(new Font("Arial", Font.PLAIN, 16));
+        
+        GradientButton submitButton = new GradientButton("Submit Vehicle");
+        submitButton.setFont(new Font("Arial", Font.BOLD, 16));
         submitButton.setForeground(Color.WHITE);
-        submitButton.setBackground(new Color(44, 116, 132));
-        submitButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
+        submitButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        submitButton.setPreferredSize(new Dimension(800, 38));
         submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitButton.setFocusPainted(false);
         submitButton.setBorderPainted(false);
-        submitButton.setOpaque(true);
-        Color defaultColor = new Color(44, 116, 132);
-        Color hoverColor = new Color(37, 94, 106);
-        submitButton.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) { submitButton.setBackground(hoverColor); }
-            public void mouseExited(java.awt.event.MouseEvent evt) { submitButton.setBackground(defaultColor); }
-        });
+        submitButton.setContentAreaFilled(false);
+        submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         submitButton.addActionListener(e -> submitVehicle());
         mainPanel.add(submitButton);
     }
@@ -211,21 +234,27 @@ public class OwnerDashboard extends JFrame {
         JPanel column = new JPanel();
         column.setLayout(new BoxLayout(column, BoxLayout.Y_AXIS));
         column.setBackground(Color.WHITE);
-        JLabel label = new JLabel("<html>" + labelText + " <font color='red'>*</font></html>");
+        
+        JPanel labelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        labelPanel.setBackground(Color.WHITE);
+        labelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+        JLabel label = new JLabel(labelText);
         label.setFont(new Font("Arial", Font.BOLD, 14));
-        label.setAlignmentX(Component.CENTER_ALIGNMENT);
+        labelPanel.add(label);
+        
         field.setFont(new Font("Arial", Font.PLAIN, 14));
         field.setBorder(defaultBorder);
         field.addFocusListener(highlightListener);
-        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 35));
+        field.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+        
         errorLabel.setForeground(Color.RED);
         errorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        errorLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JPanel errorPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        JPanel errorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         errorPanel.setBackground(Color.WHITE);
         errorPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 15));
         errorPanel.add(errorLabel);
-        column.add(label);
+        
+        column.add(labelPanel);
         column.add(Box.createRigidArea(new Dimension(0, 8)));
         column.add(field);
         column.add(errorPanel);
@@ -259,11 +288,15 @@ public class OwnerDashboard extends JFrame {
         vehicleMakeField.setBorder(defaultBorder);
         vehicleModelField.setBorder(defaultBorder);
         vehicleYearField.setBorder(defaultBorder);
+        licensePlateField.setBorder(defaultBorder);
+        vinNumberField.setBorder(defaultBorder);
         residencyStartField.setBorder(defaultBorder);
         residencyEndField.setBorder(defaultBorder);
         vehicleMakeErrorLabel.setText(" ");
         vehicleModelErrorLabel.setText(" ");
         vehicleYearErrorLabel.setText(" ");
+        licensePlateErrorLabel.setText(" ");
+        vinNumberErrorLabel.setText(" ");
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
 
@@ -334,6 +367,8 @@ public class OwnerDashboard extends JFrame {
         vehicleMakeField.setText("");
         vehicleModelField.setText("");
         vehicleYearField.setText("");
+        licensePlateField.setText("");
+        vinNumberField.setText("");
         computingPowerCombo.setSelectedIndex(0);
         residencyStartField.setText("");
         residencyEndField.setText("");
@@ -341,12 +376,16 @@ public class OwnerDashboard extends JFrame {
         vehicleMakeField.setBorder(defaultBorder);
         vehicleModelField.setBorder(defaultBorder);
         vehicleYearField.setBorder(defaultBorder);
+        licensePlateField.setBorder(defaultBorder);
+        vinNumberField.setBorder(defaultBorder);
         residencyStartField.setBorder(defaultBorder);
         residencyEndField.setBorder(defaultBorder);
 
         vehicleMakeErrorLabel.setText(" ");
         vehicleModelErrorLabel.setText(" ");
         vehicleYearErrorLabel.setText(" ");
+        licensePlateErrorLabel.setText(" ");
+        vinNumberErrorLabel.setText(" ");
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
         repaint();
@@ -367,6 +406,52 @@ public class OwnerDashboard extends JFrame {
             FontMetrics fm = g2.getFontMetrics();
             int y = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
             g2.drawString(placeholder, getInsets().left + 5, y);
+        }
+    }
+
+    private static class GradientButton extends JButton {
+        private boolean isHovered = false;
+        
+        public GradientButton(String text) {
+            super(text);
+            setOpaque(false);
+            addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    isHovered = true;
+                    repaint();
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    isHovered = false;
+                    repaint();
+                }
+            });
+        }
+        
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            
+            // Gradient from light (left) to dark (right)
+            Color color1, color2;
+            if (isHovered) {
+                color1 = new Color(60, 200, 220);  // Light cyan on left
+                color2 = new Color(20, 140, 160);  // Dark teal on right
+            } else {
+                color1 = new Color(50, 170, 190);  // Light cyan on left
+                color2 = new Color(30, 110, 130);  // Dark teal on right
+            }
+            
+            GradientPaint gradient = new GradientPaint(
+                0, 0, color1,
+                getWidth(), 0, color2
+            );
+            
+            g2.setPaint(gradient);
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
+            
+            g2.dispose();
+            super.paintComponent(g);
         }
     }
 
