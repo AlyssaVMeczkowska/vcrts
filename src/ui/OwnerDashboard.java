@@ -4,7 +4,10 @@ import data.VehicleDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Year;
+import java.util.Date;
 import javax.swing.*;
 import javax.swing.border.Border;
 import model.Vehicle;
@@ -17,8 +20,8 @@ public class OwnerDashboard extends JFrame {
     private PlaceholderTextField licensePlateField;
     private PlaceholderTextField vinNumberField;
     private JComboBox<String> computingPowerCombo;
-    private PlaceholderTextField residencyStartField;
-    private PlaceholderTextField residencyEndField;
+    private JTextField residencyStartField;
+    private JTextField residencyEndField;
 
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
@@ -31,7 +34,6 @@ public class OwnerDashboard extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
-
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
@@ -99,6 +101,7 @@ public class OwnerDashboard extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1),
                 BorderFactory.createEmptyBorder(3, 10, 3, 10)
         );
+
         FocusAdapter highlightListener = new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -140,7 +143,8 @@ public class OwnerDashboard extends JFrame {
         
         JPanel powerLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         powerLabelPanel.setBackground(Color.WHITE);
-        JLabel powerLabel = new JLabel("Computing Power Level:");
+
+        JLabel powerLabel = new JLabel("<html>Computing Power Level: <font color='red'>*</font></html>");
         powerLabel.setFont(new Font("Arial", Font.BOLD, 14));
         powerLabelPanel.add(powerLabel);
         powerInnerPanel.add(powerLabelPanel);
@@ -172,8 +176,39 @@ public class OwnerDashboard extends JFrame {
         JPanel dateRow = new JPanel(new GridLayout(1, 2, 20, 0));
         dateRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         dateRow.setBackground(Color.WHITE);
-        residencyStartField = new PlaceholderTextField("yyyy-MM-dd");
-        residencyEndField = new PlaceholderTextField("yyyy-MM-dd");
+        
+        residencyStartField = new JTextField();
+        residencyStartField.setEditable(false);
+        residencyStartField.setBackground(Color.WHITE);
+        residencyStartField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        residencyStartField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                showCalendar(residencyStartField, true, null);
+            }
+        });
+
+        residencyEndField = new JTextField();
+        residencyEndField.setEditable(false);
+        residencyEndField.setBackground(Color.WHITE);
+        residencyEndField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        residencyEndField.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                Date minEndDate = null;
+                if (!residencyStartField.getText().isEmpty()) {
+                    try {
+                        // If start date is chosen, it becomes the minimum date for the end date.
+                        minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
+                    } catch (ParseException ex) {
+                        System.err.println("Error parsing start date: " + ex.getMessage());
+                    }
+                } else {
+                    // If no start date, the minimum date is today to prevent picking past dates.
+                    minEndDate = new Date();
+                }
+                showCalendar(residencyEndField, false, minEndDate);
+            }
+        });
+        
         residencyStartErrorLabel = new JLabel(" ");
         residencyEndErrorLabel = new JLabel(" ");
         dateRow.add(createColumn("Residency Start Date:", residencyStartField, residencyStartErrorLabel, highlightListener));
@@ -225,6 +260,22 @@ public class OwnerDashboard extends JFrame {
         column.add(errorPanel);
         return column;
     }
+    
+    private void showCalendar(JTextField targetField, boolean restrictToFuture, Date minSelectableDate) {
+        CalendarDialog calendarDialog = new CalendarDialog(this, restrictToFuture, minSelectableDate);
+        calendarDialog.setLocationRelativeTo(targetField);
+        calendarDialog.setVisible(true);
+        if (calendarDialog.getSelectedDate() != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            targetField.setText(dateFormat.format(calendarDialog.getSelectedDate()));
+            targetField.setBorder(defaultBorder);
+            if (targetField == residencyStartField) {
+                residencyStartErrorLabel.setText(" ");
+            } else if (targetField == residencyEndField) {
+                residencyEndErrorLabel.setText(" ");
+            }
+        }
+    }
 
     private boolean validateForm() {
         boolean isValid = true;
@@ -234,7 +285,6 @@ public class OwnerDashboard extends JFrame {
         String startDate = residencyStartField.getText();
         String endDate = residencyEndField.getText();
 
-        // Reset UI state
         vehicleMakeField.setBorder(defaultBorder);
         vehicleModelField.setBorder(defaultBorder);
         vehicleYearField.setBorder(defaultBorder);
@@ -269,23 +319,21 @@ public class OwnerDashboard extends JFrame {
             isValid = false;
         }
         
-        boolean isStartDateValid = true;
-        if (!validator.isDateFormatValid(startDate)) {
-            residencyStartErrorLabel.setText("Invalid date format (yyyy-mm-dd).");
+        if (startDate.isEmpty()) {
+            residencyStartErrorLabel.setText("Start date is required.");
             residencyStartField.setBorder(errorBorder);
             isValid = false;
-            isStartDateValid = false;
+        } else if (!validator.isDateInFuture(startDate)) {
+             residencyStartErrorLabel.setText("Start date cannot be in the past.");
+             residencyStartField.setBorder(errorBorder);
+             isValid = false;
         }
 
-        boolean isEndDateValid = true;
-        if (!validator.isDateFormatValid(endDate)) {
-            residencyEndErrorLabel.setText("Invalid date format (yyyy-mm-dd).");
+        if (endDate.isEmpty()) {
+            residencyEndErrorLabel.setText("End date is required.");
             residencyEndField.setBorder(errorBorder);
             isValid = false;
-            isEndDateValid = false;
-        }
-
-        if (isStartDateValid && isEndDateValid && !validator.isDateRangeValid(startDate, endDate)) {
+        } else if (!startDate.isEmpty() && !validator.isDateRangeValid(startDate, endDate)) {
             residencyEndErrorLabel.setText("End date cannot be before the start date.");
             residencyEndField.setBorder(errorBorder);
             isValid = false;
@@ -305,9 +353,8 @@ public class OwnerDashboard extends JFrame {
                 Integer.parseInt(vehicleYearField.getText().trim()),
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
-                residencyEndField.getText().trim()
+                 residencyEndField.getText().trim()
         );
-
         if (dataManager.addVehicle(vehicle)) {
             JOptionPane.showMessageDialog(this, "Vehicle availability submitted successfully!");
             clearForm();
@@ -341,7 +388,6 @@ public class OwnerDashboard extends JFrame {
         vinNumberErrorLabel.setText(" ");
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
-        
         repaint();
     }
 
