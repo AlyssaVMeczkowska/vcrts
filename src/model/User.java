@@ -1,6 +1,7 @@
 package model;
 
 public class User {
+    private int userId;
     private String firstName;
     private String lastName;
     private String email;
@@ -10,7 +11,8 @@ public class User {
     private String accountType;
     private String creationTimestamp;
 
-    public User(String firstName, String lastName, String email, String username, String phoneNumber, String hashedPassword, String accountType, String creationTimestamp) {
+    public User(int userId, String firstName, String lastName, String email, String username, String phoneNumber, String hashedPassword, String accountType, String creationTimestamp) {
+        this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -21,6 +23,7 @@ public class User {
         this.creationTimestamp = creationTimestamp;
     }
 
+    public int getUserId() { return userId; }
     public String getFirstName() { return firstName; }
     public String getLastName() { return lastName; }
     public String getEmail() { return email; }

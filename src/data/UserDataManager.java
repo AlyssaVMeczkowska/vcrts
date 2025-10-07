@@ -35,6 +35,7 @@ public class UserDataManager {
                 if (line.equals("---")) {
                     if (!userData.isEmpty()) {
                         User user = new User(
+                                Integer.parseInt(userData.get("user_id")),
                                 userData.get("first_name"),
                                 userData.get("last_name"),
                                 userData.get("email"),
@@ -62,6 +63,8 @@ public class UserDataManager {
     private void saveUsersToFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (User user : users) {
+                writer.write("user_id: " + user.getUserId());
+                writer.newLine();
                 writer.write("timestamp: " + user.getCreationTimestamp());
                 writer.newLine();
                 writer.write("account_type: " + user.getAccountType());
@@ -112,11 +115,19 @@ public class UserDataManager {
         return users.stream().anyMatch(user -> user.getUsername().equalsIgnoreCase(username));
     }
 
+    private int getNextUserId() {
+        return users.stream()
+                .mapToInt(User::getUserId)
+                .max()
+                .orElse(0) + 1;
+    }
+
     public void addUser(String firstName, String lastName, String email, String username, String phoneNumber, String password, String accountType) {
+        int newUserId = getNextUserId();
         String hashedPassword = hashPassword(password);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         
-        User newUser = new User(firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp);
+        User newUser = new User(newUserId, firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp);
         this.users.add(newUser);
         saveUsersToFile();
     }
@@ -126,12 +137,11 @@ public class UserDataManager {
         Optional<User> foundUser = users.stream()
                 .filter(user -> user.getUsername().equalsIgnoreCase(usernameOrEmail) || user.getEmail().equalsIgnoreCase(usernameOrEmail))
                 .findFirst();
-
-        // Check if user exists and if the hashed password matches
+        
         if (foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword)) {
-            return foundUser.get(); // Return the full User object on success
+            return foundUser.get();
         }
 
-        return null; // Return null if user not found or password is incorrect
+        return null;
     }
 }
