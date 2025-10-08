@@ -6,7 +6,6 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -24,12 +23,11 @@ public class JobSubmissionPage extends JFrame {
     private GradientButton submitButton;
     private List<JobFormPanel> jobForms;
     private int jobCounter = 1;
-    private JPanel mainPanel; 
+    private JPanel mainPanel;
 
     public JobSubmissionPage(User user) { 
         this.currentUser = user;
         this.jobForms = new ArrayList<>();
-
         setTitle("Client Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
@@ -93,7 +91,6 @@ public class JobSubmissionPage extends JFrame {
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(subtitleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 25)));
-
         defaultBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
@@ -106,13 +103,11 @@ public class JobSubmissionPage extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
-
         formsContainer = new JPanel();
         formsContainer.setLayout(new BoxLayout(formsContainer, BoxLayout.Y_AXIS));
         formsContainer.setBackground(Color.WHITE);
         formsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(formsContainer);
-
         // Add "Job 1" label for the first form
         JLabel job1Label = new JLabel("Job 1");
         job1Label.setFont(new Font("Georgia", Font.BOLD, 28));
@@ -143,7 +138,6 @@ public class JobSubmissionPage extends JFrame {
 
     private void rebuildFormsContainer() {
         formsContainer.removeAll();
-        
         // Re-add Job 1 label
         JLabel job1Label = new JLabel("Job 1");
         job1Label.setFont(new Font("Georgia", Font.BOLD, 28));
@@ -166,16 +160,13 @@ public class JobSubmissionPage extends JFrame {
                 sep.setForeground(new Color(220, 220, 220));
                 formsContainer.add(sep);
                 formsContainer.add(Box.createRigidArea(new Dimension(0, 20)));
-                
                 JLabel jLabel = new JLabel("Job " + (i + 1));
                 jLabel.setFont(new Font("Georgia", Font.BOLD, 28));
                 jLabel.setForeground(new Color(0, 124, 137));
-                
                 JPanel jLabelPanel = new JPanel(new BorderLayout());
                 jLabelPanel.setBackground(Color.WHITE);
                 jLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
                 jLabelPanel.add(jLabel, BorderLayout.WEST);
-                
                 // Add remove button for jobs 2 and above
                 JLabel remBtn = new JLabel("−");
                 remBtn.setFont(new Font("Arial", Font.PLAIN, 24));
@@ -196,7 +187,6 @@ public class JobSubmissionPage extends JFrame {
                         remBtn.setForeground(new Color(0, 124, 137));
                     }
                 });
-                
                 jLabelPanel.add(remBtn, BorderLayout.EAST);
                 jLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, jLabel.getPreferredSize().height));
                 formsContainer.add(jLabelPanel);
@@ -204,10 +194,8 @@ public class JobSubmissionPage extends JFrame {
             }
             
             JobFormPanel currentForm = jobForms.get(i);
-            
             // Re-add the form itself
             formsContainer.add(currentForm);
-            
             // Add the "+ Add Job" button only after the last form
             if (i == jobForms.size() - 1) {
                 JPanel addJobButtonPanel = new JPanel();
@@ -271,16 +259,13 @@ public class JobSubmissionPage extends JFrame {
             separator.setForeground(new Color(220, 220, 220));
             formsContainer.add(separator);
             formsContainer.add(Box.createRigidArea(new Dimension(0, 20)));
-            
             JLabel jobLabel = new JLabel("Job " + jobCounter);
             jobLabel.setFont(new Font("Georgia", Font.BOLD, 28));
             jobLabel.setForeground(new Color(0, 124, 137));
-            
             JPanel jobLabelPanel = new JPanel(new BorderLayout());
             jobLabelPanel.setBackground(Color.WHITE);
             jobLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             jobLabelPanel.add(jobLabel, BorderLayout.WEST);
-            
             // Add remove button for Job 2 and above
             JLabel removeButton = new JLabel("−");
             removeButton.setFont(new Font("Arial", Font.PLAIN, 24));
@@ -288,7 +273,6 @@ public class JobSubmissionPage extends JFrame {
             removeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
             
             final int formIndexToRemove = jobForms.size();
-            
             removeButton.addMouseListener(new java.awt.event.MouseAdapter() {
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
                     if (jobForms.size() > formIndexToRemove) {
@@ -304,7 +288,6 @@ public class JobSubmissionPage extends JFrame {
                     removeButton.setForeground(new Color(0, 124, 137));
                 }
             });
-            
             jobLabelPanel.add(removeButton, BorderLayout.EAST);
             jobLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, jobLabel.getPreferredSize().height));
             formsContainer.add(jobLabelPanel);
@@ -334,7 +317,6 @@ public class JobSubmissionPage extends JFrame {
         mainPanel.setPreferredSize(new Dimension(900, newHeight));
         mainPanel.setMaximumSize(new Dimension(900, newHeight));
         mainPanel.revalidate();
-        
         SwingUtilities.invokeLater(() -> {
             jobForm.scrollRectToVisible(jobForm.getBounds());
         });
@@ -361,15 +343,13 @@ public class JobSubmissionPage extends JFrame {
             String duration = form.getDuration();
             String deadline = form.getDeadline();
             String description = form.getDescription();
-            
             Job job = new Job(
-                currentUser.getUserId(), 
+                currentUser.getId(), 
                 jobType,
                 Integer.parseInt(duration.trim()),
                 deadline.trim(),
                 description.trim()
             );
-            
             if (dataManager.addJob(job)) {
                 successCount++;
             }
@@ -449,7 +429,6 @@ public class JobSubmissionPage extends JFrame {
             add(jobTypeLabelPanel);
 
             add(Box.createRigidArea(new Dimension(0, 3)));
-            
             String[] jobTypes = {
                 "Data Storage & Transfer", "Computational Task", "Simulation",
                 "Networking & Communication", "Real-Time Processing", "Batch Processing"
@@ -500,7 +479,6 @@ public class JobSubmissionPage extends JFrame {
             add(deadlineLabelPanel);
 
             add(Box.createRigidArea(new Dimension(0, 3)));
-
             deadlineField = new PlaceholderTextField("Select a date");
             deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
             deadlineField.setBorder(defaultBorder);
@@ -565,10 +543,9 @@ public class JobSubmissionPage extends JFrame {
             descriptionErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
             descriptionErrorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
             add(descriptionErrorLabel);
-            
             add(Box.createRigidArea(new Dimension(0, 8)));  // Reduced from 10
             
-            JPanel addButtonPanel = new JPanel();
+            addButtonPanel = new JPanel();
             addButtonPanel.setLayout(new BoxLayout(addButtonPanel, BoxLayout.X_AXIS));
             addButtonPanel.setBackground(Color.WHITE);
             addButtonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
@@ -581,15 +558,12 @@ public class JobSubmissionPage extends JFrame {
             localAddButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20)); 
             localAddButton.setFocusPainted(false);
             localAddButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            
             // Store reference to this button's panel
             final JPanel buttonPanel = addButtonPanel;
-            
             localAddButton.addActionListener(evt -> {
                 buttonPanel.setVisible(false);
                 addJobForm();
             });
-            
             addButtonPanel.add(Box.createHorizontalGlue());
             addButtonPanel.add(localAddButton);
             add(addButtonPanel);
@@ -597,7 +571,6 @@ public class JobSubmissionPage extends JFrame {
 
         public boolean validateForm() {
             boolean isValid = true;
-            
             durationField.setBorder(defaultBorder);
             deadlineField.setBorder(defaultBorder);
             descScrollPane.setBorder(defaultBorder);

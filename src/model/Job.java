@@ -4,15 +4,15 @@ import java.time.LocalDateTime;
 
 public class Job {
     private int jobId;
-    private int userId;
+    private int accountId;
     private String jobType;
     private int duration;
     private String deadline;
     private String description;
     private String submissionTimestamp;
 
-    public Job(int userId, String jobType, int duration, String deadline, String description) {
-        this.userId = userId;
+    public Job(int accountId, String jobType, int duration, String deadline, String description) {
+        this.accountId = accountId;
         this.jobType = jobType;
         this.duration = duration;
         this.deadline = deadline;
@@ -22,7 +22,7 @@ public class Job {
 
     // --- Getters ---
     public int getJobId() { return jobId; }
-    public int getUserId() { return userId; }
+    public int getAccountId() { return accountId; }
     public String getJobType() { return jobType; }
     public int getDuration() { return duration; }
     public String getDeadline() { return deadline; }
