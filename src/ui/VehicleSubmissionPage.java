@@ -33,7 +33,7 @@ public class VehicleSubmissionPage extends JFrame {
 
     public VehicleSubmissionPage(User user) {
         this.currentUser = user;
-        setTitle("Owner Dashboard");
+        setTitle("Vehicle Availability");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);

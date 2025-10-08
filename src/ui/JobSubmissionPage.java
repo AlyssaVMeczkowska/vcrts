@@ -28,7 +28,7 @@ public class JobSubmissionPage extends JFrame {
     public JobSubmissionPage(User user) { 
         this.currentUser = user;
         this.jobForms = new ArrayList<>();
-        setTitle("Client Dashboard");
+        setTitle("Job Submission");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
