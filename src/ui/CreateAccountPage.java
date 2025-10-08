@@ -334,22 +334,9 @@ public class CreateAccountPage extends JFrame {
         signUpButton.setContentAreaFilled(false);
         signUpButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         signUpButton.addActionListener(e -> {
-            if (validateForm()) {            	
+            if (validateForm()) {
                 String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
-                boolean agreed = false;
                 
-              
-                if(type.equals("Owner")) {
-                	ConsentForm consentform = new ConsentForm(this);
-                	consentform.setVisible(true);
-                	
-                	if(!consentform.isConsentGiven()) {
-                        CustomDialog dialog = new CustomDialog(this, "Registration Failed", "You must agree to the terms and conditions to register as a vehicle owner.", CustomDialog.DialogType.WARNING);
-                        dialog.setVisible(true);
-                		return;
-                	}
-                	agreed = true;
-                }
                 userDataManager.addUser(
                     firstNameField.getText(),
                     lastNameField.getText(),
@@ -358,7 +345,7 @@ public class CreateAccountPage extends JFrame {
                     phoneNumberField.getText(),
                     new String(passwordField.getPassword()),
                     type,
-                    agreed
+                    false 
                 );
                 
                 CustomDialog dialog = new CustomDialog(this, "Success", "Account Created Successfully!");

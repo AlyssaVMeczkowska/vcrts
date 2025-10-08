@@ -1,4 +1,3 @@
-
 package data;
 
 import java.io.*;
@@ -36,7 +35,7 @@ public class UserDataManager {
                 if (line.equals("---")) {
                     if (!userData.isEmpty()) {
                     	boolean hasAgreedToTerms = false;
-                    	if (userData.containsKey("has_agreed_to_terms")) {
+                        if (userData.containsKey("has_agreed_to_terms")) {
                             hasAgreedToTerms = Boolean.parseBoolean(userData.get("has_agreed_to_terms"));
                         }
                         User user = new User(
@@ -140,12 +139,19 @@ public class UserDataManager {
         saveUsersToFile();
     }
 
+    public void updateUserConsent(User userToUpdate) {
+        users.stream()
+            .filter(user -> user.getUserId() == userToUpdate.getUserId())
+            .findFirst()
+            .ifPresent(user -> user.setHasAgreedToTerms(true));
+        saveUsersToFile();
+    }
+
     public User verifyUser(String usernameOrEmail, String password) {
         String hashedPassword = hashPassword(password);
         Optional<User> foundUser = users.stream()
                 .filter(user -> user.getUsername().equalsIgnoreCase(usernameOrEmail) || user.getEmail().equalsIgnoreCase(usernameOrEmail))
                 .findFirst();
-        
         if (foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword)) {
             return foundUser.get();
         }

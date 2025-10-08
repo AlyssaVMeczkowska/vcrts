@@ -1,5 +1,6 @@
 package ui;
 
+import data.UserDataManager;
 import data.VehicleDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
@@ -13,6 +14,7 @@ import javax.swing.border.Border;
 import model.User;
 import model.Vehicle;
 import validation.VehicleValidator;
+
 public class VehicleSubmissionPage extends JFrame {
     private PlaceholderTextField vehicleMakeField;
     private PlaceholderTextField vehicleModelField;
@@ -24,9 +26,11 @@ public class VehicleSubmissionPage extends JFrame {
     private PlaceholderTextField residencyEndField;
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
+    private final UserDataManager userDataManager = new UserDataManager();
     private User currentUser;
     private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
+
     public VehicleSubmissionPage(User user) {
         this.currentUser = user;
         setTitle("Owner Dashboard");
@@ -359,6 +363,23 @@ public class VehicleSubmissionPage extends JFrame {
     }
 
     private void submitVehicle() {
+        // Check for user consent before validating the form.
+        if (!currentUser.hasAgreedToTerms()) {
+            ConsentForm consentForm = new ConsentForm(this);
+            consentForm.setVisible(true);
+
+            if (consentForm.isConsentGiven()) {
+                // If consent is given, update the user's status permanently and for the current session.
+                userDataManager.updateUserConsent(currentUser);
+                currentUser.setHasAgreedToTerms(true);
+            } else {
+                // If consent is declined, show a message and cancel the submission.
+                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled", "You must agree to the terms and conditions to register a vehicle.", CustomDialog.DialogType.WARNING);
+                dialog.setVisible(true);
+                return;
+            }
+        }
+
         if (!validateForm()) {
             return;
         }
@@ -378,10 +399,8 @@ public class VehicleSubmissionPage extends JFrame {
             dialog.setVisible(true);
             clearForm();
 	    } else {
-	        JOptionPane.showMessageDialog(this, 
-	            "Error writing to file. Please check console.", 
-	            "Error", 
-	            JOptionPane.ERROR_MESSAGE);
+            CustomDialog dialog = new CustomDialog(this, "Error", "Error writing to file. Please check console.", CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         }
 	}
 

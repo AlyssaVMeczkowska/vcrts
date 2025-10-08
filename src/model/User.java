@@ -23,7 +23,6 @@ public class User {
         this.accountType = accountType;
         this.creationTimestamp = creationTimestamp;
         this.hasAgreedToTerms = hasAgreedToTerms;
-        this.hasAgreedToTerms = hasAgreedToTerms;
     }
 
     public int getUserId() { return userId; }
@@ -35,6 +34,9 @@ public class User {
     public String getHashedPassword() { return hashedPassword; }
     public String getAccountType() { return accountType; }
     public String getCreationTimestamp() { return creationTimestamp; }
-    public boolean hasAgreedToTerms() { return hasAgreedToTerms; 
+    public boolean hasAgreedToTerms() { return hasAgreedToTerms; }
+
+    public void setHasAgreedToTerms(boolean hasAgreedToTerms) {
+        this.hasAgreedToTerms = hasAgreedToTerms;
     }
-    }
+}
