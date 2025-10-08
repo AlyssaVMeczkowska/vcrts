@@ -6,7 +6,7 @@ import java.util.Date;
 
 public class JobValidator {
     
-    // Check if the duration is a valid positive number
+
     public boolean isDurationValid(String duration) {
         if (duration == null || duration.trim().isEmpty()) {
             return false;

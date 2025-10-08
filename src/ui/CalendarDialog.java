@@ -59,7 +59,6 @@ public class CalendarDialog extends JDialog {
         setLayout(new BorderLayout(5, 5));
         getRootPane().setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        // Month and Year Navigation Panel
         JPanel navPanel = new JPanel(new BorderLayout());
         navPanel.setBackground(COLOR_BACKGROUND);
         JButton prevMonthButton = createNavButton("<");
@@ -78,11 +77,9 @@ public class CalendarDialog extends JDialog {
         navPanel.add(nextMonthButton, BorderLayout.EAST);
         add(navPanel, BorderLayout.NORTH);
 
-        // Main content panel (headers + days)
         JPanel centerPanel = new JPanel(new BorderLayout(0, 2));
         centerPanel.setBackground(COLOR_BACKGROUND);
         
-        // Weekday Headers
         JPanel headerPanel = new JPanel(new GridLayout(1, 7));
         headerPanel.setBackground(COLOR_HEADER);
         String[] weekdays = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
@@ -95,7 +92,6 @@ public class CalendarDialog extends JDialog {
         }
         centerPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Days Panel
         daysPanel = new JPanel(new GridLayout(0, 7, 5, 5)); // Add gaps between buttons
         daysPanel.setBackground(COLOR_BACKGROUND);
         daysPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
@@ -158,7 +154,7 @@ public class CalendarDialog extends JDialog {
                     selectedDate = date;
                     dispose();
                 });
-                // --- Add hover effect ---
+                
                 dayButton.addMouseListener(new MouseAdapter() {
                     public void mouseEntered(MouseEvent evt) {
                        dayButton.setBackground(COLOR_PRIMARY_LIGHT);
@@ -169,7 +165,6 @@ public class CalendarDialog extends JDialog {
                 });
             }
             
-            // --- Style for "today's date" ---
             if (date.equals(today)) {
                 dayButton.setBackground(COLOR_PRIMARY_LIGHT);
                 dayButton.setForeground(COLOR_PRIMARY);
