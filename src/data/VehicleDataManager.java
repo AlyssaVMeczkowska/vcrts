@@ -10,7 +10,7 @@ import model.Vehicle;
 
 public class VehicleDataManager {
 
-    private static final String FILE_PATH = "data/owners_data.txt";
+    private static final String FILE_PATH = "data/vcrts_data.txt";
 
     private boolean isValueTaken(String key, String value) {
         File file = new File(FILE_PATH);
@@ -20,8 +20,15 @@ public class VehicleDataManager {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
+            boolean isVehicleBlock = false;
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith(key)) {
+
+                if (line.startsWith("type: vehicle_availability")) {
+                    isVehicleBlock = true;
+                } else if (line.equals("---")) {
+                    isVehicleBlock = false; 
+                } else if (isVehicleBlock && line.startsWith(key)) {
+
                     String fileValue = line.split(":", 2)[1].trim();
                     if (fileValue.equalsIgnoreCase(value)) {
                         return true;
@@ -29,7 +36,7 @@ public class VehicleDataManager {
                 }
             }
         } catch (IOException ex) {
-            System.err.println("Error reading owners data file: " + ex.getMessage());
+            System.err.println("Error reading data file: " + ex.getMessage());
         }
         return false;
     }
@@ -44,7 +51,9 @@ public class VehicleDataManager {
 
     public boolean addVehicle(Vehicle vehicle) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write("owner_id: " + vehicle.getAccountId());
+            writer.write("type: vehicle"); 
+            writer.newLine();
+            writer.write("user_id: " + vehicle.getAccountId()); 
             writer.newLine();
             writer.write("vin: " + vehicle.getVin());
             writer.newLine();
@@ -68,7 +77,7 @@ public class VehicleDataManager {
             writer.newLine();
             return true;
         } catch (IOException ex) {
-            System.err.println("Error writing to file: " + ex.getMessage());
+            System.err.println("Error writing to data file: " + ex.getMessage());
             return false;
         }
     }

@@ -9,7 +9,7 @@ import java.io.IOException;
 import model.Job;
 
 public class JobDataManager {
-    private static final String FILE_PATH = "data/clients_data.txt";
+    private static final String FILE_PATH = "data/vcrts_data.txt";
 
     private int getNextJobId() {
         int maxId = 0;
@@ -20,8 +20,15 @@ public class JobDataManager {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
+            boolean isJobBlock = false;
             while ((line = reader.readLine()) != null) {
-                if (line.startsWith("job_id:")) {
+                // Identify the start of a job data block
+                if (line.startsWith("type: job_submission")) {
+                    isJobBlock = true;
+                } else if (line.equals("---")) {
+                    isJobBlock = false; 
+                } else if (isJobBlock && line.startsWith("job_id:")) {
+   
                     try {
                         int currentId = Integer.parseInt(line.split(":")[1].trim());
                         if (currentId > maxId) {
@@ -33,7 +40,7 @@ public class JobDataManager {
                 }
             }
         } catch (IOException ex) {
-            System.err.println("Error reading client data file to get next job ID: " + ex.getMessage());
+            System.err.println("Error reading data file to get next job ID: " + ex.getMessage());
         }
         return maxId + 1;
     }
@@ -43,6 +50,8 @@ public class JobDataManager {
         job.setJobId(newJobId);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            writer.write("type: job"); 
+            writer.newLine();
             writer.write("job_id: " + job.getJobId());
             writer.newLine();
             writer.write("client_id: " + job.getAccountId());
@@ -61,7 +70,7 @@ public class JobDataManager {
             writer.newLine();
             return true;
         } catch (IOException ex) {
-            System.err.println("Error writing to client data file: " + ex.getMessage());
+            System.err.println("Error writing to data file: " + ex.getMessage());
             return false;
         }
     }
