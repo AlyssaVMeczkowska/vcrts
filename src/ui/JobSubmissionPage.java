@@ -5,7 +5,9 @@ import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
 import model.Job;
@@ -13,20 +15,20 @@ import model.User;
 import validation.JobValidator;
 
 public class JobSubmissionPage extends JFrame {
-    private JComboBox<String> jobTypeCombo;
-    private PlaceholderTextField durationField;
-    private PlaceholderTextField deadlineField;
-    private PlaceholderTextArea descriptionArea;
-
     private final JobDataManager dataManager = new JobDataManager();
     private final JobValidator validator = new JobValidator();
-    private JLabel durationErrorLabel, deadlineErrorLabel, descriptionErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
     
     private User currentUser;
+    private JPanel formsContainer;
+    private GradientButton submitButton;
+    private List<JobFormPanel> jobForms;
+    private int jobCounter = 1;
+    private JPanel mainPanel; 
 
     public JobSubmissionPage(User user) { 
         this.currentUser = user;
+        this.jobForms = new ArrayList<>();
 
         setTitle("Client Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -36,7 +38,6 @@ public class JobSubmissionPage extends JFrame {
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
 
-        // --- HEADER PANEL ---
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -60,49 +61,38 @@ public class JobSubmissionPage extends JFrame {
         });
         headerPanel.add(logoutButton, BorderLayout.EAST);
 
-        // --- MAIN CONTENT AREA ---
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
-        contentArea.setBorder(BorderFactory.createEmptyBorder(50, 50, 50, 50));
 
-        // --- FORM PANEL ---
-        JPanel mainPanel = new JPanel();
+        mainPanel = new JPanel(); 
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 15, 60));
         mainPanel.setBackground(Color.WHITE);
-        mainPanel.setPreferredSize(new Dimension(900, 650));
-        mainPanel.setMaximumSize(new Dimension(900, 650));
         mainPanel.setMinimumSize(new Dimension(900, 650));
-        // --- LAYOUT LOGIC ---
+        
         GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(15, 50, 15, 50);
         contentArea.add(mainPanel, gbc);
-        // --- ADD PANELS TO ROOT ---
+
+        JScrollPane scrollPane = new JScrollPane(contentArea);
+        scrollPane.setBorder(null);
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+
         rootPanel.add(headerPanel, BorderLayout.NORTH);
-        rootPanel.add(contentArea, BorderLayout.CENTER);
-        // --- FORM COMPONENTS ---
+        rootPanel.add(scrollPane, BorderLayout.CENTER);
+
         JLabel titleLabel = new JLabel("Submit A Job");
         titleLabel.setFont(new Font("Georgia", Font.PLAIN, 42));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JPanel titlePanel = new JPanel();
-        titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.X_AXIS));
-        titlePanel.setBackground(Color.WHITE);
-        titlePanel.add(Box.createHorizontalGlue());
-        titlePanel.add(titleLabel);
-        titlePanel.add(Box.createHorizontalGlue());
-        mainPanel.add(titlePanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
+        mainPanel.add(titleLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
+        
         JLabel subtitleLabel = new JLabel("Enter job details to submit a new job request");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         subtitleLabel.setForeground(new Color(100, 100, 100));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JPanel subtitlePanel = new JPanel();
-        subtitlePanel.setLayout(new BoxLayout(subtitlePanel, BoxLayout.X_AXIS));
-        subtitlePanel.setBackground(Color.WHITE);
-        subtitlePanel.add(Box.createHorizontalGlue());
-        subtitlePanel.add(subtitleLabel);
-        subtitlePanel.add(Box.createHorizontalGlue());
-        mainPanel.add(subtitlePanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
+        mainPanel.add(subtitleLabel);
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 25)));
 
         defaultBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1, true),
@@ -116,270 +106,541 @@ public class JobSubmissionPage extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1, true),
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         );
-        FocusAdapter highlightListener = new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                if (!((JComponent) e.getComponent()).getBorder().equals(errorBorder)) {
-                    ((JComponent) e.getComponent()).setBorder(focusBorder);
-                }
-            }
-            @Override
-            public void focusLost(FocusEvent e) {
-                if (!((JComponent) e.getComponent()).getBorder().equals(errorBorder)) {
-                    ((JComponent) e.getComponent()).setBorder(defaultBorder);
-                }
-            }
-        };
-        // --- Job Type ---
-        JPanel jobTypeContainer = new JPanel();
-        jobTypeContainer.setLayout(new BoxLayout(jobTypeContainer, BoxLayout.Y_AXIS));
-        jobTypeContainer.setBackground(Color.WHITE);
-        jobTypeContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
-        
-        JPanel jobTypeLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        jobTypeLabelPanel.setBackground(Color.WHITE);
-        jobTypeLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        JLabel jobTypeLabel = new JLabel("<html>Job Type: <font color='red'>*</font></html>");
-        jobTypeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        jobTypeLabelPanel.add(jobTypeLabel);
-        jobTypeContainer.add(jobTypeLabelPanel);
-        jobTypeContainer.add(Box.createRigidArea(new Dimension(0, 8)));
-        String[] jobTypes = {
-            "Data Storage & Transfer", "Computational Task", "Simulation",
-            "Networking & Communication", "Real-Time Processing", "Batch Processing"
-        };
-        jobTypeCombo = new JComboBox<>(jobTypes);
-        jobTypeCombo.setFont(new Font("Arial", Font.PLAIN, 14));
-        jobTypeCombo.setBackground(Color.WHITE);
-        jobTypeCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        jobTypeContainer.add(jobTypeCombo);
-        
-        mainPanel.add(jobTypeContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        // --- Duration ---
-        JPanel durationContainer = new JPanel();
-        durationContainer.setLayout(new BoxLayout(durationContainer, BoxLayout.Y_AXIS));
-        durationContainer.setBackground(Color.WHITE);
-        durationContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        
-        JPanel durationLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        durationLabelPanel.setBackground(Color.WHITE);
-        durationLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        JLabel durationLabel = new JLabel("<html>Duration (Hours): <font color='red'>*</font></html>");
-        durationLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        durationLabelPanel.add(durationLabel);
-        durationContainer.add(durationLabelPanel);
-        durationContainer.add(Box.createRigidArea(new Dimension(0, 8)));
-        
-        durationField = new PlaceholderTextField("Enter number of hours");
-        
-        durationField.setFont(new Font("Arial", Font.PLAIN, 14));
-        durationField.setBorder(defaultBorder);
-        durationField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        durationField.addFocusListener(highlightListener);
-        durationContainer.add(durationField);
-        
-        durationErrorLabel = new JLabel(" ");
-        durationErrorLabel.setForeground(Color.RED);
-        durationErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        JPanel durationErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        durationErrorPanel.setBackground(Color.WHITE);
-        durationErrorPanel.add(durationErrorLabel);
-        durationContainer.add(durationErrorPanel);
-        
-        mainPanel.add(durationContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        // --- Deadline ---
-        JPanel deadlineContainer = new JPanel();
-        deadlineContainer.setLayout(new BoxLayout(deadlineContainer, BoxLayout.Y_AXIS));
-        deadlineContainer.setBackground(Color.WHITE);
-        deadlineContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        
-        JPanel deadlineLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        deadlineLabelPanel.setBackground(Color.WHITE);
-        deadlineLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        JLabel deadlineLabel = new JLabel("<html>Deadline: <font color='red'>*</font></html>");
-        deadlineLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        deadlineLabelPanel.add(deadlineLabel);
-        deadlineContainer.add(deadlineLabelPanel);
-        deadlineContainer.add(Box.createRigidArea(new Dimension(0, 8)));
 
-        deadlineField = new PlaceholderTextField("Select a date");
+        formsContainer = new JPanel();
+        formsContainer.setLayout(new BoxLayout(formsContainer, BoxLayout.Y_AXIS));
+        formsContainer.setBackground(Color.WHITE);
+        formsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
+        mainPanel.add(formsContainer);
 
-        deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
-        deadlineField.setBorder(defaultBorder);
-        deadlineField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        deadlineField.setEditable(false);
-        deadlineField.setBackground(Color.WHITE);
-        deadlineField.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        deadlineField.setFocusable(false);
-        deadlineField.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                showCalendar(deadlineField, true, null);
-            }
-        });
-        deadlineContainer.add(deadlineField);
+        // Add "Job 1" label for the first form
+        JLabel job1Label = new JLabel("Job 1");
+        job1Label.setFont(new Font("Georgia", Font.BOLD, 28));
+        job1Label.setForeground(new Color(0, 124, 137));
         
-        deadlineErrorLabel = new JLabel(" ");
-        deadlineErrorLabel.setForeground(Color.RED);
-        deadlineErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        JPanel deadlineErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        deadlineErrorPanel.setBackground(Color.WHITE);
-        deadlineErrorPanel.add(deadlineErrorLabel);
-        deadlineContainer.add(deadlineErrorPanel);
+        JPanel job1LabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        job1LabelPanel.setBackground(Color.WHITE);
+        job1LabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        job1LabelPanel.add(job1Label);
+        job1LabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, job1Label.getPreferredSize().height));
+        formsContainer.add(job1LabelPanel);
+        formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
 
-        mainPanel.add(deadlineContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        addJobForm();
 
-        // --- Job Description ---
-        JPanel descriptionContainer = new JPanel();
-        descriptionContainer.setLayout(new BoxLayout(descriptionContainer, BoxLayout.Y_AXIS));
-        descriptionContainer.setBackground(Color.WHITE);
-        descriptionContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 180));
-        
-        JPanel descriptionLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        descriptionLabelPanel.setBackground(Color.WHITE);
-        descriptionLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
-        JLabel descriptionLabel = new JLabel("Job Description:");
-        descriptionLabel.setFont(new Font("Arial", Font.BOLD, 14));
-        descriptionLabelPanel.add(descriptionLabel);
-        descriptionContainer.add(descriptionLabelPanel);
-        descriptionContainer.add(Box.createRigidArea(new Dimension(0, 8)));
-        
-        descriptionArea = new PlaceholderTextArea("Enter a description", 5, 20);
-
-        descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
-        descriptionArea.setLineWrap(true);
-        descriptionArea.setWrapStyleWord(true);
-
-        FocusAdapter scrollPaneHighlightListener = new FocusAdapter() {
-            private void updateBorder(FocusEvent e, boolean hasFocus) {
-                JScrollPane scrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, (Component) e.getSource());
-                if (scrollPane != null && !scrollPane.getBorder().equals(errorBorder)) {
-                    scrollPane.setBorder(hasFocus ? focusBorder : defaultBorder);
-                }
-            }
-            @Override public void focusGained(FocusEvent e) { updateBorder(e, true); }
-            @Override public void focusLost(FocusEvent e) { updateBorder(e, false); }
-        };
-        descriptionArea.addFocusListener(scrollPaneHighlightListener);
-        descriptionArea.setBorder(null);
-        JScrollPane scrollPane = new JScrollPane(descriptionArea);
-        scrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
-        scrollPane.setBorder(defaultBorder);
-        descriptionContainer.add(scrollPane);
-        
-        descriptionErrorLabel = new JLabel(" ");
-        descriptionErrorLabel.setForeground(Color.RED);
-        descriptionErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-        JPanel descriptionErrorPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        descriptionErrorPanel.setBackground(Color.WHITE);
-        descriptionErrorPanel.add(descriptionErrorLabel);
-        descriptionContainer.add(descriptionErrorPanel);
-
-        mainPanel.add(descriptionContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
-        // --- Submit Button ---
-        GradientButton submitButton = new GradientButton("Submit");
+        submitButton = new GradientButton("Submit All Jobs");
         submitButton.setFont(new Font("Arial", Font.BOLD, 16));
         submitButton.setForeground(Color.WHITE);
         submitButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
-        submitButton.setPreferredSize(new Dimension(800, 38));
         submitButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         submitButton.setFocusPainted(false);
         submitButton.setBorderPainted(false);
         submitButton.setContentAreaFilled(false);
         submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        submitButton.addActionListener(e -> submitJob());
+        submitButton.addActionListener(e -> submitAllJobs());
         mainPanel.add(submitButton);
     }
 
-    private void showCalendar(JTextField targetField, boolean restrictToFuture, Date minSelectableDate) {
-        CalendarDialog calendarDialog = new CalendarDialog(this, restrictToFuture, minSelectableDate);
+    private void rebuildFormsContainer() {
+        formsContainer.removeAll();
+        
+        // Re-add Job 1 label
+        JLabel job1Label = new JLabel("Job 1");
+        job1Label.setFont(new Font("Georgia", Font.BOLD, 28));
+        job1Label.setForeground(new Color(0, 124, 137));
+        
+        JPanel job1LabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        job1LabelPanel.setBackground(Color.WHITE);
+        job1LabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        job1LabelPanel.add(job1Label);
+        job1LabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, job1Label.getPreferredSize().height));
+        formsContainer.add(job1LabelPanel);
+        formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
+        
+        // Re-add all remaining forms with updated job numbers
+        for (int i = 0; i < jobForms.size(); i++) {
+            if (i > 0) {
+                formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
+                JSeparator sep = new JSeparator();
+                sep.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+                sep.setForeground(new Color(220, 220, 220));
+                formsContainer.add(sep);
+                formsContainer.add(Box.createRigidArea(new Dimension(0, 20)));
+                
+                JLabel jLabel = new JLabel("Job " + (i + 1));
+                jLabel.setFont(new Font("Georgia", Font.BOLD, 28));
+                jLabel.setForeground(new Color(0, 124, 137));
+                
+                JPanel jLabelPanel = new JPanel(new BorderLayout());
+                jLabelPanel.setBackground(Color.WHITE);
+                jLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                jLabelPanel.add(jLabel, BorderLayout.WEST);
+                
+                // Add remove button for jobs 2 and above
+                JLabel remBtn = new JLabel("−");
+                remBtn.setFont(new Font("Arial", Font.PLAIN, 24));
+                remBtn.setForeground(new Color(0, 124, 137));
+                remBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                
+                final int formIndex = i;
+                remBtn.addMouseListener(new java.awt.event.MouseAdapter() {
+                    public void mouseClicked(java.awt.event.MouseEvent evt) {
+                        jobForms.remove(formIndex);
+                        rebuildFormsContainer();
+                        updateMainPanelHeight();
+                    }
+                    public void mouseEntered(java.awt.event.MouseEvent evt) {
+                        remBtn.setForeground(new Color(220, 53, 69));
+                    }
+                    public void mouseExited(java.awt.event.MouseEvent evt) {
+                        remBtn.setForeground(new Color(0, 124, 137));
+                    }
+                });
+                
+                jLabelPanel.add(remBtn, BorderLayout.EAST);
+                jLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, jLabel.getPreferredSize().height));
+                formsContainer.add(jLabelPanel);
+                formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
+            }
+            
+            JobFormPanel currentForm = jobForms.get(i);
+            
+            // Re-add the form itself
+            formsContainer.add(currentForm);
+            
+            // Add the "+ Add Job" button only after the last form
+            if (i == jobForms.size() - 1) {
+                JPanel addJobButtonPanel = new JPanel();
+                addJobButtonPanel.setLayout(new BoxLayout(addJobButtonPanel, BoxLayout.X_AXIS));
+                addJobButtonPanel.setBackground(Color.WHITE);
+                addJobButtonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+                addJobButtonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+                
+                JButton addJobButton = new JButton("+ Add Job");
+                addJobButton.setFont(new Font("Arial", Font.BOLD, 14));
+                addJobButton.setForeground(new Color(0, 124, 137));
+                addJobButton.setBackground(Color.WHITE);
+                addJobButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20));
+                addJobButton.setFocusPainted(false);
+                addJobButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+                addJobButton.addActionListener(evt -> addJobForm());
+                
+                addJobButtonPanel.add(Box.createHorizontalGlue());
+                addJobButtonPanel.add(addJobButton);
+                
+                formsContainer.add(Box.createRigidArea(new Dimension(0, 8)));
+                formsContainer.add(addJobButtonPanel);
+            }
+        }
+        
+        jobCounter = jobForms.size() + 1;
+        formsContainer.revalidate();
+        formsContainer.repaint();
+    }
+
+    private void updateMainPanelHeight() {
+        int topBottomUIsHeight = 225;
+        int firstFormHeight = 380;
+        int subsequentFormHeight = 480;
+
+        int newHeight;
+        if (jobForms.size() == 1) {
+            newHeight = topBottomUIsHeight + firstFormHeight;
+        } else {
+            newHeight = topBottomUIsHeight + firstFormHeight + ((jobForms.size() - 1) * subsequentFormHeight);
+        }
+
+        mainPanel.setPreferredSize(new Dimension(900, newHeight));
+        mainPanel.setMaximumSize(new Dimension(900, newHeight));
+        mainPanel.revalidate();
+    }
+
+    private void addJobForm() {
+        if (jobCounter > 1) {
+            // Hide the add button on the previous form
+            if (!jobForms.isEmpty()) {
+                JobFormPanel lastForm = jobForms.get(jobForms.size() - 1);
+                if (lastForm.addButtonPanel != null) {
+                    lastForm.addButtonPanel.setVisible(false);
+                }
+            }
+            
+            formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
+            JSeparator separator = new JSeparator();
+            separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+            separator.setForeground(new Color(220, 220, 220));
+            formsContainer.add(separator);
+            formsContainer.add(Box.createRigidArea(new Dimension(0, 20)));
+            
+            JLabel jobLabel = new JLabel("Job " + jobCounter);
+            jobLabel.setFont(new Font("Georgia", Font.BOLD, 28));
+            jobLabel.setForeground(new Color(0, 124, 137));
+            
+            JPanel jobLabelPanel = new JPanel(new BorderLayout());
+            jobLabelPanel.setBackground(Color.WHITE);
+            jobLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            jobLabelPanel.add(jobLabel, BorderLayout.WEST);
+            
+            // Add remove button for Job 2 and above
+            JLabel removeButton = new JLabel("−");
+            removeButton.setFont(new Font("Arial", Font.PLAIN, 24));
+            removeButton.setForeground(new Color(0, 124, 137));
+            removeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            final int formIndexToRemove = jobForms.size();
+            
+            removeButton.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    if (jobForms.size() > formIndexToRemove) {
+                        jobForms.remove(formIndexToRemove);
+                    }
+                    rebuildFormsContainer();
+                    updateMainPanelHeight();
+                }
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    removeButton.setForeground(new Color(220, 53, 69));
+                }
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    removeButton.setForeground(new Color(0, 124, 137));
+                }
+            });
+            
+            jobLabelPanel.add(removeButton, BorderLayout.EAST);
+            jobLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, jobLabel.getPreferredSize().height));
+            formsContainer.add(jobLabelPanel);
+
+            formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
+        }
+        
+        JobFormPanel jobForm = new JobFormPanel();
+        jobForm.setAlignmentX(Component.CENTER_ALIGNMENT);
+        jobForms.add(jobForm);
+        formsContainer.add(jobForm);
+        
+        jobCounter++;
+        
+        // Fixed height calculation
+        int topBottomUIsHeight = 225;
+        int firstFormHeight = 380;
+        int subsequentFormHeight = 480;
+
+        int newHeight;
+        if (jobForms.size() == 1) {
+            newHeight = topBottomUIsHeight + firstFormHeight;
+        } else {
+            newHeight = topBottomUIsHeight + firstFormHeight + ((jobForms.size() - 1) * subsequentFormHeight);
+        }
+
+        mainPanel.setPreferredSize(new Dimension(900, newHeight));
+        mainPanel.setMaximumSize(new Dimension(900, newHeight));
+        mainPanel.revalidate();
+        
+        SwingUtilities.invokeLater(() -> {
+            jobForm.scrollRectToVisible(jobForm.getBounds());
+        });
+    }
+
+    private boolean validateAllForms() {
+        boolean allValid = true;
+        for (JobFormPanel form : jobForms) {
+            if (!form.validateForm()) {
+                allValid = false;
+            }
+        }
+        return allValid;
+    }
+
+    private void submitAllJobs() {
+        if (!validateAllForms()) {
+            return;
+        }
+
+        int successCount = 0;
+        for (JobFormPanel form : jobForms) {
+            String jobType = form.getJobType();
+            String duration = form.getDuration();
+            String deadline = form.getDeadline();
+            String description = form.getDescription();
+            
+            Job job = new Job(
+                currentUser.getUserId(), 
+                jobType,
+                Integer.parseInt(duration.trim()),
+                deadline.trim(),
+                description.trim()
+            );
+            
+            if (dataManager.addJob(job)) {
+                successCount++;
+            }
+        }
+
+        if (successCount == jobForms.size()) {
+            CustomDialog dialog = new CustomDialog(this, "Success", 
+                successCount + " job(s) submitted successfully!");
+            dialog.setVisible(true);
+            clearAllForms();
+        } else {
+            JOptionPane.showMessageDialog(this, 
+                "Some jobs could not be saved. " + successCount + " of " + jobForms.size() + " succeeded.", 
+                "Partial Success", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    private void clearAllForms() {
+        formsContainer.removeAll();
+        jobForms.clear();
+        jobCounter = 1;
+        addJobForm();
+        formsContainer.revalidate();
+        formsContainer.repaint();
+    }
+
+    private void showCalendar(JTextField targetField, JLabel errorLabel) {
+        CalendarDialog calendarDialog = new CalendarDialog(this, true, null);
         calendarDialog.setLocationRelativeTo(targetField);
         calendarDialog.setVisible(true);
         if (calendarDialog.getSelectedDate() != null) {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
             targetField.setText(dateFormat.format(calendarDialog.getSelectedDate()));
             targetField.setBorder(defaultBorder);
+            errorLabel.setText(" ");
+        }
+    }
+
+    private class JobFormPanel extends JPanel {
+        private JComboBox<String> jobTypeCombo;
+        private PlaceholderTextField durationField;
+        private PlaceholderTextField deadlineField;
+        private PlaceholderTextArea descriptionArea;
+        private JLabel durationErrorLabel, deadlineErrorLabel, descriptionErrorLabel;
+        private JScrollPane descScrollPane;
+        private JPanel addButtonPanel;
+
+        public JobFormPanel() {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBackground(Color.WHITE);
+            setMaximumSize(new Dimension(Integer.MAX_VALUE, 370));
+            setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            FocusAdapter highlightListener = new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    if (!((JComponent) e.getComponent()).getBorder().equals(errorBorder)) {
+                        ((JComponent) e.getComponent()).setBorder(focusBorder);
+                    }
+                }
+                @Override
+                public void focusLost(FocusEvent e) {
+                    if (!((JComponent) e.getComponent()).getBorder().equals(errorBorder)) {
+                        ((JComponent) e.getComponent()).setBorder(defaultBorder);
+                    }
+                }
+            };
+
+            JLabel jobTypeLabel = new JLabel("<html>Job Type: <font color='red'>*</font></html>");
+            jobTypeLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            
+            JPanel jobTypeLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            jobTypeLabelPanel.setBackground(Color.WHITE);
+            jobTypeLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            jobTypeLabelPanel.add(jobTypeLabel);
+            jobTypeLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, jobTypeLabel.getPreferredSize().height));
+            add(jobTypeLabelPanel);
+
+            add(Box.createRigidArea(new Dimension(0, 3)));
+            
+            String[] jobTypes = {
+                "Data Storage & Transfer", "Computational Task", "Simulation",
+                "Networking & Communication", "Real-Time Processing", "Batch Processing"
+            };
+            jobTypeCombo = new JComboBox<>(jobTypes);
+            jobTypeCombo.setFont(new Font("Arial", Font.PLAIN, 14));
+            jobTypeCombo.setBackground(Color.WHITE);
+            jobTypeCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, jobTypeCombo.getPreferredSize().height));
+            jobTypeCombo.setAlignmentX(Component.CENTER_ALIGNMENT);
+            add(jobTypeCombo);
+            add(Box.createRigidArea(new Dimension(0, 6)));
+
+            JLabel durationLabel = new JLabel("<html>Duration (Hours): <font color='red'>*</font></html>");
+            durationLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+            JPanel durationLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            durationLabelPanel.setBackground(Color.WHITE);
+            durationLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            durationLabelPanel.add(durationLabel);
+            durationLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, durationLabel.getPreferredSize().height));
+            add(durationLabelPanel);
+
+            add(Box.createRigidArea(new Dimension(0, 3)));
+            
+            durationField = new PlaceholderTextField("Enter number of hours");
+            durationField.setFont(new Font("Arial", Font.PLAIN, 14));
+            durationField.setBorder(defaultBorder);
+            durationField.setMaximumSize(new Dimension(Integer.MAX_VALUE, durationField.getPreferredSize().height));
+            durationField.setAlignmentX(Component.CENTER_ALIGNMENT);
+            durationField.addFocusListener(highlightListener);
+            add(durationField);
+            
+            durationErrorLabel = new JLabel(" ");
+            durationErrorLabel.setForeground(Color.RED);
+            durationErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            durationErrorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            add(durationErrorLabel);
+            add(Box.createRigidArea(new Dimension(0, 6)));
+
+            JLabel deadlineLabel = new JLabel("<html>Deadline: <font color='red'>*</font></html>");
+            deadlineLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+            JPanel deadlineLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            deadlineLabelPanel.setBackground(Color.WHITE);
+            deadlineLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            deadlineLabelPanel.add(deadlineLabel);
+            deadlineLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, deadlineLabel.getPreferredSize().height));
+            add(deadlineLabelPanel);
+
+            add(Box.createRigidArea(new Dimension(0, 3)));
+
+            deadlineField = new PlaceholderTextField("Select a date");
+            deadlineField.setFont(new Font("Arial", Font.PLAIN, 14));
+            deadlineField.setBorder(defaultBorder);
+            deadlineField.setMaximumSize(new Dimension(Integer.MAX_VALUE, deadlineField.getPreferredSize().height));
+            deadlineField.setAlignmentX(Component.CENTER_ALIGNMENT);
+            deadlineField.setEditable(false);
+            deadlineField.setBackground(Color.WHITE);
+            deadlineField.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            deadlineField.setFocusable(false);
+            deadlineField.addMouseListener(new java.awt.event.MouseAdapter() {
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    showCalendar(deadlineField, deadlineErrorLabel);
+                }
+            });
+            add(deadlineField);
+            
+            deadlineErrorLabel = new JLabel(" ");
+            deadlineErrorLabel.setForeground(Color.RED);
+            deadlineErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            deadlineErrorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            add(deadlineErrorLabel);
+            add(Box.createRigidArea(new Dimension(0, 6)));
+
+            JLabel descriptionLabel = new JLabel("Job Description:");
+            descriptionLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+            JPanel descriptionLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            descriptionLabelPanel.setBackground(Color.WHITE);
+            descriptionLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            descriptionLabelPanel.add(descriptionLabel);
+            descriptionLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, descriptionLabel.getPreferredSize().height));
+            add(descriptionLabelPanel);
+
+            add(Box.createRigidArea(new Dimension(0, 3)));
+            
+            descriptionArea = new PlaceholderTextArea("Enter a description", 5, 20);
+            descriptionArea.setFont(new Font("Arial", Font.PLAIN, 14));
+            descriptionArea.setLineWrap(true);
+            descriptionArea.setWrapStyleWord(true);
+
+            FocusAdapter scrollPaneHighlightListener = new FocusAdapter() {
+                private void updateBorder(FocusEvent e, boolean hasFocus) {
+                    if (descScrollPane != null && !descScrollPane.getBorder().equals(errorBorder)) {
+                        descScrollPane.setBorder(hasFocus ? focusBorder : defaultBorder);
+                    }
+                }
+                @Override public void focusGained(FocusEvent e) { updateBorder(e, true); }
+                @Override public void focusLost(FocusEvent e) { updateBorder(e, false); }
+            };
+            descriptionArea.addFocusListener(scrollPaneHighlightListener);
+            descriptionArea.setBorder(null);
+            
+            descScrollPane = new JScrollPane(descriptionArea);
+            descScrollPane.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
+            descScrollPane.setAlignmentX(Component.CENTER_ALIGNMENT);
+            descScrollPane.setBorder(defaultBorder);
+            descScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            add(descScrollPane);
+            
+            descriptionErrorLabel = new JLabel(" ");
+            descriptionErrorLabel.setForeground(Color.RED);
+            descriptionErrorLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+            descriptionErrorLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+            add(descriptionErrorLabel);
+            
+            add(Box.createRigidArea(new Dimension(0, 8)));  // Reduced from 10
+            
+            JPanel addButtonPanel = new JPanel();
+            addButtonPanel.setLayout(new BoxLayout(addButtonPanel, BoxLayout.X_AXIS));
+            addButtonPanel.setBackground(Color.WHITE);
+            addButtonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+            addButtonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            JButton localAddButton = new JButton("+ Add Job");
+            localAddButton.setFont(new Font("Arial", Font.BOLD, 14));
+            localAddButton.setForeground(new Color(0, 124, 137));
+            localAddButton.setBackground(Color.WHITE);
+            localAddButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20)); 
+            localAddButton.setFocusPainted(false);
+            localAddButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            
+            // Store reference to this button's panel
+            final JPanel buttonPanel = addButtonPanel;
+            
+            localAddButton.addActionListener(evt -> {
+                buttonPanel.setVisible(false);
+                addJobForm();
+            });
+            
+            addButtonPanel.add(Box.createHorizontalGlue());
+            addButtonPanel.add(localAddButton);
+            add(addButtonPanel);
+        }
+
+        public boolean validateForm() {
+            boolean isValid = true;
+            
+            durationField.setBorder(defaultBorder);
+            deadlineField.setBorder(defaultBorder);
+            descScrollPane.setBorder(defaultBorder);
+            durationErrorLabel.setText(" ");
             deadlineErrorLabel.setText(" ");
-        }
-    }
-
-    private boolean validateForm() {
-        boolean isValid = true;
-        durationField.setBorder(defaultBorder);
-        deadlineField.setBorder(defaultBorder);
-        JScrollPane scrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, descriptionArea);
-        if (scrollPane != null) {
-            scrollPane.setBorder(defaultBorder);
-        }
-
-        durationErrorLabel.setText(" ");
-        deadlineErrorLabel.setText(" ");
-        descriptionErrorLabel.setText(" ");
-        if (!validator.isDurationValid(durationField.getText())) {
-            durationField.setBorder(errorBorder);
-            durationErrorLabel.setText("Duration must be a positive number.");
-            isValid = false;
-        }
-        
-        if (deadlineField.getText().isEmpty()) {
-            deadlineField.setBorder(errorBorder);
-            deadlineErrorLabel.setText("Deadline date is required.");
-            isValid = false;
-        } else if (!validator.isDeadlineInFuture(deadlineField.getText())) {
-            deadlineField.setBorder(errorBorder);
-            deadlineErrorLabel.setText("Deadline cannot be in the past.");
-            isValid = false;
-        }
-        
-        return isValid;
-    }
-
-    private void submitJob() {
-        if (!validateForm()) {
-            return;
+            descriptionErrorLabel.setText(" ");
+            
+            if (!validator.isDurationValid(durationField.getText())) {
+                durationField.setBorder(errorBorder);
+                durationErrorLabel.setText("Duration must be a positive number.");
+                isValid = false;
+            }
+            
+            if (deadlineField.getText().isEmpty()) {
+                deadlineField.setBorder(errorBorder);
+                deadlineErrorLabel.setText("Deadline date is required.");
+                isValid = false;
+            } else if (!validator.isDeadlineInFuture(deadlineField.getText())) {
+                deadlineField.setBorder(errorBorder);
+                deadlineErrorLabel.setText("Deadline cannot be in the past.");
+                isValid = false;
+            }
+            
+            return isValid;
         }
 
-        String jobType = (String) jobTypeCombo.getSelectedItem();
-        String duration = durationField.getText();
-        String deadline = deadlineField.getText();
-        String description = descriptionArea.getText();
-        
-        Job job = new Job(
-            currentUser.getUserId(), 
-            jobType,
-            Integer.parseInt(duration.trim()),
-            deadline.trim(),
-            description.trim()
-        );
-        if (dataManager.addJob(job)) {
-            CustomDialog dialog = new CustomDialog(this, "Success", "Job submitted successfully!");
-            dialog.setVisible(true);
-            clearForm();
-
-        } else {
-            JOptionPane.showMessageDialog(this, "Error saving job to file.", "Error", JOptionPane.ERROR_MESSAGE);
+        public void clearForm() {
+            jobTypeCombo.setSelectedIndex(0);
+            durationField.setText("");
+            deadlineField.setText("");
+            descriptionArea.setText("");
+            durationField.setBorder(defaultBorder);
+            deadlineField.setBorder(defaultBorder);
+            descScrollPane.setBorder(defaultBorder);
+            durationErrorLabel.setText(" ");
+            deadlineErrorLabel.setText(" ");
+            descriptionErrorLabel.setText(" ");
         }
-    }
 
-    private void clearForm() {
-        jobTypeCombo.setSelectedIndex(0);
-        durationField.setText("");
-        deadlineField.setText("");
-        descriptionArea.setText("");
-
-        durationField.setBorder(defaultBorder);
-        deadlineField.setBorder(defaultBorder);
-        JScrollPane scrollPane = (JScrollPane) SwingUtilities.getAncestorOfClass(JScrollPane.class, descriptionArea);
-        if (scrollPane != null) {
-            scrollPane.setBorder(defaultBorder);
-        }
-        durationErrorLabel.setText(" ");
-        deadlineErrorLabel.setText(" ");
-        descriptionErrorLabel.setText(" ");
+        public String getJobType() { return (String) jobTypeCombo.getSelectedItem(); }
+        public String getDuration() { return durationField.getText(); }
+        public String getDeadline() { return deadlineField.getText(); }
+        public String getDescription() { return descriptionArea.getText(); }
     }
 
     private static class PlaceholderTextField extends JTextField {
@@ -399,12 +660,10 @@ public class JobSubmissionPage extends JFrame {
     
     private static class PlaceholderTextArea extends JTextArea {
         private String placeholder;
-
         public PlaceholderTextArea(String placeholder, int rows, int columns) {
             super(rows, columns);
             this.placeholder = placeholder;
         }
-        
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
