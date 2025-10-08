@@ -139,6 +139,8 @@ public class VehicleSubmissionPage extends JFrame {
         submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         submitButton.addActionListener(e -> submitAllVehicles());
         mainPanel.add(submitButton);
+
+        this.getRootPane().setDefaultButton(submitButton);
     }
 
     private void addVehicleForm() {

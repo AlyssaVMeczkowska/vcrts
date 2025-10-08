@@ -25,6 +25,7 @@ public class ConsentForm extends JDialog {
         consentText.setEditable(false);
         consentText.setLineWrap(true);
         consentText.setWrapStyleWord(true);
+        consentText.setFocusable(false);
         consentText.setFont(new Font("Arial", Font.BOLD, 13));
         consentText.setBackground(new Color(250, 250, 250));
         consentText.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -68,7 +69,6 @@ public class ConsentForm extends JDialog {
         declineButton.setFocusPainted(false);
         declineButton.setBorderPainted(false);
         declineButton.setContentAreaFilled(false);
-        declineButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         declineButton.addActionListener(e -> {
             consentGiven = false;
             dispose();
@@ -82,7 +82,6 @@ public class ConsentForm extends JDialog {
         agreeButton.setFocusPainted(false);
         agreeButton.setBorderPainted(false);
         agreeButton.setContentAreaFilled(false);
-        agreeButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         agreeButton.addActionListener(e -> {
             if (agreeCheckBox.isSelected()) {
                 consentGiven = true;
@@ -104,3 +103,4 @@ public class ConsentForm extends JDialog {
         return consentGiven;
     }
 }
+

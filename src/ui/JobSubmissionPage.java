@@ -134,11 +134,13 @@ public class JobSubmissionPage extends JFrame {
         submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         submitButton.addActionListener(e -> submitAllJobs());
         mainPanel.add(submitButton);
+
+        this.getRootPane().setDefaultButton(submitButton);
     }
 
     private void rebuildFormsContainer() {
         formsContainer.removeAll();
-        // Re-add Job 1 label
+
         JLabel job1Label = new JLabel("Job 1");
         job1Label.setFont(new Font("Georgia", Font.BOLD, 28));
         job1Label.setForeground(new Color(0, 124, 137));

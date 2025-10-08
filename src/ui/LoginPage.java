@@ -173,37 +173,43 @@ public class LoginPage extends JFrame {
         loginButton.setFocusPainted(false);
         loginButton.setBorderPainted(false);
         loginButton.setContentAreaFilled(false);
-        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        loginButton.addActionListener(e -> {
-            String usernameOrEmail = usernameField.getText();
-            String password = new String(passwordField.getPassword());
-
-            usernameField.setBorder(defaultBorder);
-            passwordField.setBorder(defaultBorder);
-            loginErrorLabel.setText(" ");
-
-            User loggedInUser = userDataManager.verifyUser(usernameOrEmail, password);
-
-            if (loggedInUser != null) {
-                String accountType = loggedInUser.getAccountType();
-                dispose();
-
-                if ("Owner".equals(accountType)) {
-                    SwingUtilities.invokeLater(() -> new VehicleSubmissionPage(loggedInUser).setVisible(true));
-                } else if ("Client".equals(accountType)) {
-  
-                    SwingUtilities.invokeLater(() -> new JobSubmissionPage(loggedInUser).setVisible(true));
-                } else {
-                    JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);
-                }
-            } else {
-                loginErrorLabel.setText("Invalid username/email or password.");
-                usernameField.setBorder(errorBorder);
-                passwordField.setBorder(errorBorder);
-            }
-        });
+        loginButton.addActionListener(e -> attemptLogin());
 
         mainPanel.add(loginButton);
+        
+        this.getRootPane().setDefaultButton(loginButton);
+    }
+
+    private void attemptLogin() {
+        String usernameOrEmail = usernameField.getText();
+        String password = new String(passwordField.getPassword());
+
+        usernameField.setBorder(usernameField.getBorder()); 
+        passwordField.setBorder(passwordField.getBorder());
+        loginErrorLabel.setText(" ");
+
+        User loggedInUser = userDataManager.verifyUser(usernameOrEmail, password);
+
+        if (loggedInUser != null) {
+            String accountType = loggedInUser.getAccountType();
+            dispose();
+
+            if ("Owner".equals(accountType)) {
+                SwingUtilities.invokeLater(() -> new VehicleSubmissionPage(loggedInUser).setVisible(true));
+            } else if ("Client".equals(accountType)) {
+                SwingUtilities.invokeLater(() -> new JobSubmissionPage(loggedInUser).setVisible(true));
+            } else {
+                JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            loginErrorLabel.setText("Invalid username/email or password.");
+            Border errorBorder = BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Color.RED, 1, true),
+                    BorderFactory.createEmptyBorder(5, 10, 5, 10)
+            );
+            usernameField.setBorder(errorBorder);
+            passwordField.setBorder(errorBorder);
+        }
     }
 
     public static void main(String[] args) {

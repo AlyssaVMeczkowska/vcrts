@@ -333,28 +333,31 @@ public class CreateAccountPage extends JFrame {
         signUpButton.setBorderPainted(false);
         signUpButton.setContentAreaFilled(false);
         signUpButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        signUpButton.addActionListener(e -> {
-            if (validateForm()) {
-                String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
-                
-                userDataManager.addUser(
-                    firstNameField.getText(),
-                    lastNameField.getText(),
-                    emailField.getText(),
-                    usernameField.getText(),
-                    phoneNumberField.getText(),
-                    new String(passwordField.getPassword()),
-                    type,
-                    false 
-                );
-                
-                CustomDialog dialog = new CustomDialog(this, "Success", "Account Created Successfully!");
-                dialog.setVisible(true);
-                navToLogin();
-           }
-        });
+        signUpButton.addActionListener(e -> attemptSignUp());
         main.add(signUpButton);
         main.add(Box.createRigidArea(new Dimension(0, 20)));
+        this.getRootPane().setDefaultButton(signUpButton);
+    }
+    
+    private void attemptSignUp() {
+        if (validateForm()) {
+            String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
+            
+            userDataManager.addUser(
+                firstNameField.getText(),
+                lastNameField.getText(),
+                emailField.getText(),
+                usernameField.getText(),
+                phoneNumberField.getText(),
+                new String(passwordField.getPassword()),
+                type,
+                false 
+            );
+            
+            CustomDialog dialog = new CustomDialog(this, "Success", "Account Created Successfully!");
+            dialog.setVisible(true);
+            navToLogin();
+       }
     }
 
     private void navToLogin() {
