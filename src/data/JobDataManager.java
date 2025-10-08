@@ -45,7 +45,7 @@ public class JobDataManager {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
             writer.write("job_id: " + job.getJobId());
             writer.newLine();
-            writer.write("user_id: " + job.getUserId());
+            writer.write("client_id: " + job.getAccountId());
             writer.newLine();
             writer.write("timestamp: " + job.getSubmissionTimestamp());
             writer.newLine();

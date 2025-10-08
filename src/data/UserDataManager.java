@@ -34,12 +34,18 @@ public class UserDataManager {
             while ((line = reader.readLine()) != null) {
                 if (line.equals("---")) {
                     if (!userData.isEmpty()) {
-                    	boolean hasAgreedToTerms = false;
-                        if (userData.containsKey("has_agreed_to_terms")) {
-                            hasAgreedToTerms = Boolean.parseBoolean(userData.get("has_agreed_to_terms"));
+                        boolean hasAgreedToTerms = userData.getOrDefault("has_agreed_to_terms", "false").equalsIgnoreCase("true");
+
+                        // Determine the ID from either owner_id or client_id key
+                        int id = 0;
+                        if (userData.containsKey("owner_id")) {
+                            id = Integer.parseInt(userData.get("owner_id"));
+                        } else if (userData.containsKey("client_id")) {
+                            id = Integer.parseInt(userData.get("client_id"));
                         }
+
                         User user = new User(
-                                Integer.parseInt(userData.get("user_id")),
+                                id,
                                 userData.get("first_name"),
                                 userData.get("last_name"),
                                 userData.get("email"),
@@ -68,7 +74,11 @@ public class UserDataManager {
     private void saveUsersToFile() {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
             for (User user : users) {
-                writer.write("user_id: " + user.getUserId());
+                if ("Owner".equals(user.getAccountType())) {
+                    writer.write("owner_id: " + user.getId());
+                } else {
+                    writer.write("client_id: " + user.getId());
+                }
                 writer.newLine();
                 writer.write("timestamp: " + user.getCreationTimestamp());
                 writer.newLine();
@@ -121,27 +131,43 @@ public class UserDataManager {
     public boolean isUsernameTaken(String username) {
         return users.stream().anyMatch(user -> user.getUsername().equalsIgnoreCase(username));
     }
-
-    private int getNextUserId() {
+    
+    private int getNextOwnerId() {
         return users.stream()
-                .mapToInt(User::getUserId)
+                .filter(user -> "Owner".equals(user.getAccountType()))
+                .mapToInt(User::getId)
+                .max()
+                .orElse(0) + 1;
+    }
+
+    private int getNextClientId() {
+        return users.stream()
+                .filter(user -> "Client".equals(user.getAccountType()))
+                .mapToInt(User::getId)
                 .max()
                 .orElse(0) + 1;
     }
 
     public void addUser(String firstName, String lastName, String email, String username, String phoneNumber, String password, String accountType, boolean hasAgreedToTerms) {
-        int newUserId = getNextUserId();
+        int newId;
+        if ("Owner".equals(accountType)) {
+            newId = getNextOwnerId();
+        } else {
+            newId = getNextClientId();
+        }
+        
         String hashedPassword = hashPassword(password);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         
-        User newUser = new User(newUserId, firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp, hasAgreedToTerms);
+        User newUser = new User(newId, firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp, hasAgreedToTerms);
         this.users.add(newUser);
         saveUsersToFile();
     }
 
+
     public void updateUserConsent(User userToUpdate) {
         users.stream()
-            .filter(user -> user.getUserId() == userToUpdate.getUserId())
+            .filter(user -> user.getId() == userToUpdate.getId())
             .findFirst()
             .ifPresent(user -> user.setHasAgreedToTerms(true));
         saveUsersToFile();

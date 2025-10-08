@@ -3,7 +3,7 @@ package model;
 import java.time.LocalDateTime;
 
 public class Vehicle {
-    private int userId;
+    private int accountId;
     private String make;
     private String model;
     private int year;
@@ -14,8 +14,8 @@ public class Vehicle {
     private String endDate;
     private String submissionTimestamp;
 
-    public Vehicle(int userId, String make, String model, int year, String vin, String licensePlate, String computingPower, String startDate, String endDate) {
-        this.userId = userId;
+    public Vehicle(int accountId, String make, String model, int year, String vin, String licensePlate, String computingPower, String startDate, String endDate) {
+        this.accountId = accountId;
         this.make = make;
         this.model = model;
         this.year = year;
@@ -28,7 +28,7 @@ public class Vehicle {
     }
 
     // --- Getters ---
-    public int getUserId() { return userId; }
+    public int getAccountId() { return accountId; }
     public String getMake() { return make; }
     public String getModel() { return model; }
     public int getYear() { return year; }

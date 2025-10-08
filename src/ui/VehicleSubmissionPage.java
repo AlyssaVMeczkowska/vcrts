@@ -40,7 +40,6 @@ public class VehicleSubmissionPage extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
-
         // Header Panel
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
@@ -300,6 +299,7 @@ public class VehicleSubmissionPage extends JFrame {
         vinNumberErrorLabel.setText(" ");
         residencyStartErrorLabel.setText(" ");
         residencyEndErrorLabel.setText(" ");
+
         if (!validator.isFieldValid(make)) {
             vehicleMakeErrorLabel.setText("Vehicle make is required.");
             vehicleMakeField.setBorder(errorBorder);
@@ -367,7 +367,6 @@ public class VehicleSubmissionPage extends JFrame {
         if (!currentUser.hasAgreedToTerms()) {
             ConsentForm consentForm = new ConsentForm(this);
             consentForm.setVisible(true);
-
             if (consentForm.isConsentGiven()) {
                 // If consent is given, update the user's status permanently and for the current session.
                 userDataManager.updateUserConsent(currentUser);
@@ -384,7 +383,7 @@ public class VehicleSubmissionPage extends JFrame {
             return;
         }
         Vehicle vehicle = new Vehicle(
-                currentUser.getUserId(),
+                currentUser.getId(),
                 vehicleMakeField.getText().trim(),
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),

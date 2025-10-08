@@ -44,7 +44,7 @@ public class VehicleDataManager {
 
     public boolean addVehicle(Vehicle vehicle) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write("user_id: " + vehicle.getUserId());
+            writer.write("owner_id: " + vehicle.getAccountId());
             writer.newLine();
             writer.write("vin: " + vehicle.getVin());
             writer.newLine();
