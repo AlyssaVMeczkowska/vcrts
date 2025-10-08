@@ -15,14 +15,13 @@ public class JobDataManager {
         int maxId = 0;
         File file = new File(FILE_PATH);
         if (!file.exists()) {
-            return 1; // Start with ID 1 if file doesn't exist
+            return 1; 
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             boolean isJobBlock = false;
             while ((line = reader.readLine()) != null) {
-                // Identify the start of a job data block
                 if (line.startsWith("type: job_submission")) {
                     isJobBlock = true;
                 } else if (line.equals("---")) {

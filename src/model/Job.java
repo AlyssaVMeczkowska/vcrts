@@ -20,7 +20,6 @@ public class Job {
         this.submissionTimestamp = LocalDateTime.now().toString();
     }
 
-    // --- Getters ---
     public int getJobId() { return jobId; }
     public int getAccountId() { return accountId; }
     public String getJobType() { return jobType; }
@@ -29,6 +28,5 @@ public class Job {
     public String getDescription() { return description; }
     public String getSubmissionTimestamp() { return submissionTimestamp; }
 
-    // --- Setters ---
     public void setJobId(int jobId) { this.jobId = jobId; }
 }

@@ -651,11 +651,11 @@ public class JobSubmissionPage extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        User testUser = new User(999, "Test", "User", "test@example.com", "testuser", "1234567890", "hash", "Client", "timestamp", true);
-        SwingUtilities.invokeLater(() -> {
-            JobSubmissionPage dashboard = new JobSubmissionPage(testUser);
-            dashboard.setVisible(true);
-        });
-    }
+    // public static void main(String[] args) {
+    //     User testUser = new User(999, "Test", "User", "test@example.com", "testuser", "1234567890", "hash", "Client", "timestamp", true);
+    //     SwingUtilities.invokeLater(() -> {
+    //         JobSubmissionPage dashboard = new JobSubmissionPage(testUser);
+    //         dashboard.setVisible(true);
+    //     });
+    // }
 }

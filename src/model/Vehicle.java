@@ -27,7 +27,7 @@ public class Vehicle {
         this.submissionTimestamp = LocalDateTime.now().toString();
     }
 
-    // --- Getters ---
+
     public int getAccountId() { return accountId; }
     public String getMake() { return make; }
     public String getModel() { return model; }

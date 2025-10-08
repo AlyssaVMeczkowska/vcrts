@@ -728,11 +728,11 @@ public class VehicleSubmissionPage extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp", true);
-        SwingUtilities.invokeLater(() -> {
-            VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
-            dashboard.setVisible(true);
-        });
-    }
+    // public static void main(String[] args) {
+    //     User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp", true);
+    //     SwingUtilities.invokeLater(() -> {
+    //         VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
+    //         dashboard.setVisible(true);
+    //     });
+    // }
 }

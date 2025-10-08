@@ -489,10 +489,10 @@ public class CreateAccountPage extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            CreateAccountPage createAccountPage = new CreateAccountPage();
-            createAccountPage.setVisible(true);
-        });
-    }
+    // public static void main(String[] args) {
+    //     SwingUtilities.invokeLater(() -> {
+    //         CreateAccountPage createAccountPage = new CreateAccountPage();
+    //         createAccountPage.setVisible(true);
+    //     });
+    // }
 }

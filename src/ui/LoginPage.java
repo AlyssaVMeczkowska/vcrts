@@ -212,12 +212,7 @@ public class LoginPage extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            LoginPage frame = new LoginPage();
-            frame.setVisible(true);
-        });
-    }
+
 
     private static class PlaceholderTextField extends JTextField {
         private String placeholder;
@@ -250,4 +245,10 @@ public class LoginPage extends JFrame {
             g2.drawString(placeholder, getInsets().left + 5, y);
         }
     }
+    // public static void main(String[] args) {
+    //     SwingUtilities.invokeLater(() -> {
+    //         LoginPage frame = new LoginPage();
+    //         frame.setVisible(true);
+    //     });
+    // }
 }

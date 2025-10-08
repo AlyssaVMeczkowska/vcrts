@@ -36,7 +36,6 @@ public class UserDataManager {
                     if (!userData.isEmpty()) {
                         boolean hasAgreedToTerms = userData.getOrDefault("has_agreed_to_terms", "false").equalsIgnoreCase("true");
 
-                        // Determine the ID from either owner_id or client_id key
                         int id = 0;
                         if (userData.containsKey("owner_id")) {
                             id = Integer.parseInt(userData.get("owner_id"));
