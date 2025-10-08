@@ -1,25 +1,33 @@
 package ui;
 
 import java.awt.*;
-import javax.swing.*;
+import javax.swing.*; 
 
 public class CustomDialog extends JDialog {
 
+    public enum DialogType {
+        SUCCESS,
+        WARNING
+    }
+
     public CustomDialog(JFrame owner, String title, String message) {
-        super(owner, title, true);
+        this(owner, title, message, DialogType.SUCCESS);
+    }
+
+    public CustomDialog(Window owner, String title, String message, DialogType type) {
+        super(owner, title, Dialog.ModalityType.APPLICATION_MODAL); 
         setUndecorated(true);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
 
-        JPanel contentPanel = new JPanel(new GridBagLayout()); 
+        JPanel contentPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
         contentPanel.setBackground(Color.WHITE);
         contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Icon Font Logic
         Font iconFont = null;
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("win")) {
@@ -27,19 +35,27 @@ public class CustomDialog extends JDialog {
         } else if (os.contains("mac")) {
             iconFont = new Font("Apple Symbols", Font.BOLD, 36);
         } else {
-            iconFont = new Font("Dialog", Font.BOLD, 36); 
+            iconFont = new Font("Dialog", Font.BOLD, 36);
         }
 
-        JLabel iconLabel = new JLabel("\u2713"); // Checkmark symbol
+        JLabel iconLabel = new JLabel();
         iconLabel.setFont(iconFont);
-        iconLabel.setForeground(new Color(30, 110, 130));
-        
-        // Message Label with HTML for wrapping
+
+        switch (type) {
+            case SUCCESS:
+                iconLabel.setText("\u2713");
+                iconLabel.setForeground(new Color(30, 110, 130)); 
+                break;
+            case WARNING:
+                iconLabel.setText("\u26A0"); 
+                iconLabel.setForeground(new Color(237, 162, 0));
+                break;
+        }
+
         JLabel messageLabel = new JLabel("<html><body style='width: 250px; text-align: center;'>" + message + "</body></html>");
         messageLabel.setFont(new Font("Arial", Font.BOLD, 16));
         messageLabel.setForeground(new Color(80, 80, 80));
 
-        // OK Button
         GradientButton okButton = new GradientButton("OK");
         okButton.setFont(new Font("Arial", Font.BOLD, 14));
         okButton.setForeground(Color.WHITE);
@@ -50,8 +66,7 @@ public class CustomDialog extends JDialog {
         okButton.setPreferredSize(new Dimension(100, 35));
         okButton.setMaximumSize(new Dimension(100, 35));
         okButton.addActionListener(e -> dispose());
-        
-        // Add components using GridBagConstraints for proper centering
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.insets = new Insets(0, 0, 15, 0); 
@@ -61,7 +76,7 @@ public class CustomDialog extends JDialog {
         contentPanel.add(messageLabel, gbc);
 
         gbc.gridy = 2;
-        gbc.insets = new Insets(5, 0, 0, 0);
+        gbc.insets = new Insets(20, 0, 0, 0);
         contentPanel.add(okButton, gbc);
 
         mainPanel.add(contentPanel, BorderLayout.CENTER);

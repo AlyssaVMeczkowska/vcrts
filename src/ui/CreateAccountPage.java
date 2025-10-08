@@ -14,8 +14,6 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.Border;
 import validation.UserValidator;
-import ui.ConsentForm;
-
 public class CreateAccountPage extends JFrame {
     private PlaceholderTextField firstNameField, lastNameField, emailField, usernameField, phoneNumberField;
     private PlaceholderPasswordField passwordField, confirmPasswordField;
@@ -124,8 +122,10 @@ public class CreateAccountPage extends JFrame {
         main.add(Box.createRigidArea(new Dimension(0, 40)));
 
         FocusAdapter focus = new FocusAdapter() {
-            public void focusGained(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(focusBorder); }
-            public void focusLost(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(defaultBorder); }
+            public void focusGained(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(focusBorder);
+            }
+            public void focusLost(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(defaultBorder);
+            }
         };
 
         addNameFieldsInRow(main, focus);
@@ -338,15 +338,14 @@ public class CreateAccountPage extends JFrame {
                 String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
                 boolean agreed = false;
                 
+              
                 if(type.equals("Owner")) {
                 	ConsentForm consentform = new ConsentForm(this);
                 	consentform.setVisible(true);
                 	
                 	if(!consentform.isConsentGiven()) {
-                		JOptionPane.showMessageDialog(this,
-                				"You must agree to the terms and condition to register as a vehicle owner.",
-                				"Registration Failed",
-                				JOptionPane.WARNING_MESSAGE);
+                        CustomDialog dialog = new CustomDialog(this, "Registration Failed", "You must agree to the terms and conditions to register as a vehicle owner.", CustomDialog.DialogType.WARNING);
+                        dialog.setVisible(true);
                 		return;
                 	}
                 	agreed = true;
@@ -444,7 +443,6 @@ public class CreateAccountPage extends JFrame {
             "<span style='color:%s'>&#8226; 1 number & 1 special character (!@#...)</span></body></html>",
             len ? "#006400" : "#C00000", cas ? "#006400" : "#C00000", num ? "#006400" : 
             "#C00000"));
-        
         if (!strong) {
             valid = false;
             passwordField.setBorder(errorBorder);

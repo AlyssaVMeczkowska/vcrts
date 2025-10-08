@@ -1,4 +1,3 @@
-
 package ui;
 
 import data.VehicleDataManager;
@@ -14,7 +13,6 @@ import javax.swing.border.Border;
 import model.User;
 import model.Vehicle;
 import validation.VehicleValidator;
-
 public class VehicleSubmissionPage extends JFrame {
     private PlaceholderTextField vehicleMakeField;
     private PlaceholderTextField vehicleModelField;
@@ -181,13 +179,11 @@ public class VehicleSubmissionPage extends JFrame {
         residencyStartField.setBackground(Color.WHITE);
         residencyStartField.setCursor(new Cursor(Cursor.HAND_CURSOR));
         residencyStartField.setFocusable(false);
-
         residencyStartField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 showCalendar(residencyStartField, true, null);
             }
         });
-
         residencyEndField = new PlaceholderTextField("Select a date");
         residencyEndField.setEditable(false);
         residencyEndField.setBackground(Color.WHITE);
@@ -198,12 +194,10 @@ public class VehicleSubmissionPage extends JFrame {
                 Date minEndDate = null;
                 if (!residencyStartField.getText().isEmpty()) {
                     try {
-                
                         minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
                     } catch (ParseException ex) {
                         System.err.println("Error parsing start date: " + ex.getMessage());
                     }
-               
                  } else {
                     minEndDate = new Date();
                 }
@@ -216,7 +210,6 @@ public class VehicleSubmissionPage extends JFrame {
         dateRow.add(createColumn("<html>Residency End Date: <font color='red'>*</font></html>", residencyEndField, residencyEndErrorLabel, highlightListener));
         mainPanel.add(dateRow);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
         GradientButton submitButton = new GradientButton("Submit Vehicle");
         submitButton.setFont(new Font("Arial", Font.BOLD, 16));
         submitButton.setForeground(Color.WHITE);
@@ -332,7 +325,6 @@ public class VehicleSubmissionPage extends JFrame {
             isValid = false;
         }
 
-
         if (!validator.isFieldValid(vin)) {
             vinNumberErrorLabel.setText("VIN number is required.");
             vinNumberField.setBorder(errorBorder);
@@ -381,19 +373,16 @@ public class VehicleSubmissionPage extends JFrame {
                 residencyStartField.getText().trim(),
                 residencyEndField.getText().trim()
         );
-        
-	    if (dataManager.addVehicle(vehicle)) {
-	        JOptionPane.showMessageDialog(this, 
-	            "Vehicle submitted successfully!", 
-	            "Success", 
-	            JOptionPane.INFORMATION_MESSAGE);
-	        clearForm();
+        if (dataManager.addVehicle(vehicle)) {
+            CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
+            dialog.setVisible(true);
+            clearForm();
 	    } else {
 	        JOptionPane.showMessageDialog(this, 
 	            "Error writing to file. Please check console.", 
 	            "Error", 
 	            JOptionPane.ERROR_MESSAGE);
-	    }
+        }
 	}
 
     private void clearForm() {
