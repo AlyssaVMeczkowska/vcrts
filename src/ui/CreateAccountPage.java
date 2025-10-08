@@ -14,7 +14,6 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.Border;
 import validation.UserValidator;
-
 public class CreateAccountPage extends JFrame {
     private PlaceholderTextField firstNameField, lastNameField, emailField, usernameField, phoneNumberField;
     private PlaceholderPasswordField passwordField, confirmPasswordField;
@@ -123,8 +122,10 @@ public class CreateAccountPage extends JFrame {
         main.add(Box.createRigidArea(new Dimension(0, 40)));
 
         FocusAdapter focus = new FocusAdapter() {
-            public void focusGained(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(focusBorder); }
-            public void focusLost(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(defaultBorder); }
+            public void focusGained(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(focusBorder);
+            }
+            public void focusLost(FocusEvent e) { ((JComponent) e.getComponent()).setBorder(defaultBorder);
+            }
         };
 
         addNameFieldsInRow(main, focus);
@@ -335,6 +336,7 @@ public class CreateAccountPage extends JFrame {
         signUpButton.addActionListener(e -> {
             if (validateForm()) {
                 String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
+                
                 userDataManager.addUser(
                     firstNameField.getText(),
                     lastNameField.getText(),
@@ -342,7 +344,8 @@ public class CreateAccountPage extends JFrame {
                     usernameField.getText(),
                     phoneNumberField.getText(),
                     new String(passwordField.getPassword()),
-                    type
+                    type,
+                    false 
                 );
                 
                 CustomDialog dialog = new CustomDialog(this, "Success", "Account Created Successfully!");
@@ -427,7 +430,6 @@ public class CreateAccountPage extends JFrame {
             "<span style='color:%s'>&#8226; 1 number & 1 special character (!@#...)</span></body></html>",
             len ? "#006400" : "#C00000", cas ? "#006400" : "#C00000", num ? "#006400" : 
             "#C00000"));
-        
         if (!strong) {
             valid = false;
             passwordField.setBorder(errorBorder);

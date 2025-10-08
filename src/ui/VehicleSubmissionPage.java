@@ -1,6 +1,6 @@
-
 package ui;
 
+import data.UserDataManager;
 import data.VehicleDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
@@ -26,9 +26,11 @@ public class VehicleSubmissionPage extends JFrame {
     private PlaceholderTextField residencyEndField;
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
+    private final UserDataManager userDataManager = new UserDataManager();
     private User currentUser;
     private JLabel vehicleMakeErrorLabel, vehicleModelErrorLabel, vehicleYearErrorLabel, licensePlateErrorLabel, vinNumberErrorLabel, residencyStartErrorLabel, residencyEndErrorLabel;
     private Border defaultBorder, focusBorder, errorBorder;
+
     public VehicleSubmissionPage(User user) {
         this.currentUser = user;
         setTitle("Owner Dashboard");
@@ -181,13 +183,11 @@ public class VehicleSubmissionPage extends JFrame {
         residencyStartField.setBackground(Color.WHITE);
         residencyStartField.setCursor(new Cursor(Cursor.HAND_CURSOR));
         residencyStartField.setFocusable(false);
-
         residencyStartField.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 showCalendar(residencyStartField, true, null);
             }
         });
-
         residencyEndField = new PlaceholderTextField("Select a date");
         residencyEndField.setEditable(false);
         residencyEndField.setBackground(Color.WHITE);
@@ -198,12 +198,10 @@ public class VehicleSubmissionPage extends JFrame {
                 Date minEndDate = null;
                 if (!residencyStartField.getText().isEmpty()) {
                     try {
-                
                         minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
                     } catch (ParseException ex) {
                         System.err.println("Error parsing start date: " + ex.getMessage());
                     }
-               
                  } else {
                     minEndDate = new Date();
                 }
@@ -216,7 +214,6 @@ public class VehicleSubmissionPage extends JFrame {
         dateRow.add(createColumn("<html>Residency End Date: <font color='red'>*</font></html>", residencyEndField, residencyEndErrorLabel, highlightListener));
         mainPanel.add(dateRow);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        
         GradientButton submitButton = new GradientButton("Submit Vehicle");
         submitButton.setFont(new Font("Arial", Font.BOLD, 16));
         submitButton.setForeground(Color.WHITE);
@@ -332,7 +329,6 @@ public class VehicleSubmissionPage extends JFrame {
             isValid = false;
         }
 
-
         if (!validator.isFieldValid(vin)) {
             vinNumberErrorLabel.setText("VIN number is required.");
             vinNumberField.setBorder(errorBorder);
@@ -367,17 +363,32 @@ public class VehicleSubmissionPage extends JFrame {
     }
 
     private void submitVehicle() {
+        // Check for user consent before validating the form.
+        if (!currentUser.hasAgreedToTerms()) {
+            ConsentForm consentForm = new ConsentForm(this);
+            consentForm.setVisible(true);
+
+            if (consentForm.isConsentGiven()) {
+                // If consent is given, update the user's status permanently and for the current session.
+                userDataManager.updateUserConsent(currentUser);
+                currentUser.setHasAgreedToTerms(true);
+            } else {
+                // If consent is declined, show a message and cancel the submission.
+                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled", "You must agree to the terms and conditions to register a vehicle.", CustomDialog.DialogType.WARNING);
+                dialog.setVisible(true);
+                return;
+            }
+        }
+
         if (!validateForm()) {
             return;
         }
-
         Vehicle vehicle = new Vehicle(
                 currentUser.getUserId(),
                 vehicleMakeField.getText().trim(),
                 vehicleModelField.getText().trim(),
                 Integer.parseInt(vehicleYearField.getText().trim()),
                 vinNumberField.getText().trim(),
-        
                 licensePlateField.getText().trim(),
                 (String) computingPowerCombo.getSelectedItem(),
                 residencyStartField.getText().trim(),
@@ -387,10 +398,11 @@ public class VehicleSubmissionPage extends JFrame {
             CustomDialog dialog = new CustomDialog(this, "Success", "Vehicle submitted successfully!");
             dialog.setVisible(true);
             clearForm();
-        } else {
-            JOptionPane.showMessageDialog(this, "Error writing to file. Please check console.", "Error", JOptionPane.ERROR_MESSAGE);
+	    } else {
+            CustomDialog dialog = new CustomDialog(this, "Error", "Error writing to file. Please check console.", CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         }
-    }
+	}
 
     private void clearForm() {
         vehicleMakeField.setText("");
@@ -439,7 +451,7 @@ public class VehicleSubmissionPage extends JFrame {
     }
 
     public static void main(String[] args) {
-        User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp");
+        User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp", true);
         SwingUtilities.invokeLater(() -> {
             VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
             dashboard.setVisible(true);

@@ -10,8 +10,9 @@ public class User {
     private String hashedPassword;
     private String accountType;
     private String creationTimestamp;
+    private boolean hasAgreedToTerms;
 
-    public User(int userId, String firstName, String lastName, String email, String username, String phoneNumber, String hashedPassword, String accountType, String creationTimestamp) {
+    public User(int userId, String firstName, String lastName, String email, String username, String phoneNumber, String hashedPassword, String accountType, String creationTimestamp, boolean hasAgreedToTerms) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -21,6 +22,7 @@ public class User {
         this.hashedPassword = hashedPassword;
         this.accountType = accountType;
         this.creationTimestamp = creationTimestamp;
+        this.hasAgreedToTerms = hasAgreedToTerms;
     }
 
     public int getUserId() { return userId; }
@@ -32,4 +34,9 @@ public class User {
     public String getHashedPassword() { return hashedPassword; }
     public String getAccountType() { return accountType; }
     public String getCreationTimestamp() { return creationTimestamp; }
+    public boolean hasAgreedToTerms() { return hasAgreedToTerms; }
+
+    public void setHasAgreedToTerms(boolean hasAgreedToTerms) {
+        this.hasAgreedToTerms = hasAgreedToTerms;
+    }
 }

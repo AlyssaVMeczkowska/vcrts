@@ -34,6 +34,10 @@ public class UserDataManager {
             while ((line = reader.readLine()) != null) {
                 if (line.equals("---")) {
                     if (!userData.isEmpty()) {
+                    	boolean hasAgreedToTerms = false;
+                        if (userData.containsKey("has_agreed_to_terms")) {
+                            hasAgreedToTerms = Boolean.parseBoolean(userData.get("has_agreed_to_terms"));
+                        }
                         User user = new User(
                                 Integer.parseInt(userData.get("user_id")),
                                 userData.get("first_name"),
@@ -43,7 +47,8 @@ public class UserDataManager {
                                 userData.get("phone_number"),
                                 userData.get("password_hash"),
                                 userData.get("account_type"),
-                                userData.get("timestamp")
+                                userData.get("timestamp"),
+                                hasAgreedToTerms
                         );
                         users.add(user);
                         userData.clear();
@@ -80,6 +85,8 @@ public class UserDataManager {
                 writer.write("phone_number: " + user.getPhoneNumber());
                 writer.newLine();
                 writer.write("password_hash: " + user.getHashedPassword());
+                writer.newLine();
+                writer.write("has_agreed_to_terms: " + user.hasAgreedToTerms());
                 writer.newLine();
                 writer.write("---");
                 writer.newLine();
@@ -122,13 +129,21 @@ public class UserDataManager {
                 .orElse(0) + 1;
     }
 
-    public void addUser(String firstName, String lastName, String email, String username, String phoneNumber, String password, String accountType) {
+    public void addUser(String firstName, String lastName, String email, String username, String phoneNumber, String password, String accountType, boolean hasAgreedToTerms) {
         int newUserId = getNextUserId();
         String hashedPassword = hashPassword(password);
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
         
-        User newUser = new User(newUserId, firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp);
+        User newUser = new User(newUserId, firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp, hasAgreedToTerms);
         this.users.add(newUser);
+        saveUsersToFile();
+    }
+
+    public void updateUserConsent(User userToUpdate) {
+        users.stream()
+            .filter(user -> user.getUserId() == userToUpdate.getUserId())
+            .findFirst()
+            .ifPresent(user -> user.setHasAgreedToTerms(true));
         saveUsersToFile();
     }
 
@@ -137,7 +152,6 @@ public class UserDataManager {
         Optional<User> foundUser = users.stream()
                 .filter(user -> user.getUsername().equalsIgnoreCase(usernameOrEmail) || user.getEmail().equalsIgnoreCase(usernameOrEmail))
                 .findFirst();
-        
         if (foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword)) {
             return foundUser.get();
         }
