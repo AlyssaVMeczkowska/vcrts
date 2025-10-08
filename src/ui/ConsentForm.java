@@ -12,15 +12,11 @@ public class ConsentForm extends JDialog {
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        //----------------------------------------------------------------------
-        // TITLE
         JLabel titleLabel = new JLabel("Vehicle Owner Consent Agreement");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 20));
         titleLabel.setForeground(new Color(44, 116, 132));
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         mainPanel.add(titleLabel, BorderLayout.NORTH);
-        //----------------------------------------------------------------------
-        // Consent Message
         JTextArea consentText = new JTextArea();
         consentText.setEditable(false);
         consentText.setLineWrap(true);
@@ -48,20 +44,14 @@ public class ConsentForm extends JDialog {
 
         JPanel bottomPanel = new JPanel(new BorderLayout(10, 10));
         bottomPanel.setBackground(Color.WHITE);
-        //---------------------------------------------------------------------------------
-        // CheckBox for Terms and Conditions
+    
         JCheckBox agreeCheckBox = new JCheckBox("I have read and agree to the terms above");
         agreeCheckBox.setFont(new Font("Arial", Font.BOLD, 12));
         agreeCheckBox.setBackground(Color.WHITE);
         bottomPanel.add(agreeCheckBox, BorderLayout.NORTH);
-
-        //------------------------------------------------------------------------
-        // BUTTONS 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         buttonPanel.setBackground(Color.WHITE);
-        
-        //------------------------------------------------------------------------
-        // DECLINE Button: White Gradient
+
         GradientButton declineButton = new GradientButton("Decline", true);
         declineButton.setFont(new Font("Arial", Font.BOLD, 14));
         declineButton.setForeground(new Color(100, 100, 100));
@@ -73,8 +63,7 @@ public class ConsentForm extends JDialog {
             consentGiven = false;
             dispose();
         });
-        //-------------------------------------------------------------------------
-        // AGREE Button: Teal Gradient
+
         GradientButton agreeButton = new GradientButton("I Agree");
         agreeButton.setFont(new Font("Arial", Font.BOLD, 16));
         agreeButton.setForeground(Color.WHITE);

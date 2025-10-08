@@ -175,7 +175,7 @@ public class VehicleSubmissionPage extends JFrame {
             
             removeButton.addMouseListener(new java.awt.event.MouseAdapter() {
                 public void mouseClicked(java.awt.event.MouseEvent evt) {
-                    // Remove the last form in the list (the one we're about to add)
+                
                     if (!vehicleForms.isEmpty()) {
                         vehicleForms.remove(vehicleForms.size() - 1);
                     }

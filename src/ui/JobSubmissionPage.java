@@ -196,9 +196,7 @@ public class JobSubmissionPage extends JFrame {
             }
             
             JobFormPanel currentForm = jobForms.get(i);
-            // Re-add the form itself
             formsContainer.add(currentForm);
-            // Add the "+ Add Job" button only after the last form
             if (i == jobForms.size() - 1) {
                 JPanel addJobButtonPanel = new JPanel();
                 addJobButtonPanel.setLayout(new BoxLayout(addJobButtonPanel, BoxLayout.X_AXIS));
@@ -247,7 +245,7 @@ public class JobSubmissionPage extends JFrame {
 
     private void addJobForm() {
         if (jobCounter > 1) {
-            // Hide the add button on the previous form
+           
             if (!jobForms.isEmpty()) {
                 JobFormPanel lastForm = jobForms.get(jobForms.size() - 1);
                 if (lastForm.addButtonPanel != null) {
@@ -304,7 +302,6 @@ public class JobSubmissionPage extends JFrame {
         
         jobCounter++;
         
-        // Fixed height calculation
         int topBottomUIsHeight = 225;
         int firstFormHeight = 380;
         int subsequentFormHeight = 480;
