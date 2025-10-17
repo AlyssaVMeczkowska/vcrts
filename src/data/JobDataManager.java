@@ -45,32 +45,32 @@ public class JobDataManager {
     }
 
     public boolean addJob(Job job) {
-        int newJobId = getNextJobId();
-        job.setJobId(newJobId);
+    int newJobId = getNextJobId();
+    job.setJobId(newJobId);
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write("type: job"); 
-            writer.newLine();
-            writer.write("job_id: " + job.getJobId());
-            writer.newLine();
-            writer.write("client_id: " + job.getAccountId());
-            writer.newLine();
-            writer.write("timestamp: " + job.getSubmissionTimestamp());
-            writer.newLine();
-            writer.write("job_type: " + job.getJobType());
-            writer.newLine();
-            writer.write("duration_hours: " + job.getDuration());
-            writer.newLine();
-            writer.write("deadline: " + job.getDeadline());
-            writer.newLine();
-            writer.write("description: " + job.getDescription().replace("\n", " "));
-            writer.newLine();
-            writer.write("---");
-            writer.newLine();
-            return true;
-        } catch (IOException ex) {
-            System.err.println("Error writing to data file: " + ex.getMessage());
-            return false;
-        }
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+        writer.write("type: job_submission");
+        writer.newLine();
+        writer.write("job_id: " + job.getJobId());
+        writer.newLine();
+        writer.write("client_id: " + job.getAccountId());
+        writer.newLine();
+        writer.write("timestamp: " + job.getSubmissionTimestamp());
+        writer.newLine();
+        writer.write("job_type: " + job.getJobType());
+        writer.newLine();
+        writer.write("duration_hours: " + job.getDuration());
+        writer.newLine();
+        writer.write("deadline: " + job.getDeadline());
+        writer.newLine();
+        writer.write("description: " + job.getDescription().replace("\n", " "));
+        writer.newLine();
+        writer.write("---");
+        writer.newLine();
+        return true;
+    } catch (IOException ex) {
+        System.err.println("Error writing to data file: " + ex.getMessage());
+        return false;
     }
+}
 }
