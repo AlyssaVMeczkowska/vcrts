@@ -25,16 +25,45 @@ public class User {
         this.hasAgreedToTerms = hasAgreedToTerms;
     }
 
-    public int getId() { return id; }
-    public String getFirstName() { return firstName; }
-    public String getLastName() { return lastName; }
-    public String getEmail() { return email; }
-    public String getUsername() { return username; }
-    public String getPhoneNumber() { return phoneNumber; }
-    public String getHashedPassword() { return hashedPassword; }
-    public String getAccountType() { return accountType; }
-    public String getCreationTimestamp() { return creationTimestamp; }
-    public boolean hasAgreedToTerms() { return hasAgreedToTerms; }
+    public int getId() { 
+        return id; 
+    }
+
+    public String getFirstName() { 
+        return firstName; 
+    }
+
+    public String getLastName() { 
+        return lastName; 
+    }
+
+    public String getEmail() { 
+        return email; 
+    }
+
+    public String getUsername() { 
+        return username; 
+    }
+
+    public String getPhoneNumber() { 
+        return phoneNumber; 
+    }
+
+    public String getHashedPassword() { 
+        return hashedPassword; 
+    }
+
+    public String getAccountType() { 
+        return accountType; 
+    }
+
+    public String getCreationTimestamp() { 
+        return creationTimestamp; 
+    }
+
+    public boolean hasAgreedToTerms() { 
+        return hasAgreedToTerms; 
+    }
 
     public void setHasAgreedToTerms(boolean hasAgreedToTerms) {
         this.hasAgreedToTerms = hasAgreedToTerms;

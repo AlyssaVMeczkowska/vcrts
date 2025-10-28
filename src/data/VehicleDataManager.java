@@ -53,7 +53,7 @@ public class VehicleDataManager {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
             writer.write("type: vehicle_availability"); 
             writer.newLine();
-            writer.write("user_id: " + vehicle.getAccountId()); 
+            writer.write("user_id: " + vehicle.getVehicleId()); 
             writer.newLine();
             writer.write("vin: " + vehicle.getVin());
             writer.newLine();
@@ -69,9 +69,9 @@ public class VehicleDataManager {
             writer.newLine();
             writer.write("computing_power: " + vehicle.getComputingPower());
             writer.newLine();
-            writer.write("start_date: " + vehicle.getStartDate());
+            writer.write("start_date: " + vehicle.getArrivalDate());
             writer.newLine();
-            writer.write("end_date: " + vehicle.getEndDate());
+            writer.write("end_date: " + vehicle.getDepartureDate());
             writer.newLine();
             writer.write("---");
             writer.newLine();

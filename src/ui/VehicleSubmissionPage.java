@@ -7,6 +7,7 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,6 +16,7 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import model.User;
 import model.Vehicle;
+import model.VehicleStatus;
 import validation.VehicleValidator;
 
 public class VehicleSubmissionPage extends JFrame {
@@ -363,6 +365,7 @@ public class VehicleSubmissionPage extends JFrame {
         int successCount = 0;
         for (VehicleFormPanel form : vehicleForms) {
             Vehicle vehicle = new Vehicle(
+                0,
                 currentUser.getId(),
                 form.getVehicleMake(),
                 form.getVehicleModel(),
@@ -370,8 +373,9 @@ public class VehicleSubmissionPage extends JFrame {
                 form.getVinNumber(),
                 form.getLicensePlate(),
                 form.getComputingPower(),
-                form.getResidencyStart(),
-                form.getResidencyEnd()
+                LocalDate.parse(form.getResidencyStart()),
+                LocalDate.parse(form.getResidencyEnd()),
+                VehicleStatus.AVAILABLE
             );
             
             if (dataManager.addVehicle(vehicle)) {

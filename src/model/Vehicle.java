@@ -1,41 +1,78 @@
 package model;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 public class Vehicle {
-    private int accountId;
+    private int vehicleId;
+    private int ownerId;
     private String make;
     private String model;
     private int year;
     private String vin;
     private String licensePlate;
     private String computingPower;
-    private String startDate;
-    private String endDate;
+    private LocalDate arrivalDate;
+    private LocalDate departureDate;
+    private VehicleStatus status;
     private String submissionTimestamp;
 
-    public Vehicle(int accountId, String make, String model, int year, String vin, String licensePlate, String computingPower, String startDate, String endDate) {
-        this.accountId = accountId;
+    public Vehicle(int vehicleId, int ownerId, String make, String model, int year, String vin, String licensePlate, String computingPower, LocalDate arrivalDate, LocalDate departureDate, VehicleStatus status) {
+        this.vehicleId = vehicleId;
+        this.ownerId = ownerId;
         this.make = make;
         this.model = model;
         this.year = year;
         this.vin = vin;
         this.licensePlate = licensePlate;
         this.computingPower = computingPower;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.submissionTimestamp = LocalDateTime.now().toString();
+        this.arrivalDate = arrivalDate;
+        this.departureDate = departureDate;
+        this.status = status;
+        this.submissionTimestamp = OffsetDateTime.now().toString();
     }
 
+    public int getVehicleId() { 
+        return vehicleId; 
+    }
 
-    public int getAccountId() { return accountId; }
-    public String getMake() { return make; }
-    public String getModel() { return model; }
-    public int getYear() { return year; }
-    public String getVin() { return vin; }
-    public String getLicensePlate() { return licensePlate; }
-    public String getComputingPower() { return computingPower; }
-    public String getStartDate() { return startDate; }
-    public String getEndDate() { return endDate; }
-    public String getSubmissionTimestamp() { return submissionTimestamp; }
+    public String getMake() { 
+        return make; 
+    }
+
+    public String getModel() { 
+        return model; 
+    }
+
+    public int getYear() { 
+        return year; 
+    }
+
+    public String getVin() { 
+        return vin; 
+    }
+
+    public String getLicensePlate() { 
+        return licensePlate; 
+    }
+
+    public String getComputingPower() { 
+        return computingPower; 
+    }
+
+    public LocalDate getArrivalDate() { 
+        return arrivalDate; 
+    }
+
+    public LocalDate getDepartureDate() { 
+        return departureDate; 
+    }
+
+    public VehicleStatus getStatus() { 
+        return status; 
+    }
+
+    public String getSubmissionTimestamp() { 
+        return submissionTimestamp; 
+    }
 }
