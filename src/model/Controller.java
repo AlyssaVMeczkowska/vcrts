@@ -7,12 +7,16 @@ public class Controller {
     private List<Job> jobs;
     private List<Checkpoint> checkpoint;
     private List<Vehicle> parkingLot;
+    private List<Client> clients;
+    private List<Owner> owners;
 
-    public Controller(int vcID, List<Job> jobs, List<Checkpoint> checkpoint, List<Vehicle> parkingLot) {
+    public Controller(int vcID, List<Job> jobs, List<Checkpoint> checkpoint, List<Vehicle> parkingLot, List<Client> clients, List<Owner> owners) {
         this.vcID = vcID;
         this.jobs = jobs;
         this.checkpoint = checkpoint;
         this.parkingLot = parkingLot;
+        this.clients = clients;
+        this.owners = owners;
     }
 
     public void assignVehicleToJob(String vehicleID, int jobID, int redundancyLevel){
@@ -78,5 +82,22 @@ public class Controller {
     public Job updateJobStatus(){
         return null;
     }
+
+    public void registerClient(Client client){
+        clients.add(client);
+    }
+
+    public void registerOwner(Owner owner){
+        owners.add(owner);
+    }
+
+    public List<Client> viewClients(){
+        return clients;
+    }
+
+    public List<Owner> viewOwners(){
+        return owners;
+    }
+
 }
 
