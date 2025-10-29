@@ -1,6 +1,9 @@
 package model;
 
 import java.util.List;
+import java.util.Queue;
+import java.util.Comparator;
+import java.util.LinkedList;
 
 public class Controller {
     private int vcID;
@@ -19,7 +22,7 @@ public class Controller {
         this.owners = owners;
     }
 
-    public void assignVehicleToJob(String vehicleID, int jobID, int redundancyLevel){
+    public void assignJobToVehicle(String vehicleID, int jobID, int redundancyLevel){
 
     }
 
@@ -99,5 +102,27 @@ public class Controller {
         return owners;
     }
 
+    public int calculateCompletionTime(int jobID) { 
+        if (jobs == null || jobs.isEmpty()) {
+            return -1;
+        }
+        
+        Queue<Job> jobQueue = new LinkedList<>();
+        jobs.stream()
+            .sorted(Comparator.comparing(Job::getSubmissionTimestamp))
+            .forEach(jobQueue::offer);
+        
+        int cumulativeTime = 0;
+        
+        while (!jobQueue.isEmpty()) {
+            Job currentJob = jobQueue.poll();
+            cumulativeTime += currentJob.getDuration();
+            
+            if (currentJob.getJobId() == jobID) {
+                return cumulativeTime;  
+            }
+        }
+        
+        return -1;  
+    }
 }
-

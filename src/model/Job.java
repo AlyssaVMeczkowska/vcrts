@@ -12,8 +12,7 @@ public class Job {
     private String deadline;
     private String description;
     private String submissionTimestamp;
-    private float percentComplete = 0.0f;
-    private Status status = Status.AVAILABLE;
+    private double progress = 0.0;
     private Vehicle activeVehicle;
     private List<Vehicle> redundantVehicles = new ArrayList<>();
     private int redundancyLevel = 0;
@@ -71,11 +70,8 @@ public class Job {
         return redundancyLevel;
     }
 
-    public float getPercentComplete(int jobID){
-        return percentComplete;
+    public double getProgress(int jobID){
+        return progress;
     }
 
-    public Status getStatus() {
-        return status;
-    }
 }
