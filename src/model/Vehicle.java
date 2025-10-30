@@ -75,4 +75,10 @@ public class Vehicle {
     public String getSubmissionTimestamp() { 
         return submissionTimestamp; 
     }
+
+    //New Method to Set Initial Status of Vehicle
+    public void setStatus(VehicleStatus status)
+    {
+        this.status = status;
+    }
 }
