@@ -14,10 +14,12 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.Border;
 import validation.UserValidator;
+
 public class CreateAccountPage extends JFrame {
     private PlaceholderTextField firstNameField, lastNameField, emailField, usernameField, phoneNumberField;
     private PlaceholderPasswordField passwordField, confirmPasswordField;
-    private JCheckBox showPasswordCheckBox, ownerCheckBox, clientCheckBox;
+    private JCheckBox showPasswordCheckBox, ownerCheckBox, clientCheckBox, controllerCheckBox;
+    private JButton signUpButton;
     private JLabel firstNameErrorLabel, lastNameErrorLabel, passwordErrorLabel, emailErrorLabel, usernameErrorLabel, phoneNumberErrorLabel, accountTypeErrorLabel, passwordRequirementsLabel;
     private Border defaultBorder, focusBorder, errorBorder;
     private UserValidator validator = new UserValidator();
@@ -26,6 +28,7 @@ public class CreateAccountPage extends JFrame {
     private static final Color TEAL_HOVER = new Color(37, 94, 106);
     private static final Color LINK = new Color(0, 124, 137);
     private static final Color GRAY = new Color(100, 100, 100);
+
     public CreateAccountPage() {
         setTitle("Create Account");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -288,7 +291,14 @@ public class CreateAccountPage extends JFrame {
         infoIcon.setVerticalAlignment(SwingConstants.BOTTOM);
         infoIcon.setBorder(BorderFactory.createEmptyBorder(-4, 0, 0, 0));
         infoIcon.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        infoIcon.setToolTipText("<html><span style='font-size:10px;'><b>Select \"Owner\" if you are interested in:<br><b>Renting your vehicle for its unused computational power<br><br><b>Select \"Client\" if you are interested in:<br><b>Using a vehicle's computational power to run a job</span></html>");
+        infoIcon.setToolTipText("<html><span style='font-size:10px;'>"
+            + "<b>Select \"Owner\" if you are interested in:</b><br>"
+            + "Renting your vehicle for its unused computational power<br><br>"
+            + "<b>Select \"Client\" if you are interested in:</b><br>"
+            + "Using a vehicle's computational power to run a job<br><br>"
+            + "<b>Select \"Controller\" if you are an:</b><br>"
+            + "Administrator managing the VCRTS system"
+            + "</span></html>");
         UIManager.put("ToolTip.background", Color.WHITE);
         UIManager.put("ToolTip.font", new Font("Arial", Font.PLAIN, 11));
         ToolTipManager.sharedInstance().setInitialDelay(200);
@@ -296,20 +306,47 @@ public class CreateAccountPage extends JFrame {
         lbl.add(infoIcon);
         main.add(lbl);
         main.add(Box.createRigidArea(new Dimension(0, 10)));
+        
         JPanel types = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         types.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         types.setBackground(Color.WHITE);
+        
         ownerCheckBox = new JCheckBox("Owner");
         ownerCheckBox.setFont(new Font("Arial", Font.PLAIN, 14));
         ownerCheckBox.setBackground(Color.WHITE);
-        ownerCheckBox.addActionListener(e -> { if (ownerCheckBox.isSelected()) clientCheckBox.setSelected(false); });
+        
         clientCheckBox = new JCheckBox("Client");
         clientCheckBox.setFont(new Font("Arial", Font.PLAIN, 14));
         clientCheckBox.setBackground(Color.WHITE);
-        clientCheckBox.addActionListener(e -> { if (clientCheckBox.isSelected()) ownerCheckBox.setSelected(false); });
+        
+        controllerCheckBox = new JCheckBox("Controller");
+        controllerCheckBox.setFont(new Font("Arial", Font.PLAIN, 14));
+        controllerCheckBox.setBackground(Color.WHITE);
+
+        ownerCheckBox.addActionListener(e -> { 
+            if (ownerCheckBox.isSelected()) {
+                clientCheckBox.setSelected(false);
+                controllerCheckBox.setSelected(false);
+            }
+        });
+        clientCheckBox.addActionListener(e -> {
+            if (clientCheckBox.isSelected()) {
+                ownerCheckBox.setSelected(false);
+                controllerCheckBox.setSelected(false);
+            }
+        });
+        controllerCheckBox.addActionListener(e -> {
+            if (controllerCheckBox.isSelected()) {
+                ownerCheckBox.setSelected(false);
+                clientCheckBox.setSelected(false);
+            }
+        });
+        
         types.add(ownerCheckBox);
         types.add(Box.createRigidArea(new Dimension(25, 0)));
         types.add(clientCheckBox);
+        types.add(Box.createRigidArea(new Dimension(25, 0)));
+        types.add(controllerCheckBox);
         main.add(types);
         
         accountTypeErrorLabel = new JLabel(" ");
@@ -341,7 +378,14 @@ public class CreateAccountPage extends JFrame {
     
     private void attemptSignUp() {
         if (validateForm()) {
-            String type = ownerCheckBox.isSelected() ? "Owner" : "Client";
+            String type;
+            if (ownerCheckBox.isSelected()) {
+                type = "Owner";
+            } else if (clientCheckBox.isSelected()) {
+                type = "Client";
+            } else {
+                type = "Controller";
+            }
             
             userDataManager.addUser(
                 firstNameField.getText(),
@@ -367,6 +411,7 @@ public class CreateAccountPage extends JFrame {
 
     private boolean validateForm() {
         boolean valid = true;
+        
         if (!validator.isNameValid(firstNameField.getText())) {
             valid = false;
             firstNameField.setBorder(errorBorder);
@@ -449,7 +494,7 @@ public class CreateAccountPage extends JFrame {
             passwordErrorLabel.setText(" ");
         }
         
-        if (!ownerCheckBox.isSelected() && !clientCheckBox.isSelected()) {
+        if (!ownerCheckBox.isSelected() && !clientCheckBox.isSelected() && !controllerCheckBox.isSelected()) {
             valid = false;
             accountTypeErrorLabel.setText("Please select an account type.");
         } else {
@@ -488,7 +533,6 @@ public class CreateAccountPage extends JFrame {
             g2.drawString(placeholder, getInsets().left + 5, (getHeight() - fm.getHeight()) / 2 + fm.getAscent());
         }
     }
-
     // public static void main(String[] args) {
     //     SwingUtilities.invokeLater(() -> {
     //         CreateAccountPage createAccountPage = new CreateAccountPage();

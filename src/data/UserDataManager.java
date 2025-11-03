@@ -41,6 +41,8 @@ public class UserDataManager {
                             id = Integer.parseInt(userData.get("owner_id"));
                         } else if (userData.containsKey("client_id")) {
                             id = Integer.parseInt(userData.get("client_id"));
+                        } else if (userData.containsKey("controller_id")) {
+                            id = Integer.parseInt(userData.get("controller_id"));
                         }
 
                         User user = new User(
@@ -75,8 +77,10 @@ public class UserDataManager {
             for (User user : users) {
                 if ("Owner".equals(user.getAccountType())) {
                     writer.write("owner_id: " + user.getId());
-                } else {
+                } else if ("Client".equals(user.getAccountType())) {
                     writer.write("client_id: " + user.getId());
+                } else {
+                    writer.write("controller_id: " + user.getId());
                 }
                 writer.newLine();
                 writer.write("timestamp: " + user.getCreationTimestamp());
@@ -147,12 +151,23 @@ public class UserDataManager {
                 .orElse(0) + 1;
     }
 
+    private int getNextControllerId() {
+        return users.stream()
+                .filter(user -> "Controller".equals(user.getAccountType()))
+                .mapToInt(User::getId)
+                .max()
+                .orElse(0) + 1;
+    }
+
     public void addUser(String firstName, String lastName, String email, String username, String phoneNumber, String password, String accountType, boolean hasAgreedToTerms) {
         int newId;
+        
         if ("Owner".equals(accountType)) {
             newId = getNextOwnerId();
-        } else {
+        } else if ("Client".equals(accountType)) {
             newId = getNextClientId();
+        } else {
+            newId = getNextControllerId();
         }
         
         String hashedPassword = hashPassword(password);
@@ -162,7 +177,6 @@ public class UserDataManager {
         this.users.add(newUser);
         saveUsersToFile();
     }
-
 
     public void updateUserConsent(User userToUpdate) {
         users.stream()
@@ -180,7 +194,6 @@ public class UserDataManager {
         if (foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword)) {
             return foundUser.get();
         }
-
         return null;
     }
 }
