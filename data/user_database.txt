@@ -1,0 +1,55 @@
+owner_id: 1
+timestamp: 2025-11-03T02:29:46.7115019
+account_type: Owner
+first_name: Owner
+last_name: One
+email: owner1@email.com
+username: ownerone
+phone_number: 
+password_hash: fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2
+has_agreed_to_terms: true
+---
+owner_id: 2
+timestamp: 2025-11-03T02:30:38.5953667
+account_type: Owner
+first_name: Owner
+last_name: Two
+email: owner2@email.com
+username: ownertwo
+phone_number: 
+password_hash: fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2
+has_agreed_to_terms: true
+---
+client_id: 1
+timestamp: 2025-11-03T02:31:03.2159403
+account_type: Client
+first_name: Client
+last_name: One
+email: client1@email.com
+username: client1
+phone_number: 
+password_hash: fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2
+has_agreed_to_terms: false
+---
+client_id: 2
+timestamp: 2025-11-03T02:31:21.942346
+account_type: Client
+first_name: Client
+last_name: Two
+email: client2@email.com
+username: clienttwo
+phone_number: 
+password_hash: fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2
+has_agreed_to_terms: false
+---
+controller_id: 1
+timestamp: 2025-11-03T02:31:40.9651702
+account_type: Controller
+first_name: Controller
+last_name: Account
+email: controller@email.com
+username: controller
+phone_number: 
+password_hash: fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2
+has_agreed_to_terms: false
+---

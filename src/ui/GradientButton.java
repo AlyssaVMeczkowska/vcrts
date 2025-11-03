@@ -11,16 +11,17 @@ public class GradientButton extends JButton {
     private boolean isHovered = false;
     private boolean isWhite = false;
 
-
     public GradientButton(String text) {
         this(text, false);
     }
 
-
     public GradientButton(String text, boolean white) {
         super(text);
-        this.isWhite = white;
+        this.isWhite = white;  
         setOpaque(false);
+        setContentAreaFilled(false);
+        setBorderPainted(false);
+        setFocusPainted(false);
         addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
                 isHovered = true;
@@ -40,7 +41,6 @@ public class GradientButton extends JButton {
         Color color1, color2;
         
         if (isWhite) {
-
             if (isHovered) {
                 color1 = new Color(255, 255, 255);
                 color2 = new Color(240, 240, 240);
@@ -49,13 +49,13 @@ public class GradientButton extends JButton {
                 color2 = new Color(220, 220, 220);
             }
         } else {
- 
+
             if (isHovered) {
-                color1 = new Color(60, 200, 220);
-                color2 = new Color(20, 140, 160);
+                color1 = new Color(60, 200, 220); 
+                color2 = new Color(20, 140, 160); 
             } else {
-                color1 = new Color(50, 170, 190);
-                color2 = new Color(30, 110, 130);
+                color1 = new Color(50, 170, 190); 
+                color2 = new Color(30, 110, 130); 
             }
         }
 
@@ -64,7 +64,7 @@ public class GradientButton extends JButton {
             getWidth(), 0, color2
         );
         g2.setPaint(gradient);
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40); 
 
         g2.dispose();
         super.paintComponent(g);

@@ -198,6 +198,8 @@ public class LoginPage extends JFrame {
                 SwingUtilities.invokeLater(() -> new VehicleSubmissionPage(loggedInUser).setVisible(true));
             } else if ("Client".equals(accountType)) {
                 SwingUtilities.invokeLater(() -> new JobSubmissionPage(loggedInUser).setVisible(true));
+            } else if ("Controller".equals(accountType)) {
+                SwingUtilities.invokeLater(() -> new ControllerPage(loggedInUser).setVisible(true));
             } else {
                 JOptionPane.showMessageDialog(null, "Error: Unknown account type '" + accountType + "'.", "Login Error", JOptionPane.ERROR_MESSAGE);
             }
@@ -211,8 +213,6 @@ public class LoginPage extends JFrame {
             passwordField.setBorder(errorBorder);
         }
     }
-
-
 
     private static class PlaceholderTextField extends JTextField {
         private String placeholder;
