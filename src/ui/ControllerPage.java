@@ -15,6 +15,7 @@ public class ControllerPage extends JFrame {
 
     private CustomTable jobTable;
     
+
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
 
@@ -56,6 +57,7 @@ public class ControllerPage extends JFrame {
         headerPanel.add(logoutButton, BorderLayout.EAST);
         rootPanel.add(headerPanel, BorderLayout.NORTH);
 
+
         JPanel contentArea = new JPanel(new GridBagLayout()); 
         contentArea.setBackground(PAGE_BG);
         
@@ -93,14 +95,17 @@ public class ControllerPage extends JFrame {
         mainPanel.add(calcButton);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        String[] columnNames = {"Job ID", "Client ID", "Job Type", "Duration (hrs)", "Arrival Time", "Completion Time (hrs)"};
-        int[] columnWidths = {90, 90, 200, 100, 240, 170}; 
+  
+        String[] columnNames = {"Job ID", "Client ID", "Job Type", "Duration", "Arrival Time", "Completion Time"};
+        
+        int[] columnWidths = {100, 100, 250, 100, 400, 150}; 
         
         jobTable = new CustomTable(columnNames, columnWidths);
         jobTable.setVisible(false); 
         jobTable.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         
-        mainPanel.add(jobTable); 
+        mainPanel.add(jobTable);
         
         rootPanel.add(contentArea, BorderLayout.CENTER);
     }
@@ -128,18 +133,17 @@ public class ControllerPage extends JFrame {
         this.revalidate();
         this.repaint();
     }
-
+    
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             User testController = new User(
-                 1, "Admin", "User", "controller@vcrts.com", "admin", 
-                 "(123) 456-7890", "dummyhash", "Controller", 
-                 "2025-01-01T12:00:00", true
-             );
+                    1, "Admin", "User", "controller@vcrts.com", "admin", 
+                    "(123) 456-7890", "dummyhash", "Controller", 
+                    "2025-01-01T12:00:00", true
+                );
             
-             ControllerPage controllerPage = new ControllerPage(testController);
-             controllerPage.setVisible(true);
-         });
+            ControllerPage controllerPage = new ControllerPage(testController);
+            controllerPage.setVisible(true);
+        });
     }
-
 }

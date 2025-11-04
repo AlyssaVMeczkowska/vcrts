@@ -8,6 +8,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
+
 public class CustomTable extends JScrollPane {
 
     private DefaultTableModel tableModel;
@@ -23,13 +24,15 @@ public class CustomTable extends JScrollPane {
         new Color(0, 122, 255), 
         new Color(52, 199, 89), 
         new Color(255, 149, 0), 
-        new Color(88, 86, 214),
-        new Color(175, 82, 222),
+        new Color(88, 86, 214), 
+        new Color(175, 82, 222), 
         new Color(255, 45, 85)  
     };
 
+
     public CustomTable(String[] columnNames, int[] columnWidths) {
         super();
+
 
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -38,7 +41,10 @@ public class CustomTable extends JScrollPane {
             }
         };
 
+
         table = new JTable(tableModel);
+
+
         table.setFont(new Font("Arial", Font.PLAIN, 14));
         table.setRowHeight(40); 
         table.setBackground(TABLE_BG);
@@ -54,17 +60,21 @@ public class CustomTable extends JScrollPane {
         table.setDefaultRenderer(Object.class, new ModernCellRenderer());
 
 
-        table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+        table.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         TableColumnModel columnModel = table.getColumnModel();
+        int totalWidth = 0;
         for (int i = 0; i < columnWidths.length; i++) {
             columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
+            totalWidth += columnWidths[i];
         }
         
 
         this.setViewportView(table);
         this.getViewport().setBackground(TABLE_BG); 
         this.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
-        this.setPreferredSize(new Dimension(columnWidths[0] + columnWidths[1] + columnWidths[2] + columnWidths[3] + columnWidths[4] + columnWidths[5], 400));
+        
+
+        this.setPreferredSize(new Dimension(totalWidth + 2, 400)); 
     }
 
     public DefaultTableModel getModel() {
@@ -100,16 +110,16 @@ public class CustomTable extends JScrollPane {
     private static class ModernHeaderRenderer extends DefaultTableCellRenderer {
         public ModernHeaderRenderer() {
             setOpaque(true);
-            setHorizontalAlignment(SwingConstants.LEFT);
+            setHorizontalAlignment(SwingConstants.CENTER);
             setBackground(TABLE_HEADER_BG);
             setForeground(HEADER_FONT_COLOR);
             setFont(new Font("Arial", Font.BOLD, 14));
-            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); 
         }
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+                                                      boolean isSelected, boolean hasFocus, int row, int column) {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             Color lineColor = HEADER_LINE_COLORS[column % HEADER_LINE_COLORS.length];
             setBorder(BorderFactory.createCompoundBorder(
@@ -131,7 +141,7 @@ public class CustomTable extends JScrollPane {
 
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+                                                      boolean isSelected, boolean hasFocus, int row, int column) {
             Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             
             c.setBackground(TABLE_BG);
