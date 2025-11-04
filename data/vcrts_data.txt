@@ -17,9 +17,9 @@ deadline: 2025-11-10
 description: 
 ---
 type: vehicle_availability
-user_id: 0
-vin: fewfew
-license_plate: feew
+user_id: 1
+vin: 4Y1SL65848Z411439
+license_plate: LZT-3974
 timestamp: 2025-11-03T23:23:49.644973200-05:00
 vehicle_make: Tesla
 vehicle_model: X
@@ -27,6 +27,18 @@ vehicle_year: 2024
 computing_power: Medium
 start_date: 2025-11-03
 end_date: 2025-11-24
+---
+type: vehicle_availability
+user_id: 2
+vin: 2FMDK3JC6ABB64645
+license_plate: AKJ-2630
+timestamp: 2025-11-04T03:23:49.644973200-05:00
+vehicle_make: BMW
+vehicle_model: X5 M
+vehicle_year: 2026
+computing_power: High
+start_date: 2025-11-07
+end_date: 2025-11-29
 ---
 type: job_submission
 job_id: 3
@@ -102,7 +114,7 @@ description:
 ---
 type: job_submission
 job_id: 11
-client_id: 1
+client_id: 2
 timestamp: 2025-11-04T00:19:36.994104100
 job_type: Real-Time Processing
 duration_hours: 6

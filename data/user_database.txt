@@ -53,3 +53,14 @@ phone_number:
 password_hash: fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2
 has_agreed_to_terms: false
 ---
+controller_id: 2
+timestamp: 2025-11-03T02:31:40.9651702
+account_type: Controller
+first_name: Alyssa
+last_name: Meczkowska
+email: controller2@email.com
+username: controller2
+phone_number: 
+password_hash: fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2
+has_agreed_to_terms: false
+---

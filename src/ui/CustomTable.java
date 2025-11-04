@@ -74,11 +74,16 @@ public class CustomTable extends JScrollPane {
         this.setBorder(BorderFactory.createLineBorder(BORDER_COLOR, 1));
         
 
-        this.setPreferredSize(new Dimension(totalWidth + 2, 400)); 
+        this.setPreferredSize(new Dimension(totalWidth + 2, 600)); // Increased from 400 to 600 
     }
 
     public DefaultTableModel getModel() {
         return this.tableModel;
+    }
+    
+    // Add getter for the JTable
+    public JTable getTable() {
+        return this.table;
     }
 
 
@@ -136,7 +141,7 @@ public class CustomTable extends JScrollPane {
         public ModernCellRenderer() {
             super();
             setOpaque(true);
-            setHorizontalAlignment(SwingConstants.LEFT);
+            setHorizontalAlignment(SwingConstants.CENTER); // Changed from LEFT to CENTER
         }
 
         @Override
