@@ -97,7 +97,7 @@ public class ControllerPage extends JFrame {
         // Add descriptive text - properly centered using HTML
         JLabel descriptionLabel = new JLabel("<html><div style='text-align: center;'>" +
             "View and manage job assignments across all vehicles in the parking lot.<br>" +
-            "Click the button below to calculate completion times using the FIFO scheduling algorithm." +
+            "Click the button below to calculate completion times of the current jobs." +
             "</div></html>");
         descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         descriptionLabel.setForeground(new Color(100, 100, 100));
