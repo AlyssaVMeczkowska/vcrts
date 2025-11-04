@@ -134,16 +134,16 @@ public class ControllerPage extends JFrame {
         this.repaint();
     }
     
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            User testController = new User(
-                    1, "Admin", "User", "controller@vcrts.com", "admin", 
-                    "(123) 456-7890", "dummyhash", "Controller", 
-                    "2025-01-01T12:00:00", true
-                );
+    // public static void main(String[] args) {
+    //     SwingUtilities.invokeLater(() -> {
+    //         User testController = new User(
+    //                 1, "Admin", "User", "controller@vcrts.com", "admin", 
+    //                 "(123) 456-7890", "dummyhash", "Controller", 
+    //                 "2025-01-01T12:00:00", true
+    //             );
             
-            ControllerPage controllerPage = new ControllerPage(testController);
-            controllerPage.setVisible(true);
-        });
-    }
+    //         ControllerPage controllerPage = new ControllerPage(testController);
+    //         controllerPage.setVisible(true);
+    //     });
+    // }
 }

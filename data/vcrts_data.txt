@@ -109,3 +109,12 @@ duration_hours: 6
 deadline: 2025-11-27
 description: 
 ---
+type: job_submission
+job_id: 12
+client_id: 2
+timestamp: 2025-11-04T00:31:56.385523
+job_type: Simulation
+duration_hours: 4
+deadline: 2025-11-18
+description: 
+---
