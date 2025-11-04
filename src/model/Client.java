@@ -35,10 +35,9 @@ public class Client extends User{
         {
             for (Job job : jobs)
             {
-                if (job.getStatus() == Status.AVAILABLE)
-                {
-                    System.out.println("Job " + job.getJobId() + " submitted successfully.");
-                }
+               
+                System.out.println("Job " + job.getJobId() + " submitted successfully.");
+                
             }
         }
         else
