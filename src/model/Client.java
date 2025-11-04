@@ -10,16 +10,50 @@ public class Client extends User{
         this.jobs = jobs;
     }
 
-    public void addJobs(Job jobID){
-
+    //Implementation to Add Jobs
+    public void addJobs(Job jobID)
+    {
+        if (jobID != null && jobs != null)
+        {
+            jobs.add(jobID);
+        }
     }
 
-    public void deleteJobs(Job jobID){
-
+    //Implementation to Delete Jobs
+    public void deleteJobs(Job jobID)
+    {
+        if (jobID != null && jobs != null)
+        {
+            jobs.remove(jobID);
+        }
     }
 
-    public void submitJobs(){
-        
+    //Implementation to submit jobs
+    public void submitJobs()
+    {
+        if (jobs != null && !jobs.isEmpty())
+        {
+            for (Job job : jobs)
+            {
+                if (job.getStatus() == Status.AVAILABLE)
+                {
+                    System.out.println("Job " + job.getJobId() + " submitted successfully.");
+                }
+            }
+        }
+        else
+        {
+            System.out.println("No jobs to submit");
+        }
     }
+
+    //New Method to return list of Jobs
+    public List<Job> getJobs()
+    {
+        return jobs;
+    }
+
 }
+
+
 
