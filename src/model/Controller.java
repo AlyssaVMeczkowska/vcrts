@@ -1,9 +1,10 @@
 package model;
 
-import java.util.List;
-import java.util.Queue;
+import data.JobDataManager;
 import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 public class Controller {
     private int vcID;
@@ -13,13 +14,36 @@ public class Controller {
     private List<Client> clients;
     private List<Owner> owners;
 
+    private JobDataManager jobDataManager;
+
     public Controller(int vcID, List<Job> jobs, List<Checkpoint> checkpoint, List<Vehicle> parkingLot, List<Client> clients, List<Owner> owners) {
         this.vcID = vcID;
-        this.jobs = jobs;
+        this.jobs = jobs; 
         this.checkpoint = checkpoint;
         this.parkingLot = parkingLot;
         this.clients = clients;
         this.owners = owners;
+
+
+        this.jobDataManager = new JobDataManager();
+        this.jobs = jobDataManager.getAllJobs(); 
+    }
+
+
+    public List<Job> calculateAllCompletionTimes() {
+
+        List<Job> allJobs = jobDataManager.getAllJobs();
+
+        allJobs.sort(Comparator.comparing(Job::getSubmissionTimestamp));
+
+        int cumulativeTime = 0;
+        for (Job job : allJobs) {
+            cumulativeTime += job.getDuration();
+            job.setCompletionTime(cumulativeTime);
+        }
+        
+        this.jobs = allJobs;
+        return allJobs;
     }
 
     public void assignJobToVehicle(String vehicleID, int jobID, int redundancyLevel){
@@ -75,7 +99,7 @@ public class Controller {
     }
     
     public List<Job> viewJobs(){
-        return null;
+        return jobs;
     }
 
     public List<Job> addJobs(){
@@ -111,7 +135,6 @@ public class Controller {
         jobs.stream()
             .sorted(Comparator.comparing(Job::getSubmissionTimestamp))
             .forEach(jobQueue::offer);
-        
         int cumulativeTime = 0;
         
         while (!jobQueue.isEmpty()) {
@@ -119,10 +142,10 @@ public class Controller {
             cumulativeTime += currentJob.getDuration();
             
             if (currentJob.getJobId() == jobID) {
-                return cumulativeTime;  
+                return cumulativeTime;
             }
         }
         
-        return -1;  
+        return -1;
     }
 }

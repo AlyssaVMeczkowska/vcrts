@@ -1,144 +1,120 @@
 type: job_submission
 job_id: 1
 client_id: 1
-timestamp: 2025-11-03T02:35:38.416815200
-job_type: Computational Task
-duration_hours: 3
-deadline: 2025-11-24
+timestamp: 2025-11-03T23:23:19.548510100
+job_type: Simulation
+duration_hours: 2
+deadline: 2025-11-05
 description: 
 ---
 type: job_submission
 job_id: 2
 client_id: 1
-timestamp: 2025-11-03T02:35:38.416815200
+timestamp: 2025-11-03T23:23:26.423870700
 job_type: Simulation
-duration_hours: 4
-deadline: 2025-11-21
+duration_hours: 3
+deadline: 2025-11-10
 description: 
+---
+type: vehicle_availability
+user_id: 0
+vin: fewfew
+license_plate: feew
+timestamp: 2025-11-03T23:23:49.644973200-05:00
+vehicle_make: Tesla
+vehicle_model: X
+vehicle_year: 2024
+computing_power: Medium
+start_date: 2025-11-03
+end_date: 2025-11-24
 ---
 type: job_submission
 job_id: 3
 client_id: 1
-timestamp: 2025-11-03T02:35:38.422815200
-job_type: Real-Time Processing
-duration_hours: 19
-deadline: 2025-11-29
+timestamp: 2025-11-03T23:34:13.252357500
+job_type: Networking & Communication
+duration_hours: 4
+deadline: 2025-11-18
 description: 
 ---
 type: job_submission
 job_id: 4
 client_id: 1
-timestamp: 2025-11-03T02:35:38.426814500
+timestamp: 2025-11-04T00:18:25.964826
 job_type: Data Storage & Transfer
-duration_hours: 1
-deadline: 2025-12-09
-description: 
+duration_hours: 4
+deadline: 2025-11-16
+description: dqdwq
 ---
 type: job_submission
 job_id: 5
-client_id: 2
-timestamp: 2025-11-03T02:36:42.007740600
+client_id: 1
+timestamp: 2025-11-04T00:18:54.360691900
 job_type: Batch Processing
-duration_hours: 10
-deadline: 2025-11-20
+duration_hours: 3
+deadline: 2025-11-25
 description: 
 ---
 type: job_submission
 job_id: 6
-client_id: 2
-timestamp: 2025-11-03T02:36:42.008740200
-job_type: Networking & Communication
-duration_hours: 51
-deadline: 2025-11-23
+client_id: 1
+timestamp: 2025-11-04T00:18:54.361691600
+job_type: Simulation
+duration_hours: 5
+deadline: 2025-11-16
 description: 
 ---
 type: job_submission
 job_id: 7
-client_id: 2
-timestamp: 2025-11-03T02:36:42.014740800
-job_type: Networking & Communication
-duration_hours: 3
-deadline: 2025-11-17
+client_id: 1
+timestamp: 2025-11-04T00:18:54.367691100
+job_type: Simulation
+duration_hours: 4
+deadline: 2025-11-18
 description: 
 ---
 type: job_submission
 job_id: 8
-client_id: 2
-timestamp: 2025-11-03T02:36:42.020741
+client_id: 1
+timestamp: 2025-11-04T00:18:54.372470100
 job_type: Networking & Communication
-duration_hours: 2
-deadline: 2025-11-21
+duration_hours: 9
+deadline: 2025-11-19
 description: 
 ---
-type: vehicle_availability
-user_id: 0
-vin: QWERT
-license_plate: ABC123
-timestamp: 2025-11-03T02:44:15.034325300-05:00
-vehicle_make: Tesla
-vehicle_model: 3
-vehicle_year: 2024
-computing_power: Medium
-start_date: 2025-11-03
-end_date: 2025-12-31
+type: job_submission
+job_id: 9
+client_id: 1
+timestamp: 2025-11-04T00:19:36.986795300
+job_type: Real-Time Processing
+duration_hours: 3
+deadline: 2025-11-18
+description: 
 ---
-type: vehicle_availability
-user_id: 0
-vin: UIOP
-license_plate: DEF456
-timestamp: 2025-11-03T02:44:15.035326700-05:00
-vehicle_make: Tesla
-vehicle_model: X
-vehicle_year: 2024
-computing_power: High
-start_date: 2025-11-03
-end_date: 2025-12-31
+type: job_submission
+job_id: 10
+client_id: 1
+timestamp: 2025-11-04T00:19:36.987799400
+job_type: Networking & Communication
+duration_hours: 4
+deadline: 2025-11-18
+description: 
 ---
-type: vehicle_availability
-user_id: 0
-vin: ASDF
-license_plate: HIJ789
-timestamp: 2025-11-03T02:44:15.035326700-05:00
-vehicle_make: Tesla
-vehicle_model: Y
-vehicle_year: 2025
-computing_power: High
-start_date: 2025-11-30
-end_date: 2025-12-31
+type: job_submission
+job_id: 11
+client_id: 1
+timestamp: 2025-11-04T00:19:36.994104100
+job_type: Real-Time Processing
+duration_hours: 6
+deadline: 2025-11-27
+description: 
 ---
-type: vehicle_availability
-user_id: 0
-vin: ZXCV
-license_plate: JKL123
-timestamp: 2025-11-03T02:46:10.337862100-05:00
-vehicle_make: Tesla
-vehicle_model: X
-vehicle_year: 2024
-computing_power: High
-start_date: 2025-11-03
-end_date: 2025-12-31
----
-type: vehicle_availability
-user_id: 0
-vin: GHJK
-license_plate: CVB456
-timestamp: 2025-11-03T02:46:10.337862100-05:00
-vehicle_make: Tesla
-vehicle_model: Y
-vehicle_year: 2026
-computing_power: Medium
-start_date: 2025-11-03
-end_date: 2025-12-31
----
-type: vehicle_availability
-user_id: 0
-vin: TREQ
-license_plate: KJHG543
-timestamp: 2025-11-03T02:46:10.338861800-05:00
-vehicle_make: Tesla
-vehicle_model: 3
-vehicle_year: 2024
-computing_power: Low
-start_date: 2025-11-30
-end_date: 2025-12-31
+type: job_submission
+job_id: 12
+client_id: 2
+timestamp: 2025-11-04T00:31:56.385523
+job_type: Simulation
+duration_hours: 4
+deadline: 2025-11-18
+description: 
 ---

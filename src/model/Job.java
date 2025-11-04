@@ -16,6 +16,8 @@ public class Job {
     private Vehicle activeVehicle;
     private List<Vehicle> redundantVehicles = new ArrayList<>();
     private int redundancyLevel = 0;
+    
+    private int completionTime;
 
     public Job(int accountId, String jobType, int duration, String deadline, String description) {
         this.accountId = accountId;
@@ -25,37 +27,47 @@ public class Job {
         this.description = description;
         this.submissionTimestamp = LocalDateTime.now().toString();
     }
+    
+    public Job(int jobId, int accountId, String submissionTimestamp, String jobType, int duration, String deadline, String description) {
+        this.jobId = jobId;
+        this.accountId = accountId;
+        this.submissionTimestamp = submissionTimestamp;
+        this.jobType = jobType;
+        this.duration = duration;
+        this.deadline = deadline;
+        this.description = description;
+    }
 
     public int getJobId() { 
-        return jobId; 
+        return jobId;
     }
 
     public int getAccountId() { 
-        return accountId; 
+        return accountId;
     }
 
     public String getJobType() { 
-        return jobType; 
+        return jobType;
     }
 
     public int getDuration() { 
-        return duration; 
+        return duration;
     }
 
     public String getDeadline() { 
-        return deadline; 
+        return deadline;
     }
 
     public String getDescription() { 
-        return description; 
+        return description;
     }
 
     public String getSubmissionTimestamp() { 
-        return submissionTimestamp; 
+        return submissionTimestamp;
     }
 
     public void setJobId(int jobId) { 
-        this.jobId = jobId; 
+        this.jobId = jobId;
     }
 
     public Vehicle getActiveVehicle(){
@@ -74,4 +86,11 @@ public class Job {
         return progress;
     }
 
+    public int getCompletionTime() {
+        return completionTime;
+    }
+
+    public void setCompletionTime(int completionTime) {
+        this.completionTime = completionTime;
+    }
 }
