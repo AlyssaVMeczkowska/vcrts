@@ -19,7 +19,7 @@ public class Controller {
     
     // Per-vehicle job queues
     private Map<Integer, Queue<Job>> vehicleJobQueues;
-    private int nextVehicleIndex = 0; // For round-robin assignment
+    private int nextVehicleIndex = 0;
 
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
@@ -37,21 +37,28 @@ public class Controller {
         this.jobDataManager = new JobDataManager();
         this.vehicleDataManager = new VehicleDataManager();
         
-        // Load data
-        this.jobs = jobDataManager.getAllJobs();
-        this.parkingLot = loadAllVehicles();
-        
-        // Initialize vehicle job queues
+
+        this.jobs = new ArrayList<>();
+        this.parkingLot = new ArrayList<>();
         this.vehicleJobQueues = new HashMap<>();
-        initializeVehicleQueues();
         
-        // Assign all existing jobs to vehicles
-        assignAllJobsToVehicles();
+        refreshAndProcessData();
     }
     
     /**
-     * Load all vehicles from the text file
+     * Loads all data from files
      */
+    public void refreshAndProcessData() {
+        this.jobs = jobDataManager.getAllJobs();
+        this.parkingLot = loadAllVehicles();
+        
+        this.vehicleJobQueues.clear();
+        initializeVehicleQueues();
+        
+        this.nextVehicleIndex = 0;
+        assignAllJobsToVehicles();
+    }
+    
     private List<Vehicle> loadAllVehicles() {
         List<Vehicle> vehicles = new ArrayList<>();
         File file = new File(FILE_PATH);
@@ -65,7 +72,6 @@ public class Controller {
             String line;
             boolean isVehicleBlock = false;
             
-            // Temporary variables to store vehicle data
             Integer vehicleId = null;
             Integer ownerId = null;
             String make = null;
@@ -82,7 +88,6 @@ public class Controller {
                 
                 if (line.startsWith("type: vehicle_availability")) {
                     isVehicleBlock = true;
-                    // Reset all temporary variables
                     vehicleId = null;
                     ownerId = null;
                     make = null;
@@ -95,7 +100,6 @@ public class Controller {
                     departureDate = null;
                     
                 } else if (line.equals("---")) {
-                    // End of vehicle block - create vehicle object
                     if (isVehicleBlock && vehicleId != null) {
                         try {
                             Vehicle vehicle = new Vehicle(
@@ -239,6 +243,11 @@ public class Controller {
         Vehicle selectedVehicle = parkingLot.get(nextVehicleIndex);
         int vehicleId = selectedVehicle.getVehicleId();
         
+        if (vehicleJobQueues.get(vehicleId) == null) {
+             System.err.println("Error: No queue found for vehicle ID: " + vehicleId);
+             return;
+        }
+
         // Add job to the vehicle's queue
         vehicleJobQueues.get(vehicleId).offer(job);
         
@@ -252,7 +261,6 @@ public class Controller {
     private void calculateCompletionTimesPerVehicle() {
         for (Map.Entry<Integer, Queue<Job>> entry : vehicleJobQueues.entrySet()) {
             Queue<Job> jobQueue = entry.getValue();
-            
             int cumulativeTime = 0;
             for (Job job : jobQueue) {
                 cumulativeTime += job.getDuration();

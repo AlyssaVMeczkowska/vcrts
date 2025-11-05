@@ -15,8 +15,10 @@ public class ControllerPage extends JFrame {
 
     private User currentUser;
     private Controller controller; 
-
     private JPanel tablesContainer;
+    
+    private JLabel vehicleCountLabel;
+    private JLabel jobCountLabel;
     
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
@@ -74,7 +76,7 @@ public class ControllerPage extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
         mainPanel.setBackground(Color.WHITE);
-        mainPanel.setPreferredSize(new Dimension(1200, 1200)); // Back to 1200
+        mainPanel.setPreferredSize(new Dimension(1200, 1200)); 
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -94,7 +96,6 @@ public class ControllerPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         
-        // Add descriptive text - properly centered using HTML
         JLabel descriptionLabel = new JLabel("<html><div style='text-align: center;'>" +
             "View and manage job assignments across all vehicles in the parking lot.<br>" +
             "Click the button below to calculate completion times of the current jobs." +
@@ -112,25 +113,26 @@ public class ControllerPage extends JFrame {
         int totalVehicles = controller.viewVehicles() != null ? controller.viewVehicles().size() : 0;
         int totalJobs = controller.viewJobs() != null ? controller.viewJobs().size() : 0;
         
+        vehicleCountLabel = new JLabel(String.valueOf(totalVehicles));
+        jobCountLabel = new JLabel(String.valueOf(totalJobs));
+        
         JPanel summaryContainer = new JPanel();
         summaryContainer.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
         summaryContainer.setBackground(Color.WHITE);
         summaryContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
         summaryContainer.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
         
-        // Create vehicle summary card
         JPanel vehicleCard = createStyledSummaryCard(
             "Available Vehicles",
-            String.valueOf(totalVehicles),
+            vehicleCountLabel, 
             "Ready for job assignment",
             new Color(44, 116, 132),
             new Color(230, 245, 248)
         );
         
-        // Create jobs summary card
         JPanel jobsCard = createStyledSummaryCard(
             "Total Jobs",
-            String.valueOf(totalJobs),
+            jobCountLabel, 
             "Pending completion",
             new Color(52, 199, 89),
             new Color(235, 250, 240)
@@ -141,10 +143,9 @@ public class ControllerPage extends JFrame {
         
         mainPanel.add(summaryContainer);
         
-        // Force layout refresh to ensure borders show
         summaryContainer.revalidate();
         summaryContainer.repaint();
-
+        
         GradientButton calcButton = new GradientButton("Calculate Job Completion Times");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setForeground(Color.WHITE);
@@ -178,10 +179,15 @@ public class ControllerPage extends JFrame {
     }
     
     private void displayJobCompletionTimes() {
-        // Clear previous tables
+
+        controller.refreshAndProcessData();
+
+        int newVehicleCount = controller.viewVehicles().size();
+        int newJobCount = controller.viewJobs().size();
+        vehicleCountLabel.setText(String.valueOf(newVehicleCount));
+        jobCountLabel.setText(String.valueOf(newJobCount));
+
         tablesContainer.removeAll();
-        
-        // Get vehicle job queues from controller
         Map<Integer, Queue<Job>> vehicleQueues = controller.getVehicleJobQueues();
         
         if (vehicleQueues == null || vehicleQueues.isEmpty()) {
@@ -190,17 +196,17 @@ public class ControllerPage extends JFrame {
             noDataLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             tablesContainer.add(noDataLabel);
         } else {
-            // Create a table for each vehicle
             List<Integer> vehicleIDs = controller.getAllVehicleIDs();
             
             for (Integer vehicleId : vehicleIDs) {
                 Vehicle vehicle = controller.getVehicleById(vehicleId);
                 List<Job> vehicleJobs = controller.getJobsForVehicle(vehicleId);
                 
-                // Create vehicle panel
-                JPanel vehiclePanel = createVehiclePanel(vehicle, vehicleJobs);
-                tablesContainer.add(vehiclePanel);
-                tablesContainer.add(Box.createRigidArea(new Dimension(0, 25))); // Add spacing between vehicle tables
+                if (vehicle != null) { 
+                    JPanel vehiclePanel = createVehiclePanel(vehicle, vehicleJobs);
+                    tablesContainer.add(vehiclePanel);
+                    tablesContainer.add(Box.createRigidArea(new Dimension(0, 25)));
+                }
             }
         }
         
@@ -209,7 +215,7 @@ public class ControllerPage extends JFrame {
         this.repaint();
     }
     
-    private JPanel createStyledSummaryCard(String title, String value, String subtitle, Color accentColor, Color bgColor) {
+    private JPanel createStyledSummaryCard(String title, JLabel valueLabel, String subtitle, Color accentColor, Color bgColor) {
         JPanel outerCard = new JPanel(new BorderLayout());
         outerCard.setBackground(Color.WHITE);
         outerCard.setBorder(BorderFactory.createCompoundBorder(
@@ -224,13 +230,11 @@ public class ControllerPage extends JFrame {
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.WHITE);
         
-        // Title label - CENTERED
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Arial", Font.PLAIN, 13));
         titleLabel.setForeground(new Color(70, 70, 70));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Colored accent bar - centered and matches title width
         JPanel accentBarWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         accentBarWrapper.setBackground(Color.WHITE);
         accentBarWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -240,11 +244,10 @@ public class ControllerPage extends JFrame {
         accentBar.setPreferredSize(new Dimension(titleWidth, 2));
         accentBarWrapper.add(accentBar);
         
-        // Value label (large number) - CENTERED
-        JLabel valueLabel = new JLabel(value, SwingConstants.CENTER);
         valueLabel.setFont(new Font("Arial", Font.PLAIN, 44));
         valueLabel.setForeground(new Color(50, 50, 50));
         valueLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        valueLabel.setHorizontalAlignment(SwingConstants.CENTER);
         
         contentPanel.add(accentBarWrapper);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 8)));
@@ -261,16 +264,14 @@ public class ControllerPage extends JFrame {
         JPanel vehiclePanel = new JPanel();
         vehiclePanel.setLayout(new BoxLayout(vehiclePanel, BoxLayout.Y_AXIS));
         vehiclePanel.setBackground(Color.WHITE);
-        vehiclePanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the entire panel
+        vehiclePanel.setAlignmentX(Component.CENTER_ALIGNMENT); 
         
-        // Fancy blue vehicle header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(VEHICLE_HEADER_BG);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
         headerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the header
+        headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT); 
         
-        // Left side - Vehicle info with two lines
         JPanel leftHeaderPanel = new JPanel();
         leftHeaderPanel.setLayout(new BoxLayout(leftHeaderPanel, BoxLayout.Y_AXIS));
         leftHeaderPanel.setBackground(VEHICLE_HEADER_BG);
@@ -299,16 +300,14 @@ public class ControllerPage extends JFrame {
         
         headerPanel.add(leftHeaderPanel, BorderLayout.WEST);
         
-        // Right side - Job count
         JLabel jobCountLabel = new JLabel(jobs.size() + " job(s)");
         jobCountLabel.setFont(new Font("Arial", Font.BOLD, 14));
         jobCountLabel.setForeground(VEHICLE_HEADER_TEXT);
         headerPanel.add(jobCountLabel, BorderLayout.EAST);
         
         vehiclePanel.add(headerPanel);
-        vehiclePanel.add(Box.createRigidArea(new Dimension(0, 0))); // No spacing between header and table
+        vehiclePanel.add(Box.createRigidArea(new Dimension(0, 0))); 
         
-        // Table for this vehicle's jobs
         String[] columnNames = {"Job ID", "Client ID", "Job Type", "Duration (hrs)", "Arrival Time", "Completion Time (hrs)"};
         
         int[] columnWidths = {
@@ -321,10 +320,9 @@ public class ControllerPage extends JFrame {
         };
         
         CustomTable jobTable = new CustomTable(columnNames, columnWidths);
-        jobTable.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the table
+        jobTable.setAlignmentX(Component.CENTER_ALIGNMENT); 
         DefaultTableModel tableModel = jobTable.getModel();
         
-        // Populate table with jobs for this vehicle
         for (Job job : jobs) {
             Object[] row = {
                 job.getJobId(),
@@ -347,7 +345,8 @@ public class ControllerPage extends JFrame {
             User testController = new User(
                  1, "Admin", "User", "controller@vcrts.com", "admin", 
                  "(123) 456-7890", "dummyhash", "Controller", 
-                 "2025-01-01T12:00:00", true
+                 "2025-01-01T12:00:00", 
+                 true
              );
             
              ControllerPage controllerPage = new ControllerPage(testController);
