@@ -1,8 +1,8 @@
 package model;
 
-import java.util.List;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 
 public class Server {
     private int serverID;
@@ -12,8 +12,7 @@ public class Server {
         this.serverID = serverID;
         this.completedJobs = completedJobs;
     }
-    /* Placeholder until TransferJobToServer is completed in Controller
-     * 
+    /* 
      * A method that will be called by the Controller after a job is completed 
      * to add the job to the server's storage
      */
@@ -23,8 +22,7 @@ public class Server {
     	}
     }
     
-    /* Placeholder until TransferJobToServer is completed in Controller
-     * 
+    /* 
      * Uses activeVehicle to check whether a job is completed by a departing vehicle
      */
     public void eraseJobOnVehicle(String vehicleID, Date departureDate){

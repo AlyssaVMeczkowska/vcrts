@@ -1,8 +1,8 @@
 package model;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class Owner extends User
 {
@@ -50,7 +50,7 @@ public class Owner extends User
         throw new IllegalArgumentException("Vehicle to be deleted does not exist for this owner.");
     }
 
-    //To be possibly updated when Controller.java is implemented
+    //Implemented Method to submit vehicle to parking lot
     public void submitVehicleToParkingLot(String vehicleID, Controller controller)
     {
         if (controller == null || vehicleID == null || vehicleID.isEmpty())
@@ -63,8 +63,6 @@ public class Owner extends User
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for submission."));
 
-        // Placeholder: to be integrated with Controller.java later
-        // controller.submitVehicle(vehicle);
         vehicle.setStatus(VehicleStatus.AVAILABLE);
     }
 }
