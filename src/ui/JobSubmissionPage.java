@@ -12,6 +12,7 @@ import javax.swing.border.Border;
 import model.Job;
 import model.User;
 import validation.JobValidator;
+import data.RequestDataManager;
 
 public class JobSubmissionPage extends JFrame {
     private final JobDataManager dataManager = new JobDataManager();

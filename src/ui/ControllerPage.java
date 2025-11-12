@@ -10,6 +10,7 @@ import model.Controller;
 import model.Job;
 import model.User;
 import model.Vehicle;
+import data.RequestDataManager;
 
 public class ControllerPage extends JFrame {
 
@@ -19,6 +20,8 @@ public class ControllerPage extends JFrame {
     
     private JLabel vehicleCountLabel;
     private JLabel jobCountLabel;
+    private JLabel pendingRequestsLabel;
+    private RequestDataManager requestDataManager;
     
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
@@ -28,6 +31,7 @@ public class ControllerPage extends JFrame {
     public ControllerPage(User user) {
         this.currentUser = user;
         this.controller = new Controller(1, null, null, null, null, null);
+        this.requestDataManager = new RequestDataManager();
 
         setTitle("VCRTS Controller Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -97,8 +101,8 @@ public class ControllerPage extends JFrame {
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         
         JLabel descriptionLabel = new JLabel("<html><div style='text-align: center;'>" +
-            "View and manage job assignments across all vehicles in the parking lot.<br>" +
-            "Click the button below to calculate completion times of the current jobs." +
+            "Manage job assignments, review pending requests, and monitor system status.<br>" +
+            "Use the buttons below to access different management functions." +
             "</div></html>");
         descriptionLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         descriptionLabel.setForeground(new Color(100, 100, 100));
@@ -109,12 +113,14 @@ public class ControllerPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 35)));
         
-        // Add summary stats panel
+        // Add summary stats panel with pending requests
         int totalVehicles = controller.viewVehicles() != null ? controller.viewVehicles().size() : 0;
         int totalJobs = controller.viewJobs() != null ? controller.viewJobs().size() : 0;
+        int pendingRequests = requestDataManager.getPendingRequests().size();
         
         vehicleCountLabel = new JLabel(String.valueOf(totalVehicles));
         jobCountLabel = new JLabel(String.valueOf(totalJobs));
+        pendingRequestsLabel = new JLabel(String.valueOf(pendingRequests));
         
         JPanel summaryContainer = new JPanel();
         summaryContainer.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
@@ -138,29 +144,51 @@ public class ControllerPage extends JFrame {
             new Color(235, 250, 240)
         );
         
+        JPanel requestsCard = createStyledSummaryCard(
+            "Pending Requests",
+            pendingRequestsLabel,
+            "Awaiting review",
+            new Color(255, 149, 0),
+            new Color(255, 245, 235)
+        );
+        
         summaryContainer.add(vehicleCard);
         summaryContainer.add(jobsCard);
+        summaryContainer.add(requestsCard);
         
         mainPanel.add(summaryContainer);
         
-        summaryContainer.revalidate();
-        summaryContainer.repaint();
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
         
+        // Action buttons panel
+        JPanel actionButtonsPanel = new JPanel();
+        actionButtonsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        actionButtonsPanel.setBackground(Color.WHITE);
+        actionButtonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
+        // Manage Requests Button
+        GradientButton manageRequestsButton = new GradientButton("Manage Requests");
+        manageRequestsButton.setFont(new Font("Arial", Font.BOLD, 16));
+        manageRequestsButton.setForeground(Color.WHITE);
+        manageRequestsButton.setPreferredSize(new Dimension(250, 38));
+        manageRequestsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        manageRequestsButton.addActionListener(e -> {
+            dispose();
+            SwingUtilities.invokeLater(() -> new ControllerRequestPage(currentUser).setVisible(true));
+        });
+        
+        // Calculate Completion Times Button
         GradientButton calcButton = new GradientButton("Calculate Job Completion Times");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setForeground(Color.WHITE);
-        calcButton.setPreferredSize(new Dimension(300, 38)); 
-        calcButton.setMaximumSize(new Dimension(300, 38));
-        calcButton.setMinimumSize(new Dimension(300, 38));
+        calcButton.setPreferredSize(new Dimension(300, 38));
         calcButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        calcButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        calcButton.addActionListener(e -> displayJobCompletionTimes());
         
-        calcButton.addActionListener(e -> {
-            displayJobCompletionTimes();
-        });
-
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 60)));
-        mainPanel.add(calcButton);
+        actionButtonsPanel.add(manageRequestsButton);
+        actionButtonsPanel.add(calcButton);
+        
+        mainPanel.add(actionButtonsPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
         // Container for all vehicle tables
@@ -173,19 +201,20 @@ public class ControllerPage extends JFrame {
         
         rootPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Ensure everything is properly laid out and painted initially
         this.validate();
         this.repaint();
     }
     
     private void displayJobCompletionTimes() {
-
         controller.refreshAndProcessData();
 
         int newVehicleCount = controller.viewVehicles().size();
         int newJobCount = controller.viewJobs().size();
+        int newPendingRequests = requestDataManager.getPendingRequests().size();
+        
         vehicleCountLabel.setText(String.valueOf(newVehicleCount));
         jobCountLabel.setText(String.valueOf(newJobCount));
+        pendingRequestsLabel.setText(String.valueOf(newPendingRequests));
 
         tablesContainer.removeAll();
         Map<Integer, Queue<Job>> vehicleQueues = controller.getVehicleJobQueues();

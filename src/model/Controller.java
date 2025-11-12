@@ -343,6 +343,7 @@ public class Controller {
     }
 
     /**
+     * Legacy method –
      * Recalculate completion times for a specific vehicle's queue
      */
     private void recalculateCompletionTimesForVehicle(int vehicleId) {
