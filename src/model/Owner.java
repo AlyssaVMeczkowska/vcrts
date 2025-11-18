@@ -50,20 +50,34 @@ public class Owner extends User
         throw new IllegalArgumentException("Vehicle to be deleted does not exist for this owner.");
     }
 
-    //Implemented Method to submit vehicle to parking lot
-    public void submitVehicleToParkingLot(String vehicleID, Controller controller)
+    //New Owner("Client-Side") Communication Methods
+    public void requestVehicleSubmission(Vehicle vehicle, Controller controller)
     {
-        if (controller == null || vehicleID == null || vehicleID.isEmpty())
+        if (controller == null || vehicle == null)
         {
-            throw new IllegalArgumentException("Controller or vehicle ID cannot be null or empty.");
+            throw new IllegalArgumentException("Controller or vehicle cannot be null.");
         }
 
-        Vehicle vehicle = vehicles.stream()
-                .filter(v -> String.valueOf(v.getVehicleId()).equals(vehicleID))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Vehicle not found for submission."));
+        boolean isOwner = vehicles.stream()
+                .anyMatch(v -> v.getVehicleId() == vehicle.getVehicleId());
 
-        vehicle.setStatus(VehicleStatus.AVAILABLE);
+        if (!isOwner)
+        {
+            throw new IllegalArgumentException("Owner does not own this vehicle. Cannot submit.");
+        }
+
+        System.out.println("OWNER (" + getUsername() + "): Sending request to server for vehicle " + vehicle.getLicensePlate());
+        controller.receiveVehicleSubmissionRequest(this, vehicle);
     }
+
+    //Temporary Notification Recieving Method (Pre-UI)
+    public void receiveNotification(String message)
+    {
+        System.out.println("--- NOTIFICATION for " + getUsername() + " ---");
+        System.out.println(message);
+        System.out.println("----------------------------------------");
+    }
+    //End of New Client-Side Methods
+
 }
 

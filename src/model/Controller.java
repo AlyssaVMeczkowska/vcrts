@@ -5,6 +5,7 @@ import data.VehicleDataManager;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.*;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
@@ -26,6 +27,22 @@ public class Controller {
     
     private static final String FILE_PATH = "data/vcrts_data.txt";
 
+    //New Method For Server State
+    private static class PendingVehicleRequest
+    {
+        Owner owner; //
+        Vehicle vehicle;
+
+        PendingVehicleRequest(Owner owner, Vehicle vehicle)
+        {
+            this.owner = owner;
+            this.vehicle = vehicle;
+        }
+    }
+
+    //New Attribute To Store Pending Vehicle Submissions
+    private Map<Integer, PendingVehicleRequest> pendingVehicleRequests;
+
     public Controller(int vcID, List<Job> jobs, List<Checkpoint> checkpoint, List<Vehicle> parkingLot, List<Client> clients, List<Owner> owners) {
         this.vcID = vcID;
         this.jobs = jobs; 
@@ -41,7 +58,10 @@ public class Controller {
         this.jobs = new ArrayList<>();
         this.parkingLot = new ArrayList<>();
         this.vehicleJobQueues = new HashMap<>();
-        
+
+        //New Attribute To Initialize Map of Pending Requests
+        this.pendingVehicleRequests = new HashMap<>();
+
         refreshAndProcessData();
     }
     
@@ -457,4 +477,116 @@ public class Controller {
         
         return -1;
     }
+
+//New Controller("Server-Side") Recieving Methods
+    public void receiveVehicleSubmissionRequest(Owner owner, Vehicle vehicle)
+    {
+
+        pendingVehicleRequests.put(vehicle.getVehicleId(), new PendingVehicleRequest(owner, vehicle));
+
+
+        owner.receiveNotification("SERVER: Received submission request for vehicle "
+                + vehicle.getLicensePlate() + ". Awaiting VC Controller approval.");
+
+
+        System.out.println("CONTROLLER: New pending vehicle for approval from "
+                + owner.getUsername() + ". Vehicle ID: " + vehicle.getVehicleId());
+    }
+
+
+
+    //Method For UI To Get Pending Requests
+    public List<Vehicle> getPendingVehicles()
+    {
+        List<Vehicle> vehicles = new ArrayList<>();
+        for (PendingVehicleRequest req : pendingVehicleRequests.values())
+        {
+            vehicles.add(req.vehicle);
+        }
+        return vehicles;
+    }
+
+
+    //Method to Accept Vehicle Submission
+    public void acceptVehicleSubmission(int vehicleId)
+    {
+        PendingVehicleRequest request = pendingVehicleRequests.remove(vehicleId);
+        if (request == null)
+        {
+            System.err.println("CONTROLLER: No pending request found for vehicle ID: " + vehicleId);
+            return;
+        }
+
+
+        boolean saved = appendVehicleToFile(request.vehicle, request.owner);
+
+        if (saved)
+        {
+            refreshAndProcessData();
+
+
+            request.owner.receiveNotification("SERVER: Your vehicle submission ("
+                    + request.vehicle.getLicensePlate() + ") has been ACCEPTED.");
+            System.out.println("CONTROLLER: Vehicle " + vehicleId + " accepted and saved.");
+        }
+        else
+        {
+
+            pendingVehicleRequests.put(vehicleId, request);
+
+
+            request.owner.receiveNotification("SERVER: Your vehicle submission ("
+                    + request.vehicle.getLicensePlate() + ") was REJECTED (File Save Error).");
+            System.err.println("CONTROLLER: Vehicle " + vehicleId + " approval failed (save error).");
+        }
+    }
+
+    //Method to Reject Vehicle Submission
+    public void rejectVehicleSubmission(int vehicleId)
+    {
+        PendingVehicleRequest request = pendingVehicleRequests.remove(vehicleId);
+        if (request == null)
+        {
+            System.err.println("CONTROLLER: No pending request found for vehicle ID: " + vehicleId);
+            return;
+        }
+
+        request.owner.receiveNotification("SERVER: Your vehicle submission ("
+                + request.vehicle.getLicensePlate() + ") has been REJECTED by the VC Controller.");
+        System.out.println("CONTROLLER: Vehicle " + vehicleId + " rejected.");
+    }
+
+    //Method To Append New Vehicle Data To File
+    private boolean appendVehicleToFile(Vehicle vehicle, Owner owner)
+    {
+        try (FileWriter fw = new FileWriter(FILE_PATH, true);
+             BufferedWriter bw = new BufferedWriter(fw);
+             PrintWriter out = new PrintWriter(bw))
+        {
+
+            out.println();
+            out.println("type: vehicle_availability");
+            out.println("user_id: " + vehicle.getVehicleId());
+            out.println("owner_id: " + owner.getId());
+            out.println("vehicle_make: " + vehicle.getMake());
+            out.println("vehicle_model: " + vehicle.getModel());
+            out.println("vehicle_year: " + vehicle.getYear());
+            out.println("vin: " + vehicle.getVin());
+            out.println("license_plate: " + vehicle.getLicensePlate());
+            out.println("computing_power: " + vehicle.getComputingPower());
+            out.println("start_date: " + vehicle.getArrivalDate());
+            out.println("end_date: " + vehicle.getDepartureDate());
+            out.println("---");
+
+            return true;
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error appending vehicle to file: " + e.getMessage());
+            return false;
+        }
+    }
+
+    //End Of Server Side Methods
+
 }
