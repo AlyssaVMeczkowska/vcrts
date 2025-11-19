@@ -32,6 +32,8 @@ public class Vehicle {
         this.submissionTimestamp = OffsetDateTime.now().toString();
     }
 
+    public int getOwnerId(){ return ownerId; }
+
     public int getVehicleId() { 
         return vehicleId; 
     }
