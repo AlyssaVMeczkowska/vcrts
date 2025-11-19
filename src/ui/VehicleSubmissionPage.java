@@ -1,5 +1,6 @@
 package ui;
 
+import ClientServer_owner.NetworkVehicleSender;
 import data.UserDataManager;
 import data.VehicleDataManager;
 import data.RequestDataManager;
@@ -405,19 +406,19 @@ public class VehicleSubmissionPage extends JFrame {
                 form.getVinNumber(),
                 form.getLicensePlate(),
                 form.getComputingPower(),
-                form.getResidencyStart(),
-                form.getResidencyEnd()
+                LocalDate.parse(form.getResidencyStart()),
+                LocalDate.parse(form.getResidencyEnd()),
+                VehicleStatus.AVAILABLE
             );
-            
-            // Submit as request instead of direct save
-            int requestId = requestDataManager.addRequest(
-                "VEHICLE_SUBMISSION",
-                currentUser.getId(),
-                currentUser.getFirstName() + " " + currentUser.getLastName(),
-                vehicleData
-            );
-            
-            if (requestId > 0) {
+
+            //Initializes Payload Builder
+            String payload = buildPayload(vehicle);
+
+            //Sends Vehcile info only if accepted
+            boolean accepted = NetworkVehicleSender.sendVehiclePayload(payload);
+
+            if (accepted) {
+                dataManager.addVehicle(vehicle);
                 successCount++;
                 if (vehicleIds.length() > 0) {
                     vehicleIds.append(", ");
@@ -425,6 +426,9 @@ public class VehicleSubmissionPage extends JFrame {
                 vehicleIds.append("#").append(nextVehicleId);
                 nextVehicleId++; // Increment for next vehicle
             }
+
+
+
         }
 
         if (successCount == vehicleForms.size()) {
@@ -487,6 +491,23 @@ public class VehicleSubmissionPage extends JFrame {
         
         return maxVehicleId + 1;
     }
+
+    //Payload Builder
+    private String buildPayload(Vehicle v)
+    {
+        return "type: vehicle_availability\n"
+                + "user_id: " + v.getOwnerId() + "\n"
+                + "vin: " + v.getVin() + "\n"
+                + "license_plate: " + v.getLicensePlate() + "\n"
+                + "vehicle_make: " + v.getMake() + "\n"
+                + "vehicle_model: " + v.getModel() + "\n"
+                + "vehicle_year: " + v.getYear() + "\n"
+                + "computing_power: " + v.getComputingPower() + "\n"
+                + "start_date: " + v.getArrivalDate() + "\n"
+                + "end_date: " + v.getDepartureDate() + "\n"
+                + "---";
+    }
+
 
     private void clearAllForms() {
         formsContainer.removeAll();
