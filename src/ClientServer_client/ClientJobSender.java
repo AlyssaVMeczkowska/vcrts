@@ -12,14 +12,9 @@ public class ClientJobSender {
              PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
-            // Send the multi-line payload
+
             out.println(payload);
             
-            // Important: If the payload doesn't end with a newline that forces a flush, 
-            // or if logic requires it, ensure we flush. 
-            // (PrintWriter with autoFlush=true usually handles println well).
-            
-            // Wait for response
             String ack = in.readLine();
             System.out.println("SERVER: " + ack);
 

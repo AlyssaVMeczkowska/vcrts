@@ -21,12 +21,6 @@ public class ClientJobHandler implements Runnable {
 
             String receivedData = in.readLine();
             if (receivedData == null) return;
-
-            // 1. Parse the incoming data
-            // We need to read the multi-line string sent by ClientJobSender
-            // Note: Because readLine only reads one line, we need to ensure the sender
-            // sends the data in a way we can capture.
-            // To fix this simply without changing the Sender, we will read lines until "---"
             
             StringBuilder fullPayload = new StringBuilder();
             fullPayload.append(receivedData).append("\n");
@@ -37,13 +31,10 @@ public class ClientJobHandler implements Runnable {
                 if(line.equals("---")) break;
             }
 
-            // --- UPDATED PRINT STATEMENT ---
             System.out.println("\n[Server-6000] Job Submission Received.");
 
-            // 2. Save to Pending Requests for the Controller
             RequestDataManager requestManager = new RequestDataManager();
             
-            // Extract User ID
             int userId = 0;
             String[] lines = fullPayload.toString().split("\n");
             for (String l : lines) {
@@ -60,8 +51,6 @@ public class ClientJobHandler implements Runnable {
                 fullPayload.toString()
             );
 
-            // 3. Send ACK to Client so their UI updates
-            // --- UPDATED ACKNOWLEDGMENT ---
             out.println("ACK: Job Submission Received");
             out.println("Status: ACCEPTED");
             System.out.println("[Server-6000] Job saved to pending requests.\n");

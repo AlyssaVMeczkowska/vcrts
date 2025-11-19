@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-//Starts Server For Owner Communication
+
 public class VCControllerServer implements Runnable
 {
     private static final int PORT = 5000;
