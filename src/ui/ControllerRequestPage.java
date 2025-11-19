@@ -1,9 +1,6 @@
 package ui;
 
 import data.*;
-import model.*;
-import ClientServer_owner.VCControllerServer;
-import ClientServer_owner.VehicleOwnerClientHandler;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -13,17 +10,13 @@ import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import model.*;
 
 public class ControllerRequestPage extends JFrame {
     private User currentUser;
     private RequestDataManager requestDataManager;
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
-    
-    // Socket server fields
-    private VCControllerServer socketServer;
-    private Thread serverThread;
-    private volatile Map<String, String> pendingSocketDecisions = new HashMap<>();
     
     private JTable requestsTable;
     private DefaultTableModel tableModel;
@@ -37,22 +30,22 @@ public class ControllerRequestPage extends JFrame {
     private static final Color PRIMARY_COLOR = new Color(44, 116, 132);
 
     public ControllerRequestPage(User user) {
-    this.currentUser = user;
-    this.requestDataManager = new RequestDataManager();
-    this.jobDataManager = new JobDataManager();
-    this.vehicleDataManager = new VehicleDataManager();
+        this.currentUser = user;
+        this.requestDataManager = new RequestDataManager();
+        this.jobDataManager = new JobDataManager();
+        this.vehicleDataManager = new VehicleDataManager();
 
-    setTitle("VCRTS - Request Management");
-    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-    setSize(1200, 800);
-    setLocationRelativeTo(null);
+        setTitle("VCRTS - Request Management");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(1200, 800);
+        setLocationRelativeTo(null);
 
-    initComponents();
-    loadPendingRequests();
-
-    startSocketServer();
-    
-}
+        initComponents();
+        loadPendingRequests();
+        
+        // REMOVED: startSocketServer(); 
+        // App.java now handles the server. The Controller just reads the file.
+    }
 
 
     private void initComponents() {
@@ -233,18 +226,14 @@ public class ControllerRequestPage extends JFrame {
     private void loadPendingRequests() {
         tableModel.setRowCount(0);
         List<Request> pendingRequests = requestDataManager.getPendingRequests();
-
         for (Request request : pendingRequests) {
             String type = request.getRequestType().equals("JOB_SUBMISSION") ? "Job" : "Vehicle";
             String timestamp = request.getTimestamp();
             
-            // Format timestamp to be more readable
             try {
                 LocalDateTime dt = LocalDateTime.parse(timestamp);
                 timestamp = dt.format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"));
-            } catch (Exception e) {
-                // Keep original if parsing fails
-            }
+            } catch (Exception e) { }
 
             tableModel.addRow(new Object[]{
                     request.getRequestId(),
@@ -302,13 +291,11 @@ public class ControllerRequestPage extends JFrame {
 
         int requestId = (int) tableModel.getValueAt(selectedRow, 0);
         Request request = requestDataManager.getRequestById(requestId);
-
         if (request == null) {
             showMessage("Error", "Could not find request.", CustomDialog.DialogType.WARNING);
             return;
         }
 
-        // Confirm action
         int confirm = JOptionPane.showConfirmDialog(
                 this,
                 "Accept this " + (request.getRequestType().equals("JOB_SUBMISSION") ? "job" : "vehicle") + " submission?",
@@ -316,12 +303,10 @@ public class ControllerRequestPage extends JFrame {
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
-
         if (confirm != JOptionPane.YES_OPTION) {
             return;
         }
 
-        // Process the request based on type
         boolean success = false;
         if (request.getRequestType().equals("JOB_SUBMISSION")) {
             success = processJobSubmission(request);
@@ -330,16 +315,12 @@ public class ControllerRequestPage extends JFrame {
         }
 
         if (success) {
-            // Update request status
             requestDataManager.updateRequestStatus(requestId, RequestStatus.ACCEPTED, null);
-            
-            // Notify socket thread if this was a socket request
-            notifySocketDecision(request, "ACCEPT");
-            
             showMessage("Success", "Request accepted and data saved successfully!", CustomDialog.DialogType.SUCCESS);
-            
-            // Refresh the table
             loadPendingRequests();
+            detailsArea.setText("Request processed successfully.");
+            acceptButton.setEnabled(false);
+            rejectButton.setEnabled(false);
         } else {
             showMessage("Error", "Failed to save data. Please try again.", CustomDialog.DialogType.WARNING);
         }
@@ -351,33 +332,26 @@ public class ControllerRequestPage extends JFrame {
 
         int requestId = (int) tableModel.getValueAt(selectedRow, 0);
         Request request = requestDataManager.getRequestById(requestId);
-
         if (request == null) {
             showMessage("Error", "Could not find request.", CustomDialog.DialogType.WARNING);
             return;
         }
 
-        // Get rejection reason
         String reason = JOptionPane.showInputDialog(
                 this,
                 "Enter rejection reason (optional):",
                 "Reject Request",
                 JOptionPane.QUESTION_MESSAGE
         );
+        if (reason == null) return;
 
-        if (reason == null) {
-            return; // User cancelled
-        }
-
-        // Update request status
         boolean updated = requestDataManager.updateRequestStatus(requestId, RequestStatus.REJECTED, reason);
-
         if (updated) {
-            // Notify socket thread if this was a socket request
-            notifySocketDecision(request, "REJECT");
-            
             showMessage("Success", "Request rejected.", CustomDialog.DialogType.SUCCESS);
             loadPendingRequests();
+            detailsArea.setText("Request rejected.");
+            acceptButton.setEnabled(false);
+            rejectButton.setEnabled(false);
         } else {
             showMessage("Error", "Failed to update request status.", CustomDialog.DialogType.WARNING);
         }
@@ -385,7 +359,6 @@ public class ControllerRequestPage extends JFrame {
 
     private boolean processJobSubmission(Request request) {
         try {
-            // Parse job data from request
             String[] lines = request.getData().split("\n");
             Map<String, String> jobData = new HashMap<>();
             
@@ -396,14 +369,15 @@ public class ControllerRequestPage extends JFrame {
                 }
             }
 
+            // Parse logic depends on how the data was formatted in buildJobPayload
+            // Assuming fields: user_id, job_type, duration, deadline, description
             Job job = new Job(
-                    Integer.parseInt(jobData.get("Client ID")),
-                    jobData.get("Job Type"),
-                    Integer.parseInt(jobData.get("Duration")),
-                    jobData.get("Deadline"),
-                    jobData.getOrDefault("Description", "")
+                    Integer.parseInt(jobData.getOrDefault("user_id", "0")),
+                    jobData.getOrDefault("job_type", "Unknown"),
+                    Integer.parseInt(jobData.getOrDefault("duration", "1")),
+                    jobData.getOrDefault("deadline", "2025-01-01"),
+                    jobData.getOrDefault("description", "")
             );
-
             return jobDataManager.addJob(job);
         } catch (Exception e) {
             e.printStackTrace();
@@ -413,10 +387,8 @@ public class ControllerRequestPage extends JFrame {
 
     private boolean processVehicleSubmission(Request request) {
         try {
-            // Parse vehicle data from request
             String data = request.getData();
-            
-            // Remove socket key if present
+            // Remove socket key if present (legacy support)
             if (data.startsWith("SOCKET_")) {
                 data = data.split("\n", 2)[1];
             }
@@ -426,7 +398,7 @@ public class ControllerRequestPage extends JFrame {
             
             for (String line : lines) {
                 if (line.startsWith("type:") || line.equals("---")) {
-                    continue; // Skip type and separator lines
+                    continue;
                 }
                 String[] parts = line.split(": ", 2);
                 if (parts.length == 2) {
@@ -434,11 +406,9 @@ public class ControllerRequestPage extends JFrame {
                 }
             }
 
-            // Map socket payload field names to vehicle fields
-            int ownerId = Integer.parseInt(vehicleData.get("user_id"));
-            
+            int ownerId = Integer.parseInt(vehicleData.getOrDefault("user_id", "0"));
             Vehicle vehicle = new Vehicle(
-                    0, // Vehicle ID will be auto-assigned
+                    0, 
                     ownerId,
                     vehicleData.get("vehicle_make"),
                     vehicleData.get("vehicle_model"),
@@ -450,7 +420,6 @@ public class ControllerRequestPage extends JFrame {
                     java.time.LocalDate.parse(vehicleData.get("end_date")),
                     VehicleStatus.AVAILABLE
             );
-
             return vehicleDataManager.addVehicle(vehicle);
         } catch (Exception e) {
             e.printStackTrace();
@@ -462,124 +431,9 @@ public class ControllerRequestPage extends JFrame {
         CustomDialog dialog = new CustomDialog(this, title, message, type);
         dialog.setVisible(true);
     }
-    
-    /**
-     * Start socket server for real-time vehicle submissions
-     */
-    private void startSocketServer() {
-        VehicleOwnerClientHandler.RequestApprovalCallback callback = (vehiclePayload) -> {
-            System.out.println("\n[SOCKET] Received vehicle submission via socket");
-            System.out.println("[SOCKET] Payload:\n" + vehiclePayload);
-            
-            // Generate unique key for this socket request
-            String requestKey = "SOCKET_" + System.currentTimeMillis();
-            
-            // Add to pending requests file for UI display
-            SwingUtilities.invokeLater(() -> {
-                addSocketVehicleToRequests(vehiclePayload, requestKey);
-                loadPendingRequests(); // Refresh UI table
-            });
-            
-            // Wait for controller decision from UI
-            synchronized (pendingSocketDecisions) {
-                try {
-                    while (!pendingSocketDecisions.containsKey(requestKey)) {
-                        pendingSocketDecisions.wait();
-                    }
-                    String decision = pendingSocketDecisions.remove(requestKey);
-                    System.out.println("[SOCKET] Decision sent: " + decision);
-                    return decision;
-                } catch (InterruptedException e) {
-                    System.err.println("[SOCKET] Error waiting for decision: " + e.getMessage());
-                    return "REJECT";
-                }
-            }
-        };
-        
-        try {
-            socketServer = new VCControllerServer(callback);
-            serverThread = new Thread(socketServer);
-            serverThread.setDaemon(true); // Don't block JVM shutdown
-            serverThread.start();
-            
-            System.out.println("[SOCKET] Server started on port 5000 - waiting for vehicle submissions...");
-        } catch (Exception e) {
-            System.err.println("[SOCKET] Failed to start server: " + e.getMessage());
-            JOptionPane.showMessageDialog(this, 
-                "Failed to start socket server on port 5000.\n" +
-                "Make sure no other application is using this port.\n\n" +
-                "Error: " + e.getMessage(),
-                "Socket Server Error",
-                JOptionPane.WARNING_MESSAGE);
-        }
-    }
-    
-    /**
-     * Add socket vehicle submission to pending requests
-     */
-    private void addSocketVehicleToRequests(String vehiclePayload, String requestKey) {
-        // Parse user_id from payload
-        int userId = 0;
-        String[] lines = vehiclePayload.split("\n");
-        for (String line : lines) {
-            if (line.startsWith("user_id:")) {
-                try {
-                    userId = Integer.parseInt(line.split(":", 2)[1].trim());
-                } catch (NumberFormatException e) {
-                    System.err.println("Could not parse user_id from socket payload");
-                }
-                break;
-            }
-        }
-        
-        // Add to pending_requests.txt with special marker for socket requests
-        String socketData = requestKey + "\n" + vehiclePayload;
-        requestDataManager.addRequest(
-            "VEHICLE_SUBMISSION",
-            userId,
-            "Vehicle Owner " + userId,
-            socketData
-        );
-    }
-    
-    /**
-     * Notify socket thread of decision
-     */
-    private void notifySocketDecision(Request request, String decision) {
-        // Check if this is a socket request
-        String data = request.getData();
-        if (data.startsWith("SOCKET_")) {
-            String[] parts = data.split("\n", 2);
-            String requestKey = parts[0];
-            
-            synchronized (pendingSocketDecisions) {
-                pendingSocketDecisions.put(requestKey, decision);
-                pendingSocketDecisions.notifyAll();
-            }
-            
-            System.out.println("[SOCKET] Notified socket thread: " + decision);
-        }
-    }
-    
+
     @Override
     public void dispose() {
-        // Stop socket server when closing
-        if (socketServer != null) {
-            socketServer.stop();
-            System.out.println("[SOCKET] Server stopped");
-        }
         super.dispose();
     }
-
-    //public static void main(String[] args) {
-    //    SwingUtilities.invokeLater(() -> {
-    //        User testController = new User(
-    //                1, "Admin", "Controller", "controller@vcrts.com", "controller",
-    //                "123-456-7890", "hash", "Controller",
-    //                LocalDateTime.now().toString(), true
-    //        );
-    //        ControllerRequestPage page = new ControllerRequestPage(testController);
-    //        page.setVisible(true);
-    //    });
-    //}
 }
