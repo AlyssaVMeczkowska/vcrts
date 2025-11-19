@@ -117,9 +117,7 @@ public class VehicleDataManager {
         }
     }
     
-    /**
-     * Get all vehicles from the data file
-     */
+    
     public List<Vehicle> getAllVehicles() {
         List<Vehicle> vehicles = new ArrayList<>();
         File file = new File(FILE_PATH);
@@ -132,7 +130,7 @@ public class VehicleDataManager {
             String line;
             Map<String, String> vehicleData = new HashMap<>();
             boolean isVehicleBlock = false;
-            int vehicleIdCounter = 1; // Auto-increment vehicle ID since it's not stored
+            int vehicleIdCounter = 1; 
             
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("type: vehicle_availability")) {
@@ -141,12 +139,11 @@ public class VehicleDataManager {
                 } else if (line.equals("---")) {
                     if (isVehicleBlock && !vehicleData.isEmpty()) {
                         try {
-                            // user_id in file is the OWNER ID, not vehicle ID
                             int ownerId = Integer.parseInt(vehicleData.getOrDefault("user_id", "0"));
                             
                             Vehicle vehicle = new Vehicle(
-                                vehicleIdCounter++, // Auto-increment vehicle ID
-                                ownerId, // This is the owner's user ID
+                                vehicleIdCounter++, 
+                                ownerId, 
                                 vehicleData.getOrDefault("vehicle_make", ""),
                                 vehicleData.getOrDefault("vehicle_model", ""),
                                 Integer.parseInt(vehicleData.getOrDefault("vehicle_year", "0")),
@@ -158,7 +155,7 @@ public class VehicleDataManager {
                                 VehicleStatus.AVAILABLE
                             );
                             
-                            // Set the timestamp from file if it exists
+                            
                             if (vehicleData.containsKey("timestamp")) {
                                 vehicle.setSubmissionTimestamp(vehicleData.get("timestamp"));
                             }

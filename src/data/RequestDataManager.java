@@ -48,7 +48,7 @@ public class RequestDataManager {
             writer.newLine();
             writer.write("status: PENDING");
             writer.newLine();
-            writer.write("notification_viewed: true"); // Default true (user submitted it)
+            writer.write("notification_viewed: true"); 
             writer.newLine();
             writer.write("data: " + data.replace("\n", "\\n"));
             writer.newLine();
@@ -126,10 +126,6 @@ public class RequestDataManager {
     }
     
     // ---------------- NOTIFICATION LOGIC ---------------- //
-
-    /**
-     * Returns a list of Request IDs for a specific user AND specific type that have NOT been viewed yet.
-     */
     public Map<String, List<Integer>> getUnnotifiedRequests(int userId, String targetRequestType) {
         Map<String, List<Integer>> result = new HashMap<>();
         result.put("ACCEPTED", new ArrayList<>());
@@ -237,7 +233,7 @@ public class RequestDataManager {
                     } else if (line.startsWith("rejection_reason:")) {
                         lines.add("rejection_reason: " + (rejectionReason != null ? rejectionReason : ""));
                     } else if (line.startsWith("notification_viewed:")) {
-                        lines.add("notification_viewed: false"); // Reset notification
+                        lines.add("notification_viewed: false"); 
                         hasViewedField = true;
                     } else if (line.equals("---")) {
                         if (!hasViewedField) {
