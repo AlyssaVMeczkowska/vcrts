@@ -372,8 +372,6 @@ public class VehicleSubmissionPage extends JFrame {
         if (!validateAllForms()) {
             return;
         }
-
-        // Get the next available Vehicle ID globally
         int nextVehicleId = getNextVehicleId();
         int successCount = 0;
         StringBuilder vehicleIds = new StringBuilder();
@@ -395,22 +393,16 @@ public class VehicleSubmissionPage extends JFrame {
                       
                         VehicleStatus.AVAILABLE
                     );
-            //Initializes Payload Builder
             String payload = buildPayload(vehicle);
-            //Sends Vehcile info only if accepted
             boolean accepted = NetworkVehicleSender.sendVehiclePayload(payload);
-            if (accepted) {
-                // REMOVED: dataManager.addVehicle(vehicle); 
-                // This prevents premature writing to the database.
-                // The server will write to Pending Requests instead.
-                
+            if (accepted) {   
                 successCount++;
                 if (vehicleIds.length() > 0) {
                     vehicleIds.append(", ");
                 }
                 vehicleIds.append("#").append(nextVehicleId);
                 nextVehicleId++;
-                // Increment for next vehicle
+
             }
 
 
@@ -444,19 +436,16 @@ public class VehicleSubmissionPage extends JFrame {
     
     private int getNextVehicleId() {
         int maxVehicleId = 0;
-        // Check ALL accepted vehicles (globally, not just this user)
         List<Vehicle> allVehicles = dataManager.getAllVehicles();
         for (Vehicle vehicle : allVehicles) {
             if (vehicle.getVehicleId() > maxVehicleId) {
                 maxVehicleId = vehicle.getVehicleId();
             }
         }
-        
-        // Check ALL pending requests (globally, not just this user)
+
         List<Request> allRequests = requestDataManager.getPendingRequests();
         for (Request request : allRequests) {
             if ("VEHICLE_SUBMISSION".equals(request.getRequestType())) {
-                // Parse Vehicle ID from request data
                 String[] dataLines = request.getData().split("\n");
                 for (String line : dataLines) {
                     if (line.startsWith("Vehicle ID:")) {
@@ -466,7 +455,6 @@ public class VehicleSubmissionPage extends JFrame {
                                 maxVehicleId = vehicleId;
                             }
                         } catch (NumberFormatException e) {
-                            // Skip if can't parse
                         }
                 
                         break;
@@ -478,7 +466,6 @@ public class VehicleSubmissionPage extends JFrame {
         return maxVehicleId + 1;
     }
 
-    //Payload Builder
     private String buildPayload(Vehicle v)
     {
         return "type: vehicle_availability\n"
@@ -800,21 +787,29 @@ false, minEndDate, residencyEndErrorLabel);
             return isValid;
         }
 
-        public String getVehicleMake() { return vehicleMakeField.getText().trim();
+        public String getVehicleMake() { 
+            return vehicleMakeField.getText().trim();
         }
-        public String getVehicleModel() { return vehicleModelField.getText().trim();
+        public String getVehicleModel() { 
+            return vehicleModelField.getText().trim();
         }
-        public String getVehicleYear() { return vehicleYearField.getText().trim();
+        public String getVehicleYear() { 
+            return vehicleYearField.getText().trim();
         }
-        public String getLicensePlate() { return licensePlateField.getText().trim();
+        public String getLicensePlate() { 
+            return licensePlateField.getText().trim();
         }
-        public String getVinNumber() { return vinNumberField.getText().trim();
+        public String getVinNumber() { 
+            return vinNumberField.getText().trim();
         }
-        public String getComputingPower() { return (String) computingPowerCombo.getSelectedItem();
+        public String getComputingPower() { 
+            return (String) computingPowerCombo.getSelectedItem();
         }
-        public String getResidencyStart() { return residencyStartField.getText().trim();
+        public String getResidencyStart() { 
+            return residencyStartField.getText().trim();
         }
-        public String getResidencyEnd() { return residencyEndField.getText().trim();
+        public String getResidencyEnd() { 
+            return residencyEndField.getText().trim();
         }
     }
 

@@ -50,7 +50,6 @@ public class ClientRequestStatusPage extends JFrame {
     }
     
     private void checkNotifications() {
-        // FIX: Pass "JOB_SUBMISSION" so we only get job notifications
         Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId(), "JOB_SUBMISSION");
         
         List<Integer> acceptedIds = updates.get("ACCEPTED");

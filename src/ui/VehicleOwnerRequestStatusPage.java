@@ -53,7 +53,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
     }
     
     private void checkNotifications() {
-        // FIX: Pass "VEHICLE_SUBMISSION" so we only get vehicle notifications
         Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId(), "VEHICLE_SUBMISSION");
         
         List<Integer> acceptedIds = updates.get("ACCEPTED");
@@ -92,7 +91,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         rootPanel.setBackground(Color.WHITE);
         setContentPane(rootPanel);
 
-        // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -133,7 +131,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
 
         rootPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Main content area with scroll
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -158,7 +155,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         scrollContent.add(mainPanel, gbc);
 
         scrollPane.setViewportView(scrollContent);
-        // Title
         JLabel titleLabel = new JLabel("My Vehicle Submissions");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 32));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -177,7 +173,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         mainPanel.add(descLabel);
 
         mainPanel.add(Box.createRigidArea(new Dimension(0, 35)));
-        // Summary cards
         JPanel summaryContainer = new JPanel();
         summaryContainer.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
         summaryContainer.setBackground(Color.WHITE);
@@ -197,7 +192,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
-        // Table
         String[] columnNames = {"Request ID", "Make/Model", "Year", "License Plate", 
                                 "Submitted", "Status"};
         int[] columnWidths = {120, 250, 100, 180, 250, 150};
@@ -205,7 +199,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         CustomTable requestTable = new CustomTable(columnNames, columnWidths);
         requestTable.setAlignmentX(Component.CENTER_ALIGNMENT);
         tableModel = requestTable.getModel();
-        // Custom renderer for status column
         requestTable.getTable().getColumnModel().getColumn(5).setCellRenderer(
             new StatusCellRenderer()
         );
@@ -262,7 +255,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         int pendingCount = 0;
         int acceptedCount = 0;
         
-        // LOAD FROM REQUESTS FILE ONLY
         List<Request> allRequests = requestDataManager.getAllRequests();
         List<Object[]> allRows = new ArrayList<>();
 

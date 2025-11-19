@@ -48,7 +48,6 @@ public class JobSubmissionPage extends JFrame {
         JLabel headerTitle = new JLabel("VCRTS");
         headerTitle.setFont(new Font("Georgia", Font.PLAIN, 28));
         headerPanel.add(headerTitle, BorderLayout.WEST);
-        // Right side buttons panel
         JPanel headerButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         headerButtonsPanel.setBackground(Color.WHITE);
         
@@ -125,7 +124,6 @@ public class JobSubmissionPage extends JFrame {
         formsContainer.setBackground(Color.WHITE);
         formsContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(formsContainer);
-        // Add "Job 1" label for the first form
         JLabel job1Label = new JLabel("Job 1");
         job1Label.setFont(new Font("Georgia", Font.BOLD, 28));
         job1Label.setForeground(new Color(0, 124, 137));
@@ -167,7 +165,6 @@ public class JobSubmissionPage extends JFrame {
         job1LabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, job1Label.getPreferredSize().height));
         formsContainer.add(job1LabelPanel);
         formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
-        // Re-add all remaining forms with updated job numbers
         for (int i = 0; i < jobForms.size(); i++) {
             if (i > 0) {
                 formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
@@ -183,7 +180,6 @@ public class JobSubmissionPage extends JFrame {
                 jLabelPanel.setBackground(Color.WHITE);
                 jLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
                 jLabelPanel.add(jLabel, BorderLayout.WEST);
-                // Add remove button for jobs 2 and above
                 JLabel remBtn = new JLabel("−");
                 remBtn.setFont(new Font("Arial", Font.PLAIN, 24));
                 remBtn.setForeground(new Color(0, 124, 137));
@@ -280,7 +276,6 @@ public class JobSubmissionPage extends JFrame {
             jobLabelPanel.setBackground(Color.WHITE);
             jobLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             jobLabelPanel.add(jobLabel, BorderLayout.WEST);
-            // Add remove button for Job 2 and above
             JLabel removeButton = new JLabel("−");
             removeButton.setFont(new Font("Arial", Font.PLAIN, 24));
             removeButton.setForeground(new Color(0, 124, 137));
@@ -350,11 +345,9 @@ public class JobSubmissionPage extends JFrame {
             return;
         }
 
-        // Create RequestDataManager instance
         RequestDataManager requestDataManager = new RequestDataManager();
         JobDataManager jobDataManager = new JobDataManager();
         
-        // Get the next available Job ID for this user
         int nextJobId = getNextJobIdForUser();
         int successCount = 0;
         StringBuilder requestIds = new StringBuilder();
@@ -376,9 +369,6 @@ public class JobSubmissionPage extends JFrame {
             boolean accepted = ClientJobSender.sendJobPayload(payload);
 
             if (accepted) {
-                // REMOVED: dataManager.addJob(job); 
-                // We only increment successCount so the UI knows it worked,
-                // but the data is written to Pending Requests by the Server.
                 
                 successCount++;
                 if (requestIds.length() > 0) {
@@ -386,7 +376,6 @@ public class JobSubmissionPage extends JFrame {
                 }
                 requestIds.append("#").append(nextJobId);
                 nextJobId++;
-                // Increment for next job
             }
 
         }
@@ -422,7 +411,6 @@ public class JobSubmissionPage extends JFrame {
         
         int maxJobId = 0;
         
-        // Check ALL accepted jobs (globally, not just this user)
         List<Job> allJobs = jobDataManager.getAllJobs();
         for (Job job : allJobs) {
             if (job.getJobId() > maxJobId) {
@@ -430,10 +418,8 @@ public class JobSubmissionPage extends JFrame {
             }
         }
         
-        // Check ALL pending requests (globally, not just this user)
         List<Request> allRequests = requestDataManager.getPendingRequests();
         for (Request request : allRequests) {
-            // Parse Job ID from request data
             String[] dataLines = request.getData().split("\n");
             for (String line : dataLines) {
                 if (line.startsWith("Job ID:")) {
@@ -443,7 +429,6 @@ public class JobSubmissionPage extends JFrame {
                             maxJobId = jobId;
                         }
                     } catch (NumberFormatException e) {
-                        // Skip if can't parse
                     }
                     break;
                 }
@@ -642,7 +627,6 @@ public class JobSubmissionPage extends JFrame {
             localAddButton.setBorder(BorderFactory.createEmptyBorder(8, 20, 8, 20)); 
             localAddButton.setFocusPainted(false);
             localAddButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-            // Store reference to this button's panel
             final JPanel buttonPanel = addButtonPanel;
             localAddButton.addActionListener(evt -> {
                 buttonPanel.setVisible(false);

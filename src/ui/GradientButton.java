@@ -55,16 +55,12 @@ public class GradientButton extends JButton {
                 color2 = new Color(30, 110, 130);
             }
         }
-
-        // Paint the gradient background
         GradientPaint gradient = new GradientPaint(0, 0, color1, getWidth(), 0, color2);
         g2.setPaint(gradient);
         g2.fillRoundRect(0, 0, getWidth(), getHeight(), 40, 40);
 
-        // Set text color using getForeground()
         g2.setColor(getForeground());
 
-        // Draw text manually to avoid gray default
         FontMetrics fm = g2.getFontMetrics();
         int textWidth = fm.stringWidth(getText());
         int textHeight = fm.getAscent();

@@ -14,8 +14,6 @@ public class CustomInputDialog extends JDialog {
     public CustomInputDialog(Window owner, String message) {
         super(owner, "", ModalityType.APPLICATION_MODAL);
         setUndecorated(true);
-
-        // Outer rounded border panel
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createLineBorder(new Color(210, 210, 210), 1));
@@ -25,9 +23,6 @@ public class CustomInputDialog extends JDialog {
         content.setBorder(BorderFactory.createEmptyBorder(30, 35, 30, 35));
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // -----------------------------------------------------
-        // MESSAGE
-        // -----------------------------------------------------
         JLabel msg = new JLabel(
             "<html><div style='text-align:center; width:300px;'>" 
             + message + 
@@ -36,9 +31,6 @@ public class CustomInputDialog extends JDialog {
         msg.setFont(new Font("Arial", Font.BOLD, 18));
         msg.setForeground(new Color(60, 60, 60));
 
-        // -----------------------------------------------------
-        // INPUT FIELD
-        // -----------------------------------------------------
         JTextField textField = new JTextField();
         textField.setPreferredSize(new Dimension(300, 40));
         textField.setFont(new Font("Arial", Font.PLAIN, 15));
@@ -47,9 +39,6 @@ public class CustomInputDialog extends JDialog {
                 BorderFactory.createEmptyBorder(5, 10, 5, 10)
         ));
 
-        // -----------------------------------------------------
-        // CANCEL BUTTON — Oval, matches ConfirmDialog
-        // -----------------------------------------------------
         JButton cancelBtn = new JButton("Cancel") {
             @Override
             protected void paintComponent(Graphics g) {
@@ -75,9 +64,6 @@ public class CustomInputDialog extends JDialog {
         cancelBtn.setFont(new Font("Arial", Font.BOLD, 15));
         cancelBtn.addActionListener(e -> dispose());
 
-        // -----------------------------------------------------
-        // OK BUTTON — Gradient, white text
-        // -----------------------------------------------------
         GradientButton okBtn = new GradientButton("OK");
         okBtn.setPreferredSize(new Dimension(120, 42));
         okBtn.setFont(new Font("Arial", Font.BOLD, 15));
@@ -87,17 +73,11 @@ public class CustomInputDialog extends JDialog {
             dispose();
         });
 
-        // -----------------------------------------------------
-        // BUTTON PANEL
-        // -----------------------------------------------------
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 5));
         btnPanel.setBackground(Color.WHITE);
         btnPanel.add(cancelBtn);
         btnPanel.add(okBtn);
 
-        // -----------------------------------------------------
-        // GRIDBAG LAYOUT
-        // -----------------------------------------------------
         gbc.gridy = 0;
         gbc.insets = new Insets(0, 0, 20, 0);
         content.add(msg, gbc);

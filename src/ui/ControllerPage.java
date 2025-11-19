@@ -198,8 +198,7 @@ public class ControllerPage extends JFrame {
         
         rootPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // --- LIVE UPDATE LOGIC ---
-        // Timer set to 500ms (0.5 seconds)
+        // Live Update Logic
         liveUpdateTimer = new Timer(500, e -> updateDashboardData());
         liveUpdateTimer.start();
         
@@ -207,22 +206,12 @@ public class ControllerPage extends JFrame {
         this.repaint();
     }
     
-    /**
-     * Background timer calls this method every 0.5 seconds.
-     * It checks for new files data and updates the UI.
-     */
     private void updateDashboardData() {
-        // 1. Update Pending Requests Count (Always needed)
         int currentPending = requestDataManager.getPendingRequests().size();
         pendingRequestsLabel.setText(String.valueOf(currentPending));
-
-        // 2. Refresh Controller Data (Jobs & Vehicles)
-        // If tables are visible, we do a full UI refresh of the tables.
-        // If not, we just update the summary numbers.
         if (tablesContainer.isVisible()) {
             displayJobCompletionTimes(); 
         } else {
-            // Just refresh data model and update summary labels
             controller.refreshAndProcessData();
             int totalVehicles = controller.viewVehicles().size();
             int totalJobs = controller.viewJobs().size();
@@ -247,10 +236,6 @@ public class ControllerPage extends JFrame {
         
         vehicleCountLabel.setText(String.valueOf(newVehicleCount));
         jobCountLabel.setText(String.valueOf(newJobCount));
-
-        // Note: We don't re-fetch pending requests here because the timer loop 
-        // handles it in the first step of updateDashboardData
-
         tablesContainer.removeAll();
         Map<Integer, Queue<Job>> vehicleQueues = controller.getVehicleJobQueues();
         

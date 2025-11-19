@@ -22,7 +22,7 @@ public class ControllerRequestPage extends JFrame {
     private RequestDataManager requestDataManager;
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
-    private Timer liveUpdateTimer; // Timer for background polling
+    private Timer liveUpdateTimer; 
 
     private JTable requestsTable;
     private DefaultTableModel tableModel;
@@ -52,13 +52,10 @@ public class ControllerRequestPage extends JFrame {
         initComponents();
         loadPendingRequests();
         
-        // --- LIVE UPDATE LOGIC ---
-        // Check for updates every 500ms (0.5 seconds)
         liveUpdateTimer = new Timer(500, e -> loadPendingRequests());
         liveUpdateTimer.start();
     }
 
-    // Stop the timer when window is closed to prevent errors/lag
     @Override
     public void dispose() {
         if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
@@ -67,32 +64,25 @@ public class ControllerRequestPage extends JFrame {
         super.dispose();
     }
 
-    /** ---------------------------------------------------------------
-     * UI Components
-     * --------------------------------------------------------------- */
     private void initComponents() {
 
         JPanel rootPanel = new JPanel(new BorderLayout());
         rootPanel.setBackground(Color.WHITE);
         setContentPane(rootPanel);
 
-        // -------------------- HEADER --------------------
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
         headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR));
 
-        // LEFT SIDE TITLE
         JLabel titleLabel = new JLabel("Request Management - Controller Dashboard");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
         titleLabel.setForeground(PRIMARY_COLOR);
         
-        // Proper padding wrapper
         JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 15));
         titleWrapper.setBackground(Color.WHITE);
         titleWrapper.add(titleLabel);
         headerPanel.add(titleWrapper, BorderLayout.WEST);
 
-        // RIGHT SIDE BACK BUTTON
         JButton backButton = new JButton("← Back to Dashboard");
         backButton.setFont(new Font("Arial", Font.BOLD, 14));
         backButton.setFocusPainted(false);
@@ -115,7 +105,6 @@ public class ControllerRequestPage extends JFrame {
         
         rootPanel.add(headerPanel, BorderLayout.NORTH);
 
-        /* ---------- Main Panel ---------- */
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
@@ -130,12 +119,9 @@ public class ControllerRequestPage extends JFrame {
         desc.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         desc.setFont(new Font("Arial", Font.PLAIN, 14));
         topPanel.add(desc, BorderLayout.NORTH);
-        
-        // REFRESH BUTTON REMOVED (Handled by Timer now)
 
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
-        /* ---------- Split Pane ---------- */
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
         splitPane.setDividerSize(1);
         splitPane.setDividerLocation(600);
@@ -143,7 +129,6 @@ public class ControllerRequestPage extends JFrame {
         splitPane.setBackground(Color.WHITE);
         splitPane.setOpaque(false);
 
-        // Remove the default ugly vertical bar
         BasicSplitPaneUI ui = new BasicSplitPaneUI() {
             public BasicSplitPaneDivider createDefaultDivider() {
                 return new BasicSplitPaneDivider(this) {
@@ -155,7 +140,6 @@ public class ControllerRequestPage extends JFrame {
         splitPane.setUI(ui);
         mainPanel.add(splitPane, BorderLayout.CENTER);
 
-        /* ---------- LEFT: Table ---------- */
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(Color.WHITE);
         tablePanel.setBorder(BorderFactory.createTitledBorder(
@@ -167,7 +151,6 @@ public class ControllerRequestPage extends JFrame {
                 new Color(70, 70, 70)
         ));
 
-        // Select All Checkbox
         selectAllCheckbox = new JCheckBox("Select All");
         selectAllCheckbox.setFont(new Font("Arial", Font.PLAIN, 13));
         selectAllCheckbox.setBackground(Color.WHITE);
@@ -202,7 +185,6 @@ public class ControllerRequestPage extends JFrame {
         requestsTable.setSelectionBackground(new Color(44, 116, 132));
         requestsTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
-        // Center all columns
         DefaultTableCellRenderer center = new DefaultTableCellRenderer();
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < cols.length; i++)
@@ -220,7 +202,7 @@ public class ControllerRequestPage extends JFrame {
 
         splitPane.setLeftComponent(tablePanel);
 
-        /* ---------- RIGHT: Details & Actions ---------- */
+
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBackground(Color.WHITE);
         splitPane.setRightComponent(rightPanel);
@@ -244,7 +226,6 @@ public class ControllerRequestPage extends JFrame {
         detailsPanel.add(new JScrollPane(detailsArea), BorderLayout.CENTER);
         rightPanel.add(detailsPanel, BorderLayout.CENTER);
 
-        // ----- BUTTON PANEL -----
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(18, 0, 12, 0));
@@ -271,11 +252,7 @@ public class ControllerRequestPage extends JFrame {
         rightPanel.add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    /** ---------------------------------------------------------------
-     * Load Pending Requests (With State Preservation)
-     * --------------------------------------------------------------- */
     private void loadPendingRequests() {
-        // 1. SAVE SELECTION: Remember which IDs were selected before refresh
         int[] selectedRows = requestsTable.getSelectedRows();
         List<Integer> selectedIds = new ArrayList<>();
         for (int row : selectedRows) {
@@ -284,7 +261,6 @@ public class ControllerRequestPage extends JFrame {
             } catch (Exception e) {}
         }
 
-        // 2. REFRESH DATA
         tableModel.setRowCount(0);
         List<Request> list = requestDataManager.getPendingRequests();
 
@@ -310,7 +286,6 @@ public class ControllerRequestPage extends JFrame {
             acceptButton.setEnabled(false);
             rejectButton.setEnabled(false);
         } else {
-            // 3. RESTORE SELECTION: Re-select the rows that are still present
             if (!selectedIds.isEmpty()) {
                 requestsTable.getSelectionModel().setValueIsAdjusting(true); // Prevent events
                 for (int i = 0; i < requestsTable.getRowCount(); i++) {
@@ -324,9 +299,6 @@ public class ControllerRequestPage extends JFrame {
         }
     }
 
-    /** ---------------------------------------------------------------
-     * Display Request Details (Supports Multi-Selection)
-     * --------------------------------------------------------------- */
     private void displayRequestDetails() {
         int[] selected = requestsTable.getSelectedRows();
         if (selected.length == 0) {
@@ -376,9 +348,7 @@ public class ControllerRequestPage extends JFrame {
         rejectButton.setEnabled(true);
     }
 
-    /** ---------------------------------------------------------------
-     * Handle Accept (Single + Bulk)
-     * --------------------------------------------------------------- */
+
     private void handleAccept() {
         int[] rows = requestsTable.getSelectedRows();
         if (rows.length == 0) return;
@@ -425,9 +395,6 @@ public class ControllerRequestPage extends JFrame {
         }
     }
 
-    /** ---------------------------------------------------------------
-     * Handle Reject (Single + Bulk)
-     * --------------------------------------------------------------- */
     private void handleReject() {
         int[] rows = requestsTable.getSelectedRows();
         if (rows.length == 0) return;
@@ -459,8 +426,6 @@ public class ControllerRequestPage extends JFrame {
         loadPendingRequests();
         detailsArea.setText("Request(s) rejected.");
     }
-
-    /** --------------------------------------------------------------- */
     private void resetSelections() {
         selectAllCheckbox.setSelected(false);
         requestsTable.clearSelection();
@@ -468,9 +433,6 @@ public class ControllerRequestPage extends JFrame {
         rejectButton.setEnabled(false);
     }
 
-    /** ---------------------------------------------------------------
-     * Job Submission Processor (Backend Logic)
-     * --------------------------------------------------------------- */
     private boolean processJobSubmission(Request request) {
         try {
             String[] lines = request.getData().split("\n");
@@ -497,13 +459,9 @@ public class ControllerRequestPage extends JFrame {
         }
     }
 
-    /** ---------------------------------------------------------------
-     * Vehicle Submission Processor (Backend Logic)
-     * --------------------------------------------------------------- */
     private boolean processVehicleSubmission(Request request) {
         try {
             String data = request.getData();
-            // Remove socket key if present
             if (data.startsWith("SOCKET_")) {
                 data = data.split("\n", 2)[1];
             }
@@ -542,7 +500,6 @@ public class ControllerRequestPage extends JFrame {
         }
     }
 
-    /** --------------------------------------------------------------- */
     private void showMessage(String title, String message, CustomDialog.DialogType type) {
         new CustomDialog(this, title, message, type).setVisible(true);
     }
