@@ -25,16 +25,26 @@ public class Request {
     }
     
 
-    public int getRequestId() { return requestId; }
-    public String getRequestType() { return requestType; }
-    public int getUserId() { return userId; }
-    public String getUserName() { return userName; }
-    public String getTimestamp() { return timestamp; }
-    public RequestStatus getStatus() { return status; }
-    public String getData() { return data; }
-    public String getRejectionReason() { return rejectionReason; }
+    public int getRequestId() { 
+        return requestId; }
+    public String getRequestType() { 
+        return requestType; }
+    public int getUserId() { 
+        return userId; }
+    public String getUserName() { 
+        return userName; }
+    public String getTimestamp() { 
+        return timestamp; }
+    public RequestStatus getStatus() { 
+        return status; }
+    public String getData() { 
+        return data; }
+    public String getRejectionReason() { 
+        return rejectionReason; }
     
 
-    public void setStatus(RequestStatus status) { this.status = status; }
-    public void setRejectionReason(String reason) { this.rejectionReason = reason; }
+    public void setStatus(RequestStatus status) { 
+        this.status = status; }
+    public void setRejectionReason(String reason) { 
+        this.rejectionReason = reason; }
 }

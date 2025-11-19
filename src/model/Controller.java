@@ -30,7 +30,7 @@ public class Controller {
     //New Method For Server State
     private static class PendingVehicleRequest
     {
-        Owner owner; //
+        Owner owner; 
         Vehicle vehicle;
 
         PendingVehicleRequest(Owner owner, Vehicle vehicle)
@@ -588,6 +588,5 @@ public class Controller {
         }
     }
 
-    //End Of Server Side Methods
 
 }
