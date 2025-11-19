@@ -1,5 +1,6 @@
 package ui;
 
+import ClientServer_client.ClientJobSender;
 import data.JobDataManager;
 import data.RequestDataManager;
 import java.awt.*;
