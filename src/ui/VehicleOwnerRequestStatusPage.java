@@ -1,11 +1,13 @@
 package ui;
 
 import data.RequestDataManager;
+import data.VehicleDataManager;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -16,6 +18,7 @@ import model.User;
 public class VehicleOwnerRequestStatusPage extends JFrame {
     private User currentUser;
     private RequestDataManager requestDataManager;
+    private VehicleDataManager vehicleDataManager;
     
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
@@ -28,6 +31,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
     public VehicleOwnerRequestStatusPage(User user) {
         this.currentUser = user;
         this.requestDataManager = new RequestDataManager();
+        this.vehicleDataManager = new VehicleDataManager();
 
         setTitle("VCRTS - My Vehicle Submissions");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -37,6 +41,31 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
 
         initComponents();
         loadRequestData();
+        checkNotifications();
+    }
+    
+    private void checkNotifications() {
+        Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId());
+        List<Integer> acceptedIds = updates.get("ACCEPTED");
+        List<Integer> rejectedIds = updates.get("REJECTED");
+        
+        List<Integer> allIdsToMark = new ArrayList<>();
+        
+        if (!acceptedIds.isEmpty()) {
+            String msg = "The following Vehicle Request(s) have been ACCEPTED:\nIDs: " + acceptedIds.toString();
+            new CustomDialog(this, "Requests Accepted", msg, CustomDialog.DialogType.SUCCESS).setVisible(true);
+            allIdsToMark.addAll(acceptedIds);
+        }
+        
+        if (!rejectedIds.isEmpty()) {
+            String msg = "The following Vehicle Request(s) have been REJECTED:\nIDs: " + rejectedIds.toString();
+            new CustomDialog(this, "Requests Rejected", msg, CustomDialog.DialogType.WARNING).setVisible(true);
+            allIdsToMark.addAll(rejectedIds);
+        }
+        
+        if (!allIdsToMark.isEmpty()) {
+            requestDataManager.markAsViewed(allIdsToMark);
+        }
     }
 
     private void initComponents() {
@@ -82,8 +111,10 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         headerButtonsPanel.add(backButton);
         headerButtonsPanel.add(logoutButton);
         headerPanel.add(headerButtonsPanel, BorderLayout.EAST);
+
         rootPanel.add(headerPanel, BorderLayout.NORTH);
 
+        // Main content area with scroll
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -108,6 +139,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         scrollContent.add(mainPanel, gbc);
 
         scrollPane.setViewportView(scrollContent);
+        // Title
         JLabel titleLabel = new JLabel("My Vehicle Submissions");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 32));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -126,7 +158,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         mainPanel.add(descLabel);
 
         mainPanel.add(Box.createRigidArea(new Dimension(0, 35)));
-
+        // Summary cards
         JPanel summaryContainer = new JPanel();
         summaryContainer.setLayout(new FlowLayout(FlowLayout.CENTER, 25, 0));
         summaryContainer.setBackground(Color.WHITE);
@@ -145,6 +177,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         mainPanel.add(summaryContainer);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
+        // Refresh button
         JPanel refreshPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         refreshPanel.setBackground(Color.WHITE);
         refreshPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
@@ -157,20 +190,30 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         refreshButton.setContentAreaFilled(false);
         refreshButton.setForeground(PRIMARY_COLOR);
         refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        refreshButton.addActionListener(e -> loadRequestData());
+        refreshButton.addActionListener(e -> {
+            loadRequestData();
+            checkNotifications();
+        });
 
         refreshPanel.add(refreshButton);
         mainPanel.add(refreshPanel);
+
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
-        String[] columnNames = {"Request ID", "Make/Model", "Year", "License Plate", "Submitted", "Status"};
+        // Table
+        String[] columnNames = {"Request ID", "Make/Model", "Year", "License Plate", 
+                                "Submitted", "Status"};
         int[] columnWidths = {120, 250, 100, 180, 250, 150};
 
         CustomTable requestTable = new CustomTable(columnNames, columnWidths);
         requestTable.setAlignmentX(Component.CENTER_ALIGNMENT);
         tableModel = requestTable.getModel();
-        requestTable.getTable().getColumnModel().getColumn(5).setCellRenderer(new StatusCellRenderer());
+        // Custom renderer for status column
+        requestTable.getTable().getColumnModel().getColumn(5).setCellRenderer(
+            new StatusCellRenderer()
+        );
         mainPanel.add(requestTable);
+
         rootPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
@@ -211,7 +254,9 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 4)));
         contentPanel.add(valueLabel);
+
         card.add(contentPanel, BorderLayout.CENTER);
+
         return card;
     }
 
@@ -254,7 +299,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
             }
         }
         
-        allRows.sort((row1, row2) -> ((Integer) row2[0]).compareTo((Integer) row1[0])); // Sort by ID Descending
+        allRows.sort((row1, row2) -> ((Integer) row2[0]).compareTo((Integer) row1[0])); 
         for (Object[] row : allRows) {
             tableModel.addRow(row);
         }

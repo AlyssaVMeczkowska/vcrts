@@ -48,6 +48,8 @@ public class RequestDataManager {
             writer.newLine();
             writer.write("status: PENDING");
             writer.newLine();
+            writer.write("notification_viewed: true"); // Default true (user submitted it)
+            writer.newLine();
             writer.write("data: " + data.replace("\n", "\\n"));
             writer.newLine();
             writer.write("rejection_reason: ");
@@ -61,9 +63,6 @@ public class RequestDataManager {
         }
     }
     
-    /**
-     * Returns ONLY requests with status PENDING (For Controller)
-     */
     public List<Request> getPendingRequests() {
         List<Request> requests = new ArrayList<>();
         List<Request> all = getAllRequests();
@@ -75,9 +74,6 @@ public class RequestDataManager {
         return requests;
     }
 
-    /**
-     * Returns ALL requests regardless of status (For Client History)
-     */
     public List<Request> getAllRequests() {
         List<Request> requests = new ArrayList<>();
         File file = new File(REQUESTS_FILE);
@@ -129,9 +125,91 @@ public class RequestDataManager {
         return requests;
     }
     
+    // ---------------- NOTIFICATION LOGIC ---------------- //
+
     /**
-     * Updates the status of a request instead of deleting it.
+     * Returns a list of Request IDs for a specific user that have NOT been viewed yet
+     * AND are no longer PENDING (Accepted or Rejected).
      */
+    public Map<String, List<Integer>> getUnnotifiedRequests(int userId) {
+        Map<String, List<Integer>> result = new HashMap<>();
+        result.put("ACCEPTED", new ArrayList<>());
+        result.put("REJECTED", new ArrayList<>());
+
+        File file = new File(REQUESTS_FILE);
+        if (!file.exists()) return result;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            Map<String, String> data = new HashMap<>();
+            
+            while ((line = reader.readLine()) != null) {
+                if (line.equals("---")) {
+                    if (!data.isEmpty()) {
+                        int uId = Integer.parseInt(data.getOrDefault("user_id", "-1"));
+                        if (uId == userId) {
+                            String status = data.getOrDefault("status", "PENDING");
+                            String viewedStr = data.getOrDefault("notification_viewed", "true"); // Default true for old records
+                            boolean viewed = Boolean.parseBoolean(viewedStr);
+                            
+                            if (!viewed && !status.equals("PENDING")) {
+                                int reqId = Integer.parseInt(data.getOrDefault("request_id", "0"));
+                                if (status.equals("ACCEPTED")) {
+                                    result.get("ACCEPTED").add(reqId);
+                                } else if (status.equals("REJECTED")) {
+                                    result.get("REJECTED").add(reqId);
+                                }
+                            }
+                        }
+                    }
+                    data.clear();
+                } else {
+                    String[] parts = line.split(": ", 2);
+                    if (parts.length == 2) data.put(parts[0].trim(), parts[1].trim());
+                }
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+        return result;
+    }
+
+    /**
+     * Mark a list of request IDs as viewed (notification_viewed: true)
+     */
+    public void markAsViewed(List<Integer> requestIds) {
+        if (requestIds == null || requestIds.isEmpty()) return;
+        
+        File file = new File(REQUESTS_FILE);
+        if (!file.exists()) return;
+        
+        List<String> lines = new ArrayList<>();
+        boolean inTargetBlock = false;
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("request_id:")) {
+                    int currentId = Integer.parseInt(line.split(":")[1].trim());
+                    inTargetBlock = requestIds.contains(currentId);
+                }
+                
+                if (inTargetBlock && line.startsWith("notification_viewed:")) {
+                    lines.add("notification_viewed: true");
+                } else {
+                    lines.add(line);
+                }
+                
+                if (line.equals("---")) inTargetBlock = false;
+            }
+        } catch (IOException e) { e.printStackTrace(); return; }
+        
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+            }
+        } catch (IOException e) { e.printStackTrace(); }
+    }
+
     public boolean updateRequestStatus(int requestId, RequestStatus newStatus, String rejectionReason) {
         File file = new File(REQUESTS_FILE);
         if (!file.exists()) return false;
@@ -139,26 +217,40 @@ public class RequestDataManager {
         List<String> lines = new ArrayList<>();
         boolean updated = false;
         boolean inTargetRequest = false;
+        boolean hasViewedField = false; // Track if the block already has this field
         
+        // First pass: Read to memory
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("request_id:")) {
                     int currentId = Integer.parseInt(line.split(":")[1].trim());
                     inTargetRequest = (currentId == requestId);
+                    hasViewedField = false; // Reset for new block
                 }
                 
-                if (inTargetRequest && line.startsWith("status:")) {
-                    lines.add("status: " + newStatus.toString());
-                    updated = true;
-                } else if (inTargetRequest && line.startsWith("rejection_reason:")) {
-                    lines.add("rejection_reason: " + (rejectionReason != null ? rejectionReason : ""));
+                if (inTargetRequest) {
+                    if (line.startsWith("status:")) {
+                        lines.add("status: " + newStatus.toString());
+                        updated = true;
+                    } else if (line.startsWith("rejection_reason:")) {
+                        lines.add("rejection_reason: " + (rejectionReason != null ? rejectionReason : ""));
+                    } else if (line.startsWith("notification_viewed:")) {
+                        // Reset notification to false because status changed!
+                        lines.add("notification_viewed: false");
+                        hasViewedField = true;
+                    } else if (line.equals("---")) {
+                        // End of block. If we didn't find notification_viewed, insert it.
+                        if (!hasViewedField) {
+                            lines.add("notification_viewed: false");
+                        }
+                        lines.add(line);
+                        inTargetRequest = false;
+                    } else {
+                        lines.add(line);
+                    }
                 } else {
                     lines.add(line);
-                }
-                
-                if (line.equals("---")) {
-                    inTargetRequest = false;
                 }
             }
         } catch (IOException ex) {
@@ -166,6 +258,7 @@ public class RequestDataManager {
             return false;
         }
         
+        // Rewrite file
         if (updated) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 for (String line : lines) {
@@ -174,7 +267,7 @@ public class RequestDataManager {
                 }
                 return true;
             } catch (IOException ex) {
-                System.err.println("Error writing to requests file: " + ex.getMessage());
+                System.err.println("Error writing requests file: " + ex.getMessage());
                 return false;
             }
         }

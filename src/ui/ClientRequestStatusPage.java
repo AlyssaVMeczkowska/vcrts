@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -37,6 +38,31 @@ public class ClientRequestStatusPage extends JFrame {
 
         initComponents();
         loadRequestData();
+        checkNotifications(); // Check for new updates
+    }
+    
+    private void checkNotifications() {
+        Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId());
+        List<Integer> acceptedIds = updates.get("ACCEPTED");
+        List<Integer> rejectedIds = updates.get("REJECTED");
+        
+        List<Integer> allIdsToMark = new ArrayList<>();
+        
+        if (!acceptedIds.isEmpty()) {
+            String msg = "The following Job Request(s) have been ACCEPTED:\nIDs: " + acceptedIds.toString();
+            new CustomDialog(this, "Requests Accepted", msg, CustomDialog.DialogType.SUCCESS).setVisible(true);
+            allIdsToMark.addAll(acceptedIds);
+        }
+        
+        if (!rejectedIds.isEmpty()) {
+            String msg = "The following Job Request(s) have been REJECTED:\nIDs: " + rejectedIds.toString();
+            new CustomDialog(this, "Requests Rejected", msg, CustomDialog.DialogType.WARNING).setVisible(true);
+            allIdsToMark.addAll(rejectedIds);
+        }
+        
+        if (!allIdsToMark.isEmpty()) {
+            requestDataManager.markAsViewed(allIdsToMark);
+        }
     }
 
     private void initComponents() {
@@ -155,7 +181,10 @@ public class ClientRequestStatusPage extends JFrame {
         refreshButton.setContentAreaFilled(false);
         refreshButton.setForeground(PRIMARY_COLOR);
         refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        refreshButton.addActionListener(e -> loadRequestData());
+        refreshButton.addActionListener(e -> {
+            loadRequestData();
+            checkNotifications();
+        });
 
         refreshPanel.add(refreshButton);
         mainPanel.add(refreshPanel);
@@ -218,7 +247,6 @@ public class ClientRequestStatusPage extends JFrame {
         int pendingCount = 0;
         int acceptedCount = 0;
         
-        // LOAD FROM REQUESTS FILE ONLY
         List<Request> allRequests = requestDataManager.getAllRequests();
         List<Object[]> allRows = new ArrayList<>();
 
@@ -250,7 +278,7 @@ public class ClientRequestStatusPage extends JFrame {
             }
         }
         
-        allRows.sort((row1, row2) -> ((Integer) row2[0]).compareTo((Integer) row1[0])); // Sort by ID Descending
+        allRows.sort((row1, row2) -> ((Integer) row2[0]).compareTo((Integer) row1[0])); 
         for (Object[] row : allRows) {
             tableModel.addRow(row);
         }
