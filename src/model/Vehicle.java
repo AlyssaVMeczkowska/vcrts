@@ -32,53 +32,55 @@ public class Vehicle {
         this.submissionTimestamp = OffsetDateTime.now().toString();
     }
 
-    public int getVehicleId() { 
-        return vehicleId; 
+    public int getVehicleId() {
+        return vehicleId;
     }
 
-    public String getMake() { 
-        return make; 
+    public int getOwnerId() {
+        return ownerId;
     }
 
-    public String getModel() { 
-        return model; 
+    public String getMake() {
+        return make;
     }
 
-    public int getYear() { 
-        return year; 
+    public String getModel() {
+        return model;
     }
 
-    public String getVin() { 
-        return vin; 
+    public int getYear() {
+        return year;
     }
 
-    public String getLicensePlate() { 
-        return licensePlate; 
+    public String getVin() {
+        return vin;
     }
 
-    public String getComputingPower() { 
-        return computingPower; 
+    public String getLicensePlate() {
+        return licensePlate;
     }
 
-    public LocalDate getArrivalDate() { 
-        return arrivalDate; 
+    public String getComputingPower() {
+        return computingPower;
     }
 
-    public LocalDate getDepartureDate() { 
-        return departureDate; 
+    public LocalDate getArrivalDate() {
+        return arrivalDate;
     }
 
-    public VehicleStatus getStatus() { 
-        return status; 
+    public LocalDate getDepartureDate() {
+        return departureDate;
     }
 
-    public String getSubmissionTimestamp() { 
-        return submissionTimestamp; 
+    public VehicleStatus getStatus() {
+        return status;
     }
 
-    //New Method to Set Initial Status of Vehicle
-    public void setStatus(VehicleStatus status)
-    {
+    public String getSubmissionTimestamp() {
+        return submissionTimestamp;
+    }
+
+    public void setStatus(VehicleStatus status) {
         this.status = status;
     }
 }

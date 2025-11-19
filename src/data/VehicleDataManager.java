@@ -12,6 +12,33 @@ public class VehicleDataManager {
 
     private static final String FILE_PATH = "data/vcrts_data.txt";
 
+    private int getNextVehicleId() {
+        int maxId = 0;
+        File file = new File(FILE_PATH);
+        if (!file.exists()) {
+            return 1;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().startsWith("user_id:")) {
+                    try {
+                        int currentId = Integer.parseInt(line.split(":")[1].trim());
+                        if (currentId > maxId) {
+                            maxId = currentId;
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.println("Could not parse vehicle ID from line: " + line);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            System.err.println("Error reading data file to get next vehicle ID: " + ex.getMessage());
+        }
+        return maxId + 1;
+    }
+
     private boolean isValueTaken(String key, String value) {
         File file = new File(FILE_PATH);
         if (!file.exists()) {
@@ -26,9 +53,8 @@ public class VehicleDataManager {
                 if (line.startsWith("type: vehicle_availability")) {
                     isVehicleBlock = true;
                 } else if (line.equals("---")) {
-                    isVehicleBlock = false; 
+                    isVehicleBlock = false;
                 } else if (isVehicleBlock && line.startsWith(key)) {
-
                     String fileValue = line.split(":", 2)[1].trim();
                     if (fileValue.equalsIgnoreCase(value)) {
                         return true;
@@ -50,11 +76,18 @@ public class VehicleDataManager {
     }
 
     public boolean addVehicle(Vehicle vehicle) {
+        int newVehicleId = getNextVehicleId();
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write("type: vehicle_availability"); 
+            writer.write("type: vehicle_availability");
             writer.newLine();
-            writer.write("user_id: " + vehicle.getVehicleId()); 
+
+            writer.write("user_id: " + newVehicleId); 
             writer.newLine();
+
+            writer.write("owner_id: " + vehicle.getOwnerId()); 
+            writer.newLine();
+
             writer.write("vin: " + vehicle.getVin());
             writer.newLine();
             writer.write("license_plate: " + vehicle.getLicensePlate());
