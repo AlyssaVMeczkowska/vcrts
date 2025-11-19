@@ -5,7 +5,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 
-//Sends New info to the VCControllerServer
+
 public class NetworkVehicleSender
 {
     public static boolean sendVehiclePayload(String payload)

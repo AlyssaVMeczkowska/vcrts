@@ -3,7 +3,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 
-//Stores Accepted Vehicle information
+
 public class AcceptedVehicleFileStorage
 {
 
