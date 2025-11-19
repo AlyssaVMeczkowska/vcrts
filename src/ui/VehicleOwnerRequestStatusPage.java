@@ -19,6 +19,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
     private User currentUser;
     private RequestDataManager requestDataManager;
     private VehicleDataManager vehicleDataManager;
+    private Timer liveUpdateTimer;
     
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
@@ -40,8 +41,18 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         initComponents();
-        loadRequestData();
-        checkNotifications();
+        loadRequestData(); // Load data immediately
+        
+        // --- LIVE UPDATE LOGIC ---
+        // Check every 500ms (0.5 seconds)
+        liveUpdateTimer = new Timer(500, e -> {
+            loadRequestData();
+            checkNotifications();
+        });
+        
+        // Wait 1 second before first notification check so UI has time to render
+        liveUpdateTimer.setInitialDelay(1000);
+        liveUpdateTimer.start();
     }
     
     private void checkNotifications() {
@@ -65,7 +76,16 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         
         if (!allIdsToMark.isEmpty()) {
             requestDataManager.markAsViewed(allIdsToMark);
+            loadRequestData(); 
         }
+    }
+    
+    @Override
+    public void dispose() {
+        if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
+            liveUpdateTimer.stop();
+        }
+        super.dispose();
     }
 
     private void initComponents() {
@@ -175,30 +195,8 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         summaryContainer.add(acceptedCard);
 
         mainPanel.add(summaryContainer);
+        
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
-
-        // Refresh button
-        JPanel refreshPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        refreshPanel.setBackground(Color.WHITE);
-        refreshPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        refreshPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JButton refreshButton = new JButton("Refresh");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-        refreshButton.setFocusPainted(false);
-        refreshButton.setBorderPainted(false);
-        refreshButton.setContentAreaFilled(false);
-        refreshButton.setForeground(PRIMARY_COLOR);
-        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        refreshButton.addActionListener(e -> {
-            loadRequestData();
-            checkNotifications();
-        });
-
-        refreshPanel.add(refreshButton);
-        mainPanel.add(refreshPanel);
-
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         // Table
         String[] columnNames = {"Request ID", "Make/Model", "Year", "License Plate", 

@@ -24,7 +24,8 @@ public class ControllerRequestPage extends JFrame {
     private RequestDataManager requestDataManager;
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
-
+    private Timer liveUpdateTimer; // Timer for background polling
+    
     private JTable requestsTable;
     private DefaultTableModel tableModel;
 
@@ -54,6 +55,20 @@ public class ControllerRequestPage extends JFrame {
 
         initComponents();
         loadPendingRequests();
+        
+        // --- LIVE UPDATE LOGIC ---
+        // Check for updates every 500ms (0.5 seconds)
+        liveUpdateTimer = new Timer(500, e -> loadPendingRequests());
+        liveUpdateTimer.start();
+    }
+    
+    // Stop the timer when window is closed to prevent errors/lag
+    @Override
+    public void dispose() {
+        if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
+            liveUpdateTimer.stop();
+        }
+        super.dispose();
     }
 
     /** ---------------------------------------------------------------
@@ -143,6 +158,7 @@ rootPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         rootPanel.add(mainPanel, BorderLayout.CENTER);
 
+        // Top panel with description
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
 
@@ -189,6 +205,8 @@ rootPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(splitPane, BorderLayout.CENTER);
 
         /* ---------- LEFT: Table ---------- */
+
+        // Left: Requests Table
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(Color.WHITE);
         tablePanel.setBorder(BorderFactory.createTitledBorder(
@@ -256,6 +274,8 @@ tablePanel.add(sp, BorderLayout.CENTER);
 
         /* ---------- RIGHT: Details & Actions ---------- */
         JPanel rightPanel = new JPanel(new BorderLayout());
+        // Right: Details and Actions
+        JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
         rightPanel.setBackground(Color.WHITE);
         splitPane.setRightComponent(rightPanel);
 
@@ -278,7 +298,6 @@ tablePanel.add(sp, BorderLayout.CENTER);
         detailsPanel.add(new JScrollPane(detailsArea), BorderLayout.CENTER);
         rightPanel.add(detailsPanel, BorderLayout.CENTER);
 
-        // ----- BUTTON PANEL (restored original) -----
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
         buttonPanel.setBackground(Color.WHITE);
         // Raise buttons slightly and shrink size
@@ -305,43 +324,62 @@ tablePanel.add(sp, BorderLayout.CENTER);
         buttonPanel.add(rejectButton);
 
         rightPanel.add(buttonPanel, BorderLayout.SOUTH);
+        splitPane.setRightComponent(rightPanel);
+        mainPanel.add(splitPane, BorderLayout.CENTER);
+        rootPanel.add(mainPanel, BorderLayout.CENTER);
     }
 
     /** ---------------------------------------------------------------
      * Load Pending Requests
      * --------------------------------------------------------------- */
     private void loadPendingRequests() {
-
+        // 1. SAVE SELECTION: Remember which ID was selected before refresh
+        int selectedId = -1;
+        int selectedRow = requestsTable.getSelectedRow();
+        if (selectedRow != -1) {
+            try {
+                selectedId = (int) tableModel.getValueAt(selectedRow, 0);
+            } catch (Exception e) {}
+        }
+        
+        // 2. REFRESH DATA
         tableModel.setRowCount(0);
-
-        List<Request> list = requestDataManager.getPendingRequests();
-
-        for (Request r : list) {
-            String type = r.getRequestType().equals("JOB_SUBMISSION") ? "Job" : "Vehicle";
-            String ts = r.getTimestamp();
-
+        List<Request> pendingRequests = requestDataManager.getPendingRequests();
+        for (Request request : pendingRequests) {
+            String type = request.getRequestType().equals("JOB_SUBMISSION") ?
+            "Job" : "Vehicle";
+            String timestamp = request.getTimestamp();
+            
             try {
                 LocalDateTime dt = LocalDateTime.parse(ts);
                 ts = dt.format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"));
             } catch (Exception ignored) {}
 
             tableModel.addRow(new Object[]{
-                    r.getRequestId(),
+                    request.getRequestId(),
                     type,
-                    r.getUserName(),
-                    ts
+                    request.getUserName(),
+                
+                    timestamp
             });
         }
 
-        detailsArea.setText(list.isEmpty()
-                ? "No pending requests."
-                : "Select a request to view details");
-
-        requestsTable.clearSelection();
-        selectAllCheckbox.setSelected(false);
-
-        acceptButton.setEnabled(false);
-        rejectButton.setEnabled(false);
+        if (pendingRequests.isEmpty()) {
+            detailsArea.setText("No pending requests.\n\nAll submissions have been processed.");
+            acceptButton.setEnabled(false);
+            rejectButton.setEnabled(false);
+        } else {
+            // 3. RESTORE SELECTION: Try to re-select the same ID if it still exists
+            if (selectedId != -1) {
+                for (int i = 0; i < requestsTable.getRowCount(); i++) {
+                    int id = (int) requestsTable.getValueAt(i, 0);
+                    if (id == selectedId) {
+                        requestsTable.setRowSelectionInterval(i, i);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     /** ---------------------------------------------------------------
@@ -435,23 +473,20 @@ tablePanel.add(sp, BorderLayout.CENTER);
                 ok = processVehicleSubmission(r);
             }
 
-            if (ok) {
-                requestDataManager.updateRequestStatus(requestId, RequestStatus.ACCEPTED, null);
-            }
+        if (success) {
+            // Update status to ACCEPTED (remains in file history)
+            requestDataManager.updateRequestStatus(requestId, RequestStatus.ACCEPTED, null);
+            
+            showMessage("Success", "Request accepted and data saved successfully!", CustomDialog.DialogType.SUCCESS);
+            loadPendingRequests();
+            detailsArea.setText("Request processed successfully.");
+            acceptButton.setEnabled(false);
+            rejectButton.setEnabled(false);
+        } else {
+            showMessage("Error", "Failed to save data. Please try again.", CustomDialog.DialogType.WARNING);
         }
-
-        showMessage("Success",
-                bulk ? "All selected requests have been accepted!"
-                     : "Request accepted successfully!",
-                CustomDialog.DialogType.SUCCESS);
-
-        resetSelections();
-        loadPendingRequests();
     }
 
-    /** ---------------------------------------------------------------
-     * Handle Reject (Single + Bulk)
-     * --------------------------------------------------------------- */
     private void handleReject() {
 
         int[] rows = requestsTable.getSelectedRows();
@@ -500,10 +535,14 @@ tablePanel.add(sp, BorderLayout.CENTER);
      * --------------------------------------------------------------- */
     private boolean processJobSubmission(Request request) {
         try {
-            Map<String, String> m = new HashMap<>();
-            for (String line : request.getData().split("\n")) {
-                String[] p = line.split(": ", 2);
-                if (p.length == 2) m.put(p[0].trim(), p[1].trim());
+            String[] lines = request.getData().split("\n");
+            Map<String, String> jobData = new HashMap<>();
+            
+            for (String line : lines) {
+                String[] parts = line.split(": ", 2);
+                if (parts.length == 2) {
+                    jobData.put(parts[0].trim(), parts[1].trim());
+                }
             }
 
             Job job = new Job(
@@ -529,31 +568,36 @@ tablePanel.add(sp, BorderLayout.CENTER);
         try {
 
             String data = request.getData();
-            if (data.startsWith("SOCKET_"))
+            // Remove socket key if present (legacy support)
+            if (data.startsWith("SOCKET_")) {
                 data = data.split("\n", 2)[1];
-
-            Map<String, String> m = new HashMap<>();
-            for (String line : data.split("\n")) {
-
-                if (line.startsWith("type:") || line.equals("---"))
+            }
+            
+            String[] lines = data.split("\n");
+            Map<String, String> vehicleData = new HashMap<>();
+            
+            for (String line : lines) {
+                if (line.startsWith("type:") || line.equals("---")) {
                     continue;
-
-                String[] p = line.split(": ", 2);
-                if (p.length == 2)
-                    m.put(p[0].trim(), p[1].trim());
+                }
+                String[] parts = line.split(": ", 2);
+                if (parts.length == 2) {
+                    vehicleData.put(parts[0].trim(), parts[1].trim());
+                }
             }
 
-            Vehicle v = new Vehicle(
-                    0,
-                    Integer.parseInt(m.get("user_id")),
-                    m.get("vehicle_make"),
-                    m.get("vehicle_model"),
-                    Integer.parseInt(m.get("vehicle_year")),
-                    m.get("vin"),
-                    m.get("license_plate"),
-                    m.get("computing_power"),
-                    java.time.LocalDate.parse(m.get("start_date")),
-                    java.time.LocalDate.parse(m.get("end_date")),
+            int ownerId = Integer.parseInt(vehicleData.getOrDefault("user_id", "0"));
+            Vehicle vehicle = new Vehicle(
+                    0, 
+                    ownerId,
+                    vehicleData.get("vehicle_make"),
+                    vehicleData.get("vehicle_model"),
+                    Integer.parseInt(vehicleData.get("vehicle_year")),
+                    vehicleData.get("vin"),
+                    vehicleData.get("license_plate"),
+                    vehicleData.get("computing_power"),
+                    java.time.LocalDate.parse(vehicleData.get("start_date")),
+                    java.time.LocalDate.parse(vehicleData.get("end_date")),
                     VehicleStatus.AVAILABLE
             );
 
