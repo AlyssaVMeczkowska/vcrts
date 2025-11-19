@@ -41,22 +41,21 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         initComponents();
-        loadRequestData(); // Load data immediately
+        loadRequestData(); 
         
-        // --- LIVE UPDATE LOGIC ---
-        // Check every 500ms (0.5 seconds)
         liveUpdateTimer = new Timer(500, e -> {
             loadRequestData();
             checkNotifications();
         });
         
-        // Wait 1 second before first notification check so UI has time to render
         liveUpdateTimer.setInitialDelay(1000);
         liveUpdateTimer.start();
     }
     
     private void checkNotifications() {
-        Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId());
+        // FIX: Pass "VEHICLE_SUBMISSION" so we only get vehicle notifications
+        Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId(), "VEHICLE_SUBMISSION");
+        
         List<Integer> acceptedIds = updates.get("ACCEPTED");
         List<Integer> rejectedIds = updates.get("REJECTED");
         

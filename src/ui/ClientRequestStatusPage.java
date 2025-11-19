@@ -38,22 +38,21 @@ public class ClientRequestStatusPage extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         initComponents();
-        loadRequestData(); // Load table data immediately so page isn't blank
+        loadRequestData(); 
         
-        // --- LIVE UPDATE LOGIC ---
-        // Check for updates every 500ms
         liveUpdateTimer = new Timer(500, e -> {
             loadRequestData(); 
             checkNotifications(); 
         });
         
-        // Wait 1 second (1000ms) before the first check to allow UI to render fully
-        liveUpdateTimer.setInitialDelay(1000); 
+        liveUpdateTimer.setInitialDelay(1000);
         liveUpdateTimer.start();
     }
     
     private void checkNotifications() {
-        Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId());
+        // FIX: Pass "JOB_SUBMISSION" so we only get job notifications
+        Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId(), "JOB_SUBMISSION");
+        
         List<Integer> acceptedIds = updates.get("ACCEPTED");
         List<Integer> rejectedIds = updates.get("REJECTED");
         
@@ -71,7 +70,6 @@ public class ClientRequestStatusPage extends JFrame {
             allIdsToMark.addAll(rejectedIds);
         }
         
-        // Mark as viewed immediately
         if (!allIdsToMark.isEmpty()) {
             requestDataManager.markAsViewed(allIdsToMark);
             loadRequestData(); 
@@ -91,7 +89,6 @@ public class ClientRequestStatusPage extends JFrame {
         rootPanel.setBackground(Color.WHITE);
         setContentPane(rootPanel);
 
-        // Header
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setBackground(Color.WHITE);
         headerPanel.setBorder(BorderFactory.createCompoundBorder(
@@ -132,7 +129,6 @@ public class ClientRequestStatusPage extends JFrame {
 
         rootPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Main content area with scroll
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);

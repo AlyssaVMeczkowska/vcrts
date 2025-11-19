@@ -128,10 +128,9 @@ public class RequestDataManager {
     // ---------------- NOTIFICATION LOGIC ---------------- //
 
     /**
-     * Returns a list of Request IDs for a specific user that have NOT been viewed yet
-     * AND are no longer PENDING (Accepted or Rejected).
+     * Returns a list of Request IDs for a specific user AND specific type that have NOT been viewed yet.
      */
-    public Map<String, List<Integer>> getUnnotifiedRequests(int userId) {
+    public Map<String, List<Integer>> getUnnotifiedRequests(int userId, String targetRequestType) {
         Map<String, List<Integer>> result = new HashMap<>();
         result.put("ACCEPTED", new ArrayList<>());
         result.put("REJECTED", new ArrayList<>());
@@ -147,9 +146,12 @@ public class RequestDataManager {
                 if (line.equals("---")) {
                     if (!data.isEmpty()) {
                         int uId = Integer.parseInt(data.getOrDefault("user_id", "-1"));
-                        if (uId == userId) {
+                        String rType = data.getOrDefault("request_type", "");
+
+                        // BUG FIX: Check BOTH userId AND requestType
+                        if (uId == userId && rType.equals(targetRequestType)) {
                             String status = data.getOrDefault("status", "PENDING");
-                            String viewedStr = data.getOrDefault("notification_viewed", "true"); // Default true for old records
+                            String viewedStr = data.getOrDefault("notification_viewed", "true");
                             boolean viewed = Boolean.parseBoolean(viewedStr);
                             
                             if (!viewed && !status.equals("PENDING")) {
@@ -217,16 +219,15 @@ public class RequestDataManager {
         List<String> lines = new ArrayList<>();
         boolean updated = false;
         boolean inTargetRequest = false;
-        boolean hasViewedField = false; // Track if the block already has this field
+        boolean hasViewedField = false; 
         
-        // First pass: Read to memory
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.startsWith("request_id:")) {
                     int currentId = Integer.parseInt(line.split(":")[1].trim());
                     inTargetRequest = (currentId == requestId);
-                    hasViewedField = false; // Reset for new block
+                    hasViewedField = false; 
                 }
                 
                 if (inTargetRequest) {
@@ -236,11 +237,9 @@ public class RequestDataManager {
                     } else if (line.startsWith("rejection_reason:")) {
                         lines.add("rejection_reason: " + (rejectionReason != null ? rejectionReason : ""));
                     } else if (line.startsWith("notification_viewed:")) {
-                        // Reset notification to false because status changed!
-                        lines.add("notification_viewed: false");
+                        lines.add("notification_viewed: false"); // Reset notification
                         hasViewedField = true;
                     } else if (line.equals("---")) {
-                        // End of block. If we didn't find notification_viewed, insert it.
                         if (!hasViewedField) {
                             lines.add("notification_viewed: false");
                         }
@@ -258,7 +257,6 @@ public class RequestDataManager {
             return false;
         }
         
-        // Rewrite file
         if (updated) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
                 for (String line : lines) {
