@@ -125,7 +125,6 @@ public class RequestDataManager {
         return requests;
     }
     
-    // ---------------- NOTIFICATION LOGIC ---------------- //
     public Map<String, List<Integer>> getUnnotifiedRequests(int userId, String targetRequestType) {
         Map<String, List<Integer>> result = new HashMap<>();
         result.put("ACCEPTED", new ArrayList<>());
@@ -144,7 +143,6 @@ public class RequestDataManager {
                         int uId = Integer.parseInt(data.getOrDefault("user_id", "-1"));
                         String rType = data.getOrDefault("request_type", "");
 
-                        // BUG FIX: Check BOTH userId AND requestType
                         if (uId == userId && rType.equals(targetRequestType)) {
                             String status = data.getOrDefault("status", "PENDING");
                             String viewedStr = data.getOrDefault("notification_viewed", "true");
@@ -170,9 +168,7 @@ public class RequestDataManager {
         return result;
     }
 
-    /**
-     * Mark a list of request IDs as viewed (notification_viewed: true)
-     */
+
     public void markAsViewed(List<Integer> requestIds) {
         if (requestIds == null || requestIds.isEmpty()) return;
         

@@ -11,13 +11,10 @@ import ui.LoginPage;
 public class App {
 
     public static void main(String[] args) {
-        // 1. Start Vehicle Server (Port 5000)
-        new Thread(App::startVehicleServer).start();
 
-        // 2. Start Job Server (Port 6000)
+        new Thread(App::startVehicleServer).start();
         new Thread(App::startJobServer).start();
 
-        // 3. Launch GUI
         SwingUtilities.invokeLater(() -> {
             LoginPage loginPage = new LoginPage();
             loginPage.setVisible(true);
@@ -30,7 +27,6 @@ public class App {
             
             RequestDataManager requestManager = new RequestDataManager();
             
-            // Extract User ID for the log
             int userId = 0;
             try {
                 String[] lines = vehiclePayload.split("\n");
@@ -42,16 +38,12 @@ public class App {
                 }
             } catch (Exception e) { e.printStackTrace(); }
 
-            // Save to PENDING database
             requestManager.addRequest(
                 "VEHICLE_SUBMISSION", 
                 userId, 
                 "Vehicle Owner " + userId, 
                 vehiclePayload
             );
-
-            // Return "PENDING" so the handler knows we handled it, 
-            // but it shouldn't write to the active file yet.
             return "PENDING"; 
         };
 
