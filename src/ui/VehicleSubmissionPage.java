@@ -1,5 +1,6 @@
 package ui;
 
+import ClientServer_owner.NetworkVehicleSender;
 import data.UserDataManager;
 import data.VehicleDataManager;
 import java.awt.*;
@@ -377,10 +378,20 @@ public class VehicleSubmissionPage extends JFrame {
                 LocalDate.parse(form.getResidencyEnd()),
                 VehicleStatus.AVAILABLE
             );
-            
-            if (dataManager.addVehicle(vehicle)) {
+
+            //Initializes Payload Builder
+            String payload = buildPayload(vehicle);
+
+            //Sends Vehcile info only if accepted
+            boolean accepted = NetworkVehicleSender.sendVehiclePayload(payload);
+
+            if (accepted) {
+                dataManager.addVehicle(vehicle);
                 successCount++;
             }
+
+
+
         }
 
         if (successCount == vehicleForms.size()) {
@@ -393,7 +404,25 @@ public class VehicleSubmissionPage extends JFrame {
                 "Some vehicles could not be saved. " + successCount + " of " + vehicleForms.size() + " succeeded.", 
                 "Partial Success", JOptionPane.WARNING_MESSAGE);
         }
+
     }
+
+    //Payload Builder
+    private String buildPayload(Vehicle v)
+    {
+        return "type: vehicle_availability\n"
+                + "user_id: " + v.getOwnerId() + "\n"
+                + "vin: " + v.getVin() + "\n"
+                + "license_plate: " + v.getLicensePlate() + "\n"
+                + "vehicle_make: " + v.getMake() + "\n"
+                + "vehicle_model: " + v.getModel() + "\n"
+                + "vehicle_year: " + v.getYear() + "\n"
+                + "computing_power: " + v.getComputingPower() + "\n"
+                + "start_date: " + v.getArrivalDate() + "\n"
+                + "end_date: " + v.getDepartureDate() + "\n"
+                + "---";
+    }
+
 
     private void clearAllForms() {
         formsContainer.removeAll();
