@@ -1,6 +1,7 @@
 package ui;
 
 import data.JobDataManager;
+import data.RequestDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -10,9 +11,9 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
 import model.Job;
+import model.Request;
 import model.User;
 import validation.JobValidator;
-import data.RequestDataManager;
 
 public class JobSubmissionPage extends JFrame {
     private final JobDataManager dataManager = new JobDataManager();
@@ -46,6 +47,23 @@ public class JobSubmissionPage extends JFrame {
         JLabel headerTitle = new JLabel("VCRTS");
         headerTitle.setFont(new Font("Georgia", Font.PLAIN, 28));
         headerPanel.add(headerTitle, BorderLayout.WEST);
+        
+        // Right side buttons panel
+        JPanel headerButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        headerButtonsPanel.setBackground(Color.WHITE);
+        
+        JButton viewSubmissionsButton = new JButton("My Submissions");
+        viewSubmissionsButton.setFont(new Font("Arial", Font.BOLD, 14));
+        viewSubmissionsButton.setFocusPainted(false);
+        viewSubmissionsButton.setBorderPainted(false);
+        viewSubmissionsButton.setContentAreaFilled(false);
+        viewSubmissionsButton.setForeground(new Color(44, 116, 132));
+        viewSubmissionsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        viewSubmissionsButton.addActionListener(e -> {
+            dispose();
+            SwingUtilities.invokeLater(() -> new ClientRequestStatusPage(currentUser).setVisible(true));
+        });
+        
         JButton logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
         logoutButton.setFocusPainted(false);
@@ -58,7 +76,10 @@ public class JobSubmissionPage extends JFrame {
             dispose();
             SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
         });
-        headerPanel.add(logoutButton, BorderLayout.EAST);
+        
+        headerButtonsPanel.add(viewSubmissionsButton);
+        headerButtonsPanel.add(logoutButton);
+        headerPanel.add(headerButtonsPanel, BorderLayout.EAST);
 
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
@@ -337,34 +358,106 @@ public class JobSubmissionPage extends JFrame {
             return;
         }
 
+        // Create RequestDataManager instance
+        RequestDataManager requestDataManager = new RequestDataManager();
+        JobDataManager jobDataManager = new JobDataManager();
+        
+        // Get the next available Job ID for this user
+        int nextJobId = getNextJobIdForUser();
+        
         int successCount = 0;
+        StringBuilder requestIds = new StringBuilder();
+
         for (JobFormPanel form : jobForms) {
             String jobType = form.getJobType();
             String duration = form.getDuration();
             String deadline = form.getDeadline();
             String description = form.getDescription();
-            Job job = new Job(
-                currentUser.getId(), 
-                jobType,
-                Integer.parseInt(duration.trim()),
-                deadline.trim(),
-                description.trim()
+
+            // Format the job data for the request with the assigned Job ID
+            String jobData = String.format(
+                "Job ID: %d\nClient ID: %d\nJob Type: %s\nDuration: %s\nDeadline: %s\nDescription: %s",
+                nextJobId, currentUser.getId(), jobType, duration.trim(), deadline.trim(), description.trim()
             );
-            if (dataManager.addJob(job)) {
+
+            // Submit as request instead of direct save
+            int requestId = requestDataManager.addRequest(
+                "JOB_SUBMISSION",
+                currentUser.getId(),
+                currentUser.getFirstName() + " " + currentUser.getLastName(),
+                jobData
+            );
+
+            if (requestId > 0) {
                 successCount++;
+                if (requestIds.length() > 0) {
+                    requestIds.append(", ");
+                }
+                requestIds.append("#").append(nextJobId);
+                nextJobId++; // Increment for next job
             }
         }
 
         if (successCount == jobForms.size()) {
-            CustomDialog dialog = new CustomDialog(this, "Success", 
-                successCount + " job(s) submitted successfully!");
+            String message = String.format(
+                "%d job(s) submitted for controller review!\n\nJob ID(s): %s\n\n" +
+                "You will be notified once the controller reviews your submission(s).",
+                successCount, requestIds.toString()
+            );
+            CustomDialog dialog = new CustomDialog(this, "Requests Submitted", 
+                message, CustomDialog.DialogType.SUCCESS);
             dialog.setVisible(true);
             clearAllForms();
+        } else if (successCount > 0) {
+            String message = String.format(
+                "%d of %d job(s) submitted for review.\n\nJob ID(s): %s\n\nSome jobs failed to submit.",
+                successCount, jobForms.size(), requestIds.toString()
+            );
+            CustomDialog dialog = new CustomDialog(this, "Partial Success", 
+                message, CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, 
-                "Some jobs could not be saved. " + successCount + " of " + jobForms.size() + " succeeded.", 
-                "Partial Success", JOptionPane.WARNING_MESSAGE);
+            CustomDialog dialog = new CustomDialog(this, "Submission Failed", 
+                "Failed to submit jobs. Please try again.", CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         }
+    }
+    
+    private int getNextJobIdForUser() {
+        JobDataManager jobDataManager = new JobDataManager();
+        RequestDataManager requestDataManager = new RequestDataManager();
+        
+        int maxJobId = 0;
+        
+        // Check ALL accepted jobs (globally, not just this user)
+        List<Job> allJobs = jobDataManager.getAllJobs();
+        for (Job job : allJobs) {
+            if (job.getJobId() > maxJobId) {
+                maxJobId = job.getJobId();
+            }
+        }
+        
+        // Check ALL pending requests (globally, not just this user)
+        List<Request> allRequests = requestDataManager.getPendingRequests();
+        for (Request request : allRequests) {
+            // Parse Job ID from request data
+            String[] dataLines = request.getData().split("\n");
+            for (String line : dataLines) {
+                if (line.startsWith("Job ID:")) {
+                    try {
+                        int jobId = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
+                        if (jobId > maxJobId) {
+                            maxJobId = jobId;
+                        }
+                    } catch (NumberFormatException e) {
+                        // Skip if can't parse
+                    }
+                    break;
+                }
+            }
+        }
+        
+        return maxJobId + 1;
     }
 
     private void clearAllForms() {
