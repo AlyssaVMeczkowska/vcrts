@@ -1,5 +1,7 @@
 package ui;
 
+import ClientServer_owner.NetworkVehicleSender;
+import data.RequestDataManager;
 import data.UserDataManager;
 import data.VehicleDataManager;
 import java.awt.*;
@@ -14,6 +16,7 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
+import model.Request;
 import model.User;
 import model.Vehicle;
 import model.VehicleStatus;
@@ -23,6 +26,7 @@ public class VehicleSubmissionPage extends JFrame {
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
     private final UserDataManager userDataManager = new UserDataManager();
+    private final RequestDataManager requestDataManager = new RequestDataManager();
     private User currentUser;
     private Border defaultBorder, focusBorder, errorBorder;
     private JPanel formsContainer;
@@ -30,7 +34,6 @@ public class VehicleSubmissionPage extends JFrame {
     private List<VehicleFormPanel> vehicleForms;
     private int vehicleCounter = 1;
     private JPanel mainPanel;
-
     public VehicleSubmissionPage(User user) {
         this.currentUser = user;
         this.vehicleForms = new ArrayList<>();
@@ -51,6 +54,20 @@ public class VehicleSubmissionPage extends JFrame {
         JLabel headerTitle = new JLabel("VCRTS");
         headerTitle.setFont(new Font("Georgia", Font.PLAIN, 28));
         headerPanel.add(headerTitle, BorderLayout.WEST);
+        
+        JPanel headerButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        headerButtonsPanel.setBackground(Color.WHITE);
+        JButton viewSubmissionsButton = new JButton("My Submissions");
+        viewSubmissionsButton.setFont(new Font("Arial", Font.BOLD, 14));
+        viewSubmissionsButton.setFocusPainted(false);
+        viewSubmissionsButton.setBorderPainted(false);
+        viewSubmissionsButton.setContentAreaFilled(false);
+        viewSubmissionsButton.setForeground(new Color(44, 116, 132));
+        viewSubmissionsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        viewSubmissionsButton.addActionListener(e -> {
+            dispose();
+            SwingUtilities.invokeLater(() -> new VehicleOwnerRequestStatusPage(currentUser).setVisible(true));
+        });
         JButton logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
         logoutButton.setFocusPainted(false);
@@ -62,7 +79,9 @@ public class VehicleSubmissionPage extends JFrame {
             dispose();
             SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
         });
-        headerPanel.add(logoutButton, BorderLayout.EAST);
+        headerButtonsPanel.add(viewSubmissionsButton);
+        headerButtonsPanel.add(logoutButton);
+        headerPanel.add(headerButtonsPanel, BorderLayout.EAST);
 
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
@@ -83,20 +102,17 @@ public class VehicleSubmissionPage extends JFrame {
 
         rootPanel.add(headerPanel, BorderLayout.NORTH);
         rootPanel.add(scrollPane, BorderLayout.CENTER);
-
         JLabel titleLabel = new JLabel("Submit Vehicle Availability");
         titleLabel.setFont(new Font("Georgia", Font.PLAIN, 42));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 8)));
-        
         JLabel subtitleLabel = new JLabel("Register your vehicle");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         subtitleLabel.setForeground(new Color(100, 100, 100));
         subtitleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(subtitleLabel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 25)));
-
         defaultBorder = BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(200, 200, 200), 1),
                 BorderFactory.createEmptyBorder(3, 10, 3, 10)
@@ -109,7 +125,6 @@ public class VehicleSubmissionPage extends JFrame {
                 BorderFactory.createLineBorder(Color.RED, 1),
                 BorderFactory.createEmptyBorder(3, 10, 3, 10)
         );
-
         formsContainer = new JPanel();
         formsContainer.setLayout(new BoxLayout(formsContainer, BoxLayout.Y_AXIS));
         formsContainer.setBackground(Color.WHITE);
@@ -160,11 +175,9 @@ public class VehicleSubmissionPage extends JFrame {
             separator.setForeground(new Color(220, 220, 220));
             formsContainer.add(separator);
             formsContainer.add(Box.createRigidArea(new Dimension(0, 20)));
-            
             JLabel vehicleLabel = new JLabel("Vehicle " + vehicleCounter);
             vehicleLabel.setFont(new Font("Georgia", Font.BOLD, 28));
             vehicleLabel.setForeground(new Color(0, 124, 137));
-            
             JPanel vehicleLabelPanel = new JPanel(new BorderLayout());
             vehicleLabelPanel.setBackground(Color.WHITE);
             vehicleLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -180,18 +193,19 @@ public class VehicleSubmissionPage extends JFrame {
                 
                     if (!vehicleForms.isEmpty()) {
                         vehicleForms.remove(vehicleForms.size() - 1);
+        
                     }
                     rebuildFormsContainer();
                     updateMainPanelHeight();
                 }
                 public void mouseEntered(java.awt.event.MouseEvent evt) {
+            
                     removeButton.setForeground(new Color(220, 53, 69));
                 }
                 public void mouseExited(java.awt.event.MouseEvent evt) {
                     removeButton.setForeground(new Color(0, 124, 137));
                 }
             });
-            
             vehicleLabelPanel.add(removeButton, BorderLayout.EAST);
             vehicleLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, vehicleLabel.getPreferredSize().height));
             formsContainer.add(vehicleLabelPanel);
@@ -219,7 +233,6 @@ public class VehicleSubmissionPage extends JFrame {
         mainPanel.setPreferredSize(new Dimension(900, newHeight));
         mainPanel.setMaximumSize(new Dimension(900, newHeight));
         mainPanel.revalidate();
-        
         SwingUtilities.invokeLater(() -> {
             vehicleForm.scrollRectToVisible(vehicleForm.getBounds());
         });
@@ -227,11 +240,9 @@ public class VehicleSubmissionPage extends JFrame {
 
     private void rebuildFormsContainer() {
         formsContainer.removeAll();
-        
         JLabel vehicle1Label = new JLabel("Vehicle 1");
         vehicle1Label.setFont(new Font("Georgia", Font.BOLD, 28));
         vehicle1Label.setForeground(new Color(0, 124, 137));
-        
         JPanel vehicle1LabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         vehicle1LabelPanel.setBackground(Color.WHITE);
         vehicle1LabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -239,7 +250,6 @@ public class VehicleSubmissionPage extends JFrame {
         vehicle1LabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, vehicle1Label.getPreferredSize().height));
         formsContainer.add(vehicle1LabelPanel);
         formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
-        
         for (int i = 0; i < vehicleForms.size(); i++) {
             if (i > 0) {
                 formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
@@ -248,11 +258,9 @@ public class VehicleSubmissionPage extends JFrame {
                 sep.setForeground(new Color(220, 220, 220));
                 formsContainer.add(sep);
                 formsContainer.add(Box.createRigidArea(new Dimension(0, 20)));
-                
                 JLabel vLabel = new JLabel("Vehicle " + (i + 1));
                 vLabel.setFont(new Font("Georgia", Font.BOLD, 28));
                 vLabel.setForeground(new Color(0, 124, 137));
-                
                 JPanel vLabelPanel = new JPanel(new BorderLayout());
                 vLabelPanel.setBackground(Color.WHITE);
                 vLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -269,15 +277,16 @@ public class VehicleSubmissionPage extends JFrame {
                         vehicleForms.remove(formIndex);
                         rebuildFormsContainer();
                         updateMainPanelHeight();
+  
                     }
                     public void mouseEntered(java.awt.event.MouseEvent evt) {
                         remBtn.setForeground(new Color(220, 53, 69));
                     }
+           
                     public void mouseExited(java.awt.event.MouseEvent evt) {
                         remBtn.setForeground(new Color(0, 124, 137));
                     }
                 });
-                
                 vLabelPanel.add(remBtn, BorderLayout.EAST);
                 vLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, vLabel.getPreferredSize().height));
                 formsContainer.add(vLabelPanel);
@@ -352,7 +361,9 @@ public class VehicleSubmissionPage extends JFrame {
                 userDataManager.updateUserConsent(currentUser);
                 currentUser.setHasAgreedToTerms(true);
             } else {
-                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled", "You must agree to the terms and conditions to register a vehicle.", CustomDialog.DialogType.WARNING);
+                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled", 
+                    "You must agree to the terms and conditions to register a vehicle.", 
+                    CustomDialog.DialogType.WARNING);
                 dialog.setVisible(true);
                 return;
             }
@@ -362,48 +373,137 @@ public class VehicleSubmissionPage extends JFrame {
             return;
         }
 
+        // Get the next available Vehicle ID globally
+        int nextVehicleId = getNextVehicleId();
         int successCount = 0;
+        StringBuilder vehicleIds = new StringBuilder();
+        
         for (VehicleFormPanel form : vehicleForms) {
-            Vehicle vehicle = new Vehicle(
-                0,
-                currentUser.getId(),
-                form.getVehicleMake(),
-                form.getVehicleModel(),
-                Integer.parseInt(form.getVehicleYear()),
-                form.getVinNumber(),
-                form.getLicensePlate(),
-                form.getComputingPower(),
-                LocalDate.parse(form.getResidencyStart()),
-                LocalDate.parse(form.getResidencyEnd()),
-                VehicleStatus.AVAILABLE
-            );
-            
-            if (dataManager.addVehicle(vehicle)) {
+                    Vehicle vehicle = new Vehicle(
+                        0,
+                        currentUser.getId(),
+              
+                        form.getVehicleMake(),
+                        form.getVehicleModel(),
+                        Integer.parseInt(form.getVehicleYear()),
+                        form.getVinNumber(),
+                  
+                        form.getLicensePlate(),
+                        form.getComputingPower(),
+                        LocalDate.parse(form.getResidencyStart()),
+                        LocalDate.parse(form.getResidencyEnd()),
+                      
+                        VehicleStatus.AVAILABLE
+                    );
+            //Initializes Payload Builder
+            String payload = buildPayload(vehicle);
+            //Sends Vehcile info only if accepted
+            boolean accepted = NetworkVehicleSender.sendVehiclePayload(payload);
+            if (accepted) {
+                // REMOVED: dataManager.addVehicle(vehicle); 
+                // This prevents premature writing to the database.
+                // The server will write to Pending Requests instead.
+                
                 successCount++;
+                if (vehicleIds.length() > 0) {
+                    vehicleIds.append(", ");
+                }
+                vehicleIds.append("#").append(nextVehicleId);
+                nextVehicleId++;
+                // Increment for next vehicle
             }
+
+
+
         }
 
         if (successCount == vehicleForms.size()) {
-            CustomDialog dialog = new CustomDialog(this, "Success", 
-                successCount + " vehicle(s) submitted successfully!");
+            String message = String.format(
+                "%d vehicle(s) submitted for controller review!\n\nVehicle ID(s): %s\n\n" +
+                "You will be notified once the controller reviews your submission(s).",
+                successCount, vehicleIds.toString()
+            );
+            CustomDialog dialog = new CustomDialog(this, "Requests Submitted", 
+                message, CustomDialog.DialogType.SUCCESS);
             dialog.setVisible(true);
             clearAllForms();
+        } else if (successCount > 0) {
+            String message = String.format(
+                "%d of %d vehicle(s) submitted for review.\n\nVehicle ID(s): %s\n\nSome vehicles failed to submit.",
+                successCount, vehicleForms.size(), vehicleIds.toString()
+            );
+            CustomDialog dialog = new CustomDialog(this, "Partial Success", 
+                message, CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, 
-                "Some vehicles could not be saved. " + successCount + " of " + vehicleForms.size() + " succeeded.", 
-                "Partial Success", JOptionPane.WARNING_MESSAGE);
+            CustomDialog dialog = new CustomDialog(this, "Submission Failed", 
+                "Failed to submit vehicles. Please try again.", CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         }
     }
+    
+    private int getNextVehicleId() {
+        int maxVehicleId = 0;
+        // Check ALL accepted vehicles (globally, not just this user)
+        List<Vehicle> allVehicles = dataManager.getAllVehicles();
+        for (Vehicle vehicle : allVehicles) {
+            if (vehicle.getVehicleId() > maxVehicleId) {
+                maxVehicleId = vehicle.getVehicleId();
+            }
+        }
+        
+        // Check ALL pending requests (globally, not just this user)
+        List<Request> allRequests = requestDataManager.getPendingRequests();
+        for (Request request : allRequests) {
+            if ("VEHICLE_SUBMISSION".equals(request.getRequestType())) {
+                // Parse Vehicle ID from request data
+                String[] dataLines = request.getData().split("\n");
+                for (String line : dataLines) {
+                    if (line.startsWith("Vehicle ID:")) {
+                        try {
+                            int vehicleId = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
+                            if (vehicleId > maxVehicleId) {
+                                maxVehicleId = vehicleId;
+                            }
+                        } catch (NumberFormatException e) {
+                            // Skip if can't parse
+                        }
+                
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return maxVehicleId + 1;
+    }
+
+    //Payload Builder
+    private String buildPayload(Vehicle v)
+    {
+        return "type: vehicle_availability\n"
+                + "user_id: " + v.getOwnerId() + "\n"
+                + "vin: " + v.getVin() + "\n"
+                + "license_plate: " + v.getLicensePlate() + "\n"
+        
+                + "vehicle_make: " + v.getMake() + "\n"
+                + "vehicle_model: " + v.getModel() + "\n"
+                + "vehicle_year: " + v.getYear() + "\n"
+                + "computing_power: " + v.getComputingPower() + "\n"
+                + "start_date: " + 
+v.getArrivalDate() + "\n"
+                + "end_date: " + v.getDepartureDate() + "\n"
+                + "---";
+    }
+
 
     private void clearAllForms() {
         formsContainer.removeAll();
         vehicleForms.clear();
         vehicleCounter = 1;
-        
         JLabel vehicle1Label = new JLabel("Vehicle 1");
         vehicle1Label.setFont(new Font("Georgia", Font.BOLD, 28));
         vehicle1Label.setForeground(new Color(0, 124, 137));
-        
         JPanel vehicle1LabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         vehicle1LabelPanel.setBackground(Color.WHITE);
         vehicle1LabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -442,7 +542,6 @@ public class VehicleSubmissionPage extends JFrame {
         private JLabel licensePlateErrorLabel, vinNumberErrorLabel;
         private JLabel residencyStartErrorLabel, residencyEndErrorLabel;
         private JPanel addButtonPanel;
-
         public VehicleFormPanel() {
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBackground(Color.WHITE);
@@ -459,11 +558,11 @@ public class VehicleSubmissionPage extends JFrame {
                 @Override
                 public void focusLost(FocusEvent e) {
                     if (!((JComponent) e.getComponent()).getBorder().equals(errorBorder)) {
-                        ((JComponent) e.getComponent()).setBorder(defaultBorder);
+                        ((JComponent) 
+                        e.getComponent()).setBorder(defaultBorder);
                     }
                 }
             };
-
             JPanel firstRowPanel = new JPanel(new GridLayout(1, 3, 20, 0));
             firstRowPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
             firstRowPanel.setBackground(Color.WHITE);
@@ -520,7 +619,6 @@ public class VehicleSubmissionPage extends JFrame {
             JPanel dateRow = new JPanel(new GridLayout(1, 2, 20, 0));
             dateRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
             dateRow.setBackground(Color.WHITE);
-            
             residencyStartField = new PlaceholderTextField("Select a date");
             residencyStartField.setEditable(false);
             residencyStartField.setBackground(Color.WHITE);
@@ -531,7 +629,6 @@ public class VehicleSubmissionPage extends JFrame {
                     showCalendar(residencyStartField, true, null, residencyStartErrorLabel);
                 }
             });
-            
             residencyEndField = new PlaceholderTextField("Select a date");
             residencyEndField.setEditable(false);
             residencyEndField.setBackground(Color.WHITE);
@@ -542,17 +639,19 @@ public class VehicleSubmissionPage extends JFrame {
                     Date minEndDate = null;
                     if (!residencyStartField.getText().isEmpty()) {
                         try {
+        
                             minEndDate = new SimpleDateFormat("yyyy-MM-dd").parse(residencyStartField.getText());
                         } catch (ParseException ex) {
                             System.err.println("Error parsing start date: " + ex.getMessage());
+               
                         }
                      } else {
                         minEndDate = new Date();
                     }
-                    showCalendar(residencyEndField, false, minEndDate, residencyEndErrorLabel);
+                    showCalendar(residencyEndField, 
+false, minEndDate, residencyEndErrorLabel);
                 }
             });
-            
             residencyStartErrorLabel = new JLabel(" ");
             residencyEndErrorLabel = new JLabel(" ");
             dateRow.add(createColumn("<html>Residency Start Date: <font color='red'>*</font></html>", residencyStartField, residencyStartErrorLabel, highlightListener));
@@ -578,7 +677,6 @@ public class VehicleSubmissionPage extends JFrame {
                 addButtonPanel.setVisible(false);
                 addVehicleForm();
             });
-            
             addButtonPanel.add(Box.createHorizontalGlue());
             addButtonPanel.add(localAddButton);
             add(addButtonPanel);
@@ -640,9 +738,7 @@ public class VehicleSubmissionPage extends JFrame {
             vinNumberErrorLabel.setText(" ");
             residencyStartErrorLabel.setText(" ");
             residencyEndErrorLabel.setText(" ");
-            
-    
-        if (!validator.isFieldValid(make)) {
+            if (!validator.isFieldValid(make)) {
                 vehicleMakeErrorLabel.setText("Vehicle make is required.");
                 vehicleMakeField.setBorder(errorBorder);
                 isValid = false;
@@ -704,14 +800,22 @@ public class VehicleSubmissionPage extends JFrame {
             return isValid;
         }
 
-        public String getVehicleMake() { return vehicleMakeField.getText().trim(); }
-        public String getVehicleModel() { return vehicleModelField.getText().trim(); }
-        public String getVehicleYear() { return vehicleYearField.getText().trim(); }
-        public String getLicensePlate() { return licensePlateField.getText().trim(); }
-        public String getVinNumber() { return vinNumberField.getText().trim(); }
-        public String getComputingPower() { return (String) computingPowerCombo.getSelectedItem(); }
-        public String getResidencyStart() { return residencyStartField.getText().trim(); }
-        public String getResidencyEnd() { return residencyEndField.getText().trim(); }
+        public String getVehicleMake() { return vehicleMakeField.getText().trim();
+        }
+        public String getVehicleModel() { return vehicleModelField.getText().trim();
+        }
+        public String getVehicleYear() { return vehicleYearField.getText().trim();
+        }
+        public String getLicensePlate() { return licensePlateField.getText().trim();
+        }
+        public String getVinNumber() { return vinNumberField.getText().trim();
+        }
+        public String getComputingPower() { return (String) computingPowerCombo.getSelectedItem();
+        }
+        public String getResidencyStart() { return residencyStartField.getText().trim();
+        }
+        public String getResidencyEnd() { return residencyEndField.getText().trim();
+        }
     }
 
     private static class PlaceholderTextField extends JTextField {
@@ -731,12 +835,4 @@ public class VehicleSubmissionPage extends JFrame {
             g2.drawString(placeholder, getInsets().left + 5, y);
         }
     }
-
-    // public static void main(String[] args) {
-    //     User testUser = new User(998, "Owner", "Test", "owner@test.com", "ownertest", "555-5555", "hash", "Owner", "timestamp", true);
-    //     SwingUtilities.invokeLater(() -> {
-    //         VehicleSubmissionPage dashboard = new VehicleSubmissionPage(testUser);
-    //         dashboard.setVisible(true);
-    //     });
-    // }
 }

@@ -6,29 +6,57 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import model.Vehicle;
-
+import model.VehicleStatus;
 public class VehicleDataManager {
-
     private static final String FILE_PATH = "data/vcrts_data.txt";
+
+    private int getNextVehicleId() {
+        int maxId = 0;
+        File file = new File(FILE_PATH);
+        if (!file.exists()) {
+            return 1;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().startsWith("user_id:")) {
+                    try {
+                        int currentId = Integer.parseInt(line.split(":")[1].trim());
+                        if (currentId > maxId) {
+                            maxId = currentId;
+                        }
+                    } catch (NumberFormatException e) {
+                        System.err.println("Could not parse vehicle ID from line: " + line);
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            System.err.println("Error reading data file to get next vehicle ID: " + ex.getMessage());
+        }
+        return maxId + 1;
+    }
 
     private boolean isValueTaken(String key, String value) {
         File file = new File(FILE_PATH);
         if (!file.exists()) {
             return false;
         }
-
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             boolean isVehicleBlock = false;
             while ((line = reader.readLine()) != null) {
-
                 if (line.startsWith("type: vehicle_availability")) {
                     isVehicleBlock = true;
                 } else if (line.equals("---")) {
-                    isVehicleBlock = false; 
+                    isVehicleBlock = false;
                 } else if (isVehicleBlock && line.startsWith(key)) {
-
                     String fileValue = line.split(":", 2)[1].trim();
                     if (fileValue.equalsIgnoreCase(value)) {
                         return true;
@@ -40,21 +68,28 @@ public class VehicleDataManager {
         }
         return false;
     }
-
+    
     public boolean isVinTaken(String vin) {
         return isValueTaken("vin:", vin);
     }
-
+    
     public boolean isLicensePlateTaken(String licensePlate) {
         return isValueTaken("license_plate:", licensePlate);
     }
-
+    
     public boolean addVehicle(Vehicle vehicle) {
+        int newVehicleId = getNextVehicleId();
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write("type: vehicle_availability"); 
+            writer.write("type: vehicle_availability");
             writer.newLine();
-            writer.write("user_id: " + vehicle.getVehicleId()); 
+
+            writer.write("user_id: " + newVehicleId); 
             writer.newLine();
+
+            writer.write("owner_id: " + vehicle.getOwnerId()); 
+            writer.newLine();
+
             writer.write("vin: " + vehicle.getVin());
             writer.newLine();
             writer.write("license_plate: " + vehicle.getLicensePlate());
@@ -80,5 +115,71 @@ public class VehicleDataManager {
             System.err.println("Error writing to data file: " + ex.getMessage());
             return false;
         }
+    }
+    
+    /**
+     * Get all vehicles from the data file
+     */
+    public List<Vehicle> getAllVehicles() {
+        List<Vehicle> vehicles = new ArrayList<>();
+        File file = new File(FILE_PATH);
+        
+        if (!file.exists()) {
+            return vehicles;
+        }
+        
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String line;
+            Map<String, String> vehicleData = new HashMap<>();
+            boolean isVehicleBlock = false;
+            int vehicleIdCounter = 1; // Auto-increment vehicle ID since it's not stored
+            
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("type: vehicle_availability")) {
+                    isVehicleBlock = true;
+                    vehicleData.clear();
+                } else if (line.equals("---")) {
+                    if (isVehicleBlock && !vehicleData.isEmpty()) {
+                        try {
+                            // user_id in file is the OWNER ID, not vehicle ID
+                            int ownerId = Integer.parseInt(vehicleData.getOrDefault("user_id", "0"));
+                            
+                            Vehicle vehicle = new Vehicle(
+                                vehicleIdCounter++, // Auto-increment vehicle ID
+                                ownerId, // This is the owner's user ID
+                                vehicleData.getOrDefault("vehicle_make", ""),
+                                vehicleData.getOrDefault("vehicle_model", ""),
+                                Integer.parseInt(vehicleData.getOrDefault("vehicle_year", "0")),
+                                vehicleData.getOrDefault("vin", ""),
+                                vehicleData.getOrDefault("license_plate", ""),
+                                vehicleData.getOrDefault("computing_power", "Medium"),
+                                LocalDate.parse(vehicleData.getOrDefault("start_date", "2025-01-01")),
+                                LocalDate.parse(vehicleData.getOrDefault("end_date", "2025-12-31")),
+                                VehicleStatus.AVAILABLE
+                            );
+                            
+                            // Set the timestamp from file if it exists
+                            if (vehicleData.containsKey("timestamp")) {
+                                vehicle.setSubmissionTimestamp(vehicleData.get("timestamp"));
+                            }
+                            
+                            vehicles.add(vehicle);
+                        } catch (Exception e) {
+                            System.err.println("Error parsing vehicle: " + e.getMessage());
+                        }
+                    }
+                    isVehicleBlock = false;
+                } else if (isVehicleBlock && line.contains(":")) {
+                    String[] parts = line.split(":", 2);
+                    if (parts.length == 2) {
+                        vehicleData.put(parts[0].trim(), parts[1].trim());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading vehicles: " + e.getMessage());
+        }
+        
+        return vehicles;
     }
 }
