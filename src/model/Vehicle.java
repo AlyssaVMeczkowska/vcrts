@@ -36,9 +36,6 @@ public class Vehicle {
         return vehicleId;
     }
 
-    public int getOwnerId() {
-        return ownerId;
-    }
 
     public String getMake() {
         return make;
