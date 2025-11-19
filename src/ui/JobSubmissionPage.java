@@ -350,9 +350,15 @@ public class JobSubmissionPage extends JFrame {
                 deadline.trim(),
                 description.trim()
             );
-            if (dataManager.addJob(job)) {
+            String payload = buildJobPayload(job);
+
+            boolean accepted = ClientJobSender.sendJobPayload(payload);
+
+            if (accepted) {
+                dataManager.addJob(job);
                 successCount++;
             }
+
         }
 
         if (successCount == jobForms.size()) {
@@ -648,6 +654,16 @@ public class JobSubmissionPage extends JFrame {
             g2.drawString(placeholder, getInsets().left + 5, getInsets().top + fm.getAscent());
         }
     }
+    private String buildJobPayload(Job job) {
+        return "type: job_submission\n"
+                + "user_id: " + job.getAccountId() + "\n"
+                + "job_type: " + job.getJobType() + "\n"
+                + "duration: " + job.getDuration() + "\n"
+                + "deadline: " + job.getDeadline() + "\n"
+                + "description: " + job.getDescription() + "\n"
+                + "---";
+    }
+
 
     // public static void main(String[] args) {
     //     User testUser = new User(999, "Test", "User", "test@example.com", "testuser", "1234567890", "hash", "Client", "timestamp", true);
