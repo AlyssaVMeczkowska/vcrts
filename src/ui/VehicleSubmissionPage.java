@@ -2,6 +2,7 @@ package ui;
 
 import data.UserDataManager;
 import data.VehicleDataManager;
+import data.RequestDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -17,12 +18,14 @@ import javax.swing.border.Border;
 import model.User;
 import model.Vehicle;
 import model.VehicleStatus;
+import model.Request;
 import validation.VehicleValidator;
 
 public class VehicleSubmissionPage extends JFrame {
     private final VehicleValidator validator = new VehicleValidator();
     private final VehicleDataManager dataManager = new VehicleDataManager();
     private final UserDataManager userDataManager = new UserDataManager();
+    private final RequestDataManager requestDataManager = new RequestDataManager();
     private User currentUser;
     private Border defaultBorder, focusBorder, errorBorder;
     private JPanel formsContainer;
@@ -51,6 +54,22 @@ public class VehicleSubmissionPage extends JFrame {
         JLabel headerTitle = new JLabel("VCRTS");
         headerTitle.setFont(new Font("Georgia", Font.PLAIN, 28));
         headerPanel.add(headerTitle, BorderLayout.WEST);
+        
+        JPanel headerButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
+        headerButtonsPanel.setBackground(Color.WHITE);
+        
+        JButton viewSubmissionsButton = new JButton("My Submissions");
+        viewSubmissionsButton.setFont(new Font("Arial", Font.BOLD, 14));
+        viewSubmissionsButton.setFocusPainted(false);
+        viewSubmissionsButton.setBorderPainted(false);
+        viewSubmissionsButton.setContentAreaFilled(false);
+        viewSubmissionsButton.setForeground(new Color(44, 116, 132));
+        viewSubmissionsButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        viewSubmissionsButton.addActionListener(e -> {
+            dispose();
+            SwingUtilities.invokeLater(() -> new VehicleOwnerRequestStatusPage(currentUser).setVisible(true));
+        });
+        
         JButton logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
         logoutButton.setFocusPainted(false);
@@ -62,7 +81,10 @@ public class VehicleSubmissionPage extends JFrame {
             dispose();
             SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
         });
-        headerPanel.add(logoutButton, BorderLayout.EAST);
+        
+        headerButtonsPanel.add(viewSubmissionsButton);
+        headerButtonsPanel.add(logoutButton);
+        headerPanel.add(headerButtonsPanel, BorderLayout.EAST);
 
         JPanel contentArea = new JPanel(new GridBagLayout());
         contentArea.setBackground(new Color(238, 238, 238));
@@ -352,7 +374,9 @@ public class VehicleSubmissionPage extends JFrame {
                 userDataManager.updateUserConsent(currentUser);
                 currentUser.setHasAgreedToTerms(true);
             } else {
-                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled", "You must agree to the terms and conditions to register a vehicle.", CustomDialog.DialogType.WARNING);
+                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled", 
+                    "You must agree to the terms and conditions to register a vehicle.", 
+                    CustomDialog.DialogType.WARNING);
                 dialog.setVisible(true);
                 return;
             }
@@ -362,37 +386,106 @@ public class VehicleSubmissionPage extends JFrame {
             return;
         }
 
+        // Get the next available Vehicle ID globally
+        int nextVehicleId = getNextVehicleId();
+        
         int successCount = 0;
+        StringBuilder vehicleIds = new StringBuilder();
+        
         for (VehicleFormPanel form : vehicleForms) {
-            Vehicle vehicle = new Vehicle(
-                0,
+            // Format the vehicle data for the request with the assigned Vehicle ID
+            String vehicleData = String.format(
+                "Vehicle ID: %d\nOwner ID: %d\nMake: %s\nModel: %s\nYear: %s\n" +
+                "VIN: %s\nLicense Plate: %s\nPower: %s\nStart: %s\nEnd: %s",
+                nextVehicleId,
                 currentUser.getId(),
                 form.getVehicleMake(),
                 form.getVehicleModel(),
-                Integer.parseInt(form.getVehicleYear()),
+                form.getVehicleYear(),
                 form.getVinNumber(),
                 form.getLicensePlate(),
                 form.getComputingPower(),
-                LocalDate.parse(form.getResidencyStart()),
-                LocalDate.parse(form.getResidencyEnd()),
-                VehicleStatus.AVAILABLE
+                form.getResidencyStart(),
+                form.getResidencyEnd()
             );
             
-            if (dataManager.addVehicle(vehicle)) {
+            // Submit as request instead of direct save
+            int requestId = requestDataManager.addRequest(
+                "VEHICLE_SUBMISSION",
+                currentUser.getId(),
+                currentUser.getFirstName() + " " + currentUser.getLastName(),
+                vehicleData
+            );
+            
+            if (requestId > 0) {
                 successCount++;
+                if (vehicleIds.length() > 0) {
+                    vehicleIds.append(", ");
+                }
+                vehicleIds.append("#").append(nextVehicleId);
+                nextVehicleId++; // Increment for next vehicle
             }
         }
 
         if (successCount == vehicleForms.size()) {
-            CustomDialog dialog = new CustomDialog(this, "Success", 
-                successCount + " vehicle(s) submitted successfully!");
+            String message = String.format(
+                "%d vehicle(s) submitted for controller review!\n\nVehicle ID(s): %s\n\n" +
+                "You will be notified once the controller reviews your submission(s).",
+                successCount, vehicleIds.toString()
+            );
+            CustomDialog dialog = new CustomDialog(this, "Requests Submitted", 
+                message, CustomDialog.DialogType.SUCCESS);
             dialog.setVisible(true);
             clearAllForms();
+        } else if (successCount > 0) {
+            String message = String.format(
+                "%d of %d vehicle(s) submitted for review.\n\nVehicle ID(s): %s\n\nSome vehicles failed to submit.",
+                successCount, vehicleForms.size(), vehicleIds.toString()
+            );
+            CustomDialog dialog = new CustomDialog(this, "Partial Success", 
+                message, CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         } else {
-            JOptionPane.showMessageDialog(this, 
-                "Some vehicles could not be saved. " + successCount + " of " + vehicleForms.size() + " succeeded.", 
-                "Partial Success", JOptionPane.WARNING_MESSAGE);
+            CustomDialog dialog = new CustomDialog(this, "Submission Failed", 
+                "Failed to submit vehicles. Please try again.", CustomDialog.DialogType.WARNING);
+            dialog.setVisible(true);
         }
+    }
+    
+    private int getNextVehicleId() {
+        int maxVehicleId = 0;
+        
+        // Check ALL accepted vehicles (globally, not just this user)
+        List<Vehicle> allVehicles = dataManager.getAllVehicles();
+        for (Vehicle vehicle : allVehicles) {
+            if (vehicle.getVehicleId() > maxVehicleId) {
+                maxVehicleId = vehicle.getVehicleId();
+            }
+        }
+        
+        // Check ALL pending requests (globally, not just this user)
+        List<Request> allRequests = requestDataManager.getPendingRequests();
+        for (Request request : allRequests) {
+            if ("VEHICLE_SUBMISSION".equals(request.getRequestType())) {
+                // Parse Vehicle ID from request data
+                String[] dataLines = request.getData().split("\n");
+                for (String line : dataLines) {
+                    if (line.startsWith("Vehicle ID:")) {
+                        try {
+                            int vehicleId = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
+                            if (vehicleId > maxVehicleId) {
+                                maxVehicleId = vehicleId;
+                            }
+                        } catch (NumberFormatException e) {
+                            // Skip if can't parse
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        
+        return maxVehicleId + 1;
     }
 
     private void clearAllForms() {

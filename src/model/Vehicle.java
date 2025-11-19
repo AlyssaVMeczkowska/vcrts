@@ -75,6 +75,9 @@ public class Vehicle {
     public VehicleStatus getStatus() {
         return status;
     }
+    public void setSubmissionTimestamp(String timestamp) {
+        this.submissionTimestamp = timestamp;
+    }
 
     public String getSubmissionTimestamp() {
         return submissionTimestamp;
@@ -82,5 +85,8 @@ public class Vehicle {
 
     public void setStatus(VehicleStatus status) {
         this.status = status;
+    }
+    public int getOwnerId() {
+        return ownerId;
     }
 }
