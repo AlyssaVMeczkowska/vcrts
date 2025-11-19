@@ -1,0 +1,120 @@
+type: job_submission
+job_id: 1
+client_id: 1
+timestamp: 2025-11-19T03:18:42.634859600
+job_type: Simulation
+duration_hours: 53
+deadline: 2025-12-09
+description: 
+---
+type: job_submission
+job_id: 2
+client_id: 1
+timestamp: 2025-11-19T03:18:54.939146300
+job_type: Computational Task
+duration_hours: 6
+deadline: 2025-11-28
+description: 
+---
+type: job_submission
+job_id: 3
+client_id: 1
+timestamp: 2025-11-19T03:19:18.170656200
+job_type: Networking & Communication
+duration_hours: 61
+deadline: 2025-11-30
+description: 
+---
+type: job_submission
+job_id: 4
+client_id: 2
+timestamp: 2025-11-19T03:19:25.748224500
+job_type: Simulation
+duration_hours: 23
+deadline: 2025-12-02
+description: 
+---
+type: vehicle_availability
+user_id: 1
+owner_id: 1
+vin: 1G1PC5SB0E7180475
+license_plate: HUY-5810
+timestamp: 2025-11-19T03:19:42.564949300-05:00
+vehicle_make: Tesla
+vehicle_model: Y
+vehicle_year: 2025
+computing_power: Medium
+start_date: 2025-12-01
+end_date: 2025-12-18
+---
+type: job_submission
+job_id: 5
+client_id: 1
+timestamp: 2025-11-19T03:19:48.570753900
+job_type: Simulation
+duration_hours: 6
+deadline: 2025-11-24
+description: 
+---
+type: job_submission
+job_id: 6
+client_id: 1
+timestamp: 2025-11-19T03:20:08.844825300
+job_type: Simulation
+duration_hours: 24
+deadline: 2025-11-24
+description: 
+---
+type: job_submission
+job_id: 7
+client_id: 2
+timestamp: 2025-11-19T03:20:17.873639300
+job_type: Networking & Communication
+duration_hours: 14
+deadline: 2025-12-11
+description: 
+---
+type: vehicle_availability
+user_id: 2
+owner_id: 2
+vin: 3N1AB6AP6BL602066
+license_plate: JLP-2810
+timestamp: 2025-11-19T03:20:27.692664300-05:00
+vehicle_make: Tesla
+vehicle_model: X
+vehicle_year: 2024
+computing_power: High
+start_date: 2025-12-16
+end_date: 2025-12-18
+---
+type: job_submission
+job_id: 8
+client_id: 1
+timestamp: 2025-11-19T03:20:38.064518600
+job_type: Networking & Communication
+duration_hours: 40
+deadline: 2025-11-24
+description: 
+---
+type: job_submission
+job_id: 9
+client_id: 1
+timestamp: 2025-11-19T03:20:51.474779500
+job_type: Data Storage & Transfer
+duration_hours: 2
+deadline: 2025-11-24
+description: 
+---
+type: vehicle_availability
+user_id: 3
+owner_id: 1
+vin: 1FMJK2A51DEF50669
+license_plate: XHY-5481
+timestamp: 2025-11-19T03:21:08.109741-05:00
+vehicle_make: Tesla
+vehicle_model: X
+vehicle_year: 2024
+computing_power: Medium
+start_date: 2025-11-28
+end_date: 2025-12-04
+---
