@@ -4,39 +4,35 @@ import data.*;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import javax.swing.*;
-import javax.swing.table.*;
-import model.*;
-
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
-
-import java.util.List;
-
+import javax.swing.table.*;
+import model.*;
 
 public class ControllerRequestPage extends JFrame {
 
     private User currentUser;
-
     private RequestDataManager requestDataManager;
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
     private Timer liveUpdateTimer; // Timer for background polling
-    
+
     private JTable requestsTable;
     private DefaultTableModel tableModel;
 
     private JEditorPane detailsArea;
-
     private JButton acceptButton;
     private JButton rejectButton;
-    private JButton refreshButton;
-
+    
     private JCheckBox selectAllCheckbox;
-
+    
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
     private static final Color PRIMARY_COLOR = new Color(44, 116, 132);
@@ -61,7 +57,7 @@ public class ControllerRequestPage extends JFrame {
         liveUpdateTimer = new Timer(500, e -> loadPendingRequests());
         liveUpdateTimer.start();
     }
-    
+
     // Stop the timer when window is closed to prevent errors/lag
     @Override
     public void dispose() {
@@ -80,77 +76,44 @@ public class ControllerRequestPage extends JFrame {
         rootPanel.setBackground(Color.WHITE);
         setContentPane(rootPanel);
 
-       // -------------------- HEADER --------------------
-JPanel headerPanel = new JPanel(new BorderLayout());
-headerPanel.setBackground(Color.WHITE);
-headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR));
+        // -------------------- HEADER --------------------
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Color.WHITE);
+        headerPanel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR));
 
-// LEFT SIDE TITLE
-JLabel titleLabel = new JLabel("Request Management - Controller Dashboard");
-titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
-titleLabel.setForeground(PRIMARY_COLOR);
+        // LEFT SIDE TITLE
+        JLabel titleLabel = new JLabel("Request Management - Controller Dashboard");
+        titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
+        titleLabel.setForeground(PRIMARY_COLOR);
+        
+        // Proper padding wrapper
+        JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 15));
+        titleWrapper.setBackground(Color.WHITE);
+        titleWrapper.add(titleLabel);
+        headerPanel.add(titleWrapper, BorderLayout.WEST);
 
-// Proper padding wrapper
-JPanel titleWrapper = new JPanel(new FlowLayout(FlowLayout.LEFT, 25, 15));
-titleWrapper.setBackground(Color.WHITE);
-titleWrapper.add(titleLabel);
-headerPanel.add(titleWrapper, BorderLayout.WEST);
+        // RIGHT SIDE BACK BUTTON
+        JButton backButton = new JButton("← Back to Dashboard");
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.setFocusPainted(false);
+        backButton.setBorderPainted(false);
+        backButton.setContentAreaFilled(false);
+        backButton.setForeground(PRIMARY_COLOR);
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.setOpaque(false);
+        backButton.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
+        
+        backButton.addActionListener(e -> {
+            dispose();
+            SwingUtilities.invokeLater(() -> new ControllerPage(currentUser).setVisible(true));
+        });
 
-// RIGHT SIDE BACK BUTTON
-JButton backButton = new JButton("← Back to Dashboard");
-backButton.setFont(new Font("Arial", Font.BOLD, 14));
-backButton.setFocusPainted(false);
-backButton.setBorderPainted(false);
-backButton.setContentAreaFilled(false);
-backButton.setForeground(PRIMARY_COLOR);
-backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-// Remove that pink outline
-backButton.setOpaque(false);
-backButton.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-
-JPanel backWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 25, 15));
-backWrapper.setBackground(Color.WHITE);
-backWrapper.add(backButton);
-headerPanel.add(backWrapper, BorderLayout.EAST);
-
-rootPanel.add(headerPanel, BorderLayout.NORTH);
-
-
-    // ---------------- SECOND ROW UNDER HEADER -------------------
-
-    JPanel subHeader = new JPanel(new BorderLayout());
-    subHeader.setBackground(Color.WHITE);
-    subHeader.setBorder(BorderFactory.createEmptyBorder(10, 30, 15, 30));
-
-    // Grey description text
-    JLabel descLabel = new JLabel(
-        "<html>Review and manage pending job and vehicle submissions. " +
-        "Select a request to view details, then <b>Accept</b> or <b>Reject</b>.</html>"
-    );
-    descLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-    descLabel.setForeground(new Color(100,100,100));
-
-    // Refresh button aligned right
-    refreshButton = new JButton("Refresh");
-    refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-    refreshButton.setFocusPainted(false);
-    refreshButton.setContentAreaFilled(false);
-    refreshButton.setBorderPainted(false);
-    refreshButton.setForeground(PRIMARY_COLOR);
-    refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-    refreshButton.addActionListener(e -> loadPendingRequests());
-
-    subHeader.add(descLabel, BorderLayout.WEST);
-
-    JPanel refreshWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-    refreshWrapper.setBackground(Color.WHITE);
-    refreshWrapper.add(refreshButton);
-
-    subHeader.add(refreshWrapper, BorderLayout.EAST);
-
-    rootPanel.add(subHeader, BorderLayout.CENTER);
-
+        JPanel backWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 25, 15));
+        backWrapper.setBackground(Color.WHITE);
+        backWrapper.add(backButton);
+        headerPanel.add(backWrapper, BorderLayout.EAST);
+        
+        rootPanel.add(headerPanel, BorderLayout.NORTH);
 
         /* ---------- Main Panel ---------- */
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
@@ -158,30 +121,18 @@ rootPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         rootPanel.add(mainPanel, BorderLayout.CENTER);
 
-        // Top panel with description
         JPanel topPanel = new JPanel(new BorderLayout());
         topPanel.setBackground(Color.WHITE);
-
+        
         JLabel desc = new JLabel("<html>Review and manage pending job and vehicle submissions. "
                 + "Select a request to view details, then <b>Accept</b> or <b>Reject</b>.</html>");
         desc.setForeground(new Color(100, 100, 100));
         desc.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
         desc.setFont(new Font("Arial", Font.PLAIN, 14));
         topPanel.add(desc, BorderLayout.NORTH);
+        
+        // REFRESH BUTTON REMOVED (Handled by Timer now)
 
-        refreshButton = new JButton("Refresh");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-        refreshButton.setContentAreaFilled(false);
-        refreshButton.setBorderPainted(false);
-        refreshButton.setForeground(PRIMARY_COLOR);
-        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        refreshButton.addActionListener(e -> loadPendingRequests());
-
-        JPanel refreshPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        refreshPanel.setBackground(Color.WHITE);
-        refreshPanel.add(refreshButton);
-
-        topPanel.add(refreshPanel, BorderLayout.SOUTH);
         mainPanel.add(topPanel, BorderLayout.NORTH);
 
         /* ---------- Split Pane ---------- */
@@ -192,7 +143,7 @@ rootPanel.add(headerPanel, BorderLayout.NORTH);
         splitPane.setBackground(Color.WHITE);
         splitPane.setOpaque(false);
 
-        // Remove that vertical bar
+        // Remove the default ugly vertical bar
         BasicSplitPaneUI ui = new BasicSplitPaneUI() {
             public BasicSplitPaneDivider createDefaultDivider() {
                 return new BasicSplitPaneDivider(this) {
@@ -205,8 +156,6 @@ rootPanel.add(headerPanel, BorderLayout.NORTH);
         mainPanel.add(splitPane, BorderLayout.CENTER);
 
         /* ---------- LEFT: Table ---------- */
-
-        // Left: Requests Table
         JPanel tablePanel = new JPanel(new BorderLayout());
         tablePanel.setBackground(Color.WHITE);
         tablePanel.setBorder(BorderFactory.createTitledBorder(
@@ -267,15 +216,12 @@ rootPanel.add(headerPanel, BorderLayout.NORTH);
         JScrollPane sp = new JScrollPane(requestsTable);
         sp.setBorder(null);               
         sp.setViewportBorder(null);
-
-tablePanel.add(sp, BorderLayout.CENTER);
+        tablePanel.add(sp, BorderLayout.CENTER);
 
         splitPane.setLeftComponent(tablePanel);
 
         /* ---------- RIGHT: Details & Actions ---------- */
         JPanel rightPanel = new JPanel(new BorderLayout());
-        // Right: Details and Actions
-        JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
         rightPanel.setBackground(Color.WHITE);
         splitPane.setRightComponent(rightPanel);
 
@@ -294,15 +240,14 @@ tablePanel.add(sp, BorderLayout.CENTER);
         detailsArea.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, true);
         detailsArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         detailsArea.setText("Select a request to view details");
-
+        
         detailsPanel.add(new JScrollPane(detailsArea), BorderLayout.CENTER);
         rightPanel.add(detailsPanel, BorderLayout.CENTER);
 
+        // ----- BUTTON PANEL -----
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
         buttonPanel.setBackground(Color.WHITE);
-        // Raise buttons slightly and shrink size
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(18, 0, 12, 0));
-
 
         acceptButton = new GradientButton("Accept");
         acceptButton.setFont(new Font("Arial", Font.BOLD, 16));
@@ -324,60 +269,57 @@ tablePanel.add(sp, BorderLayout.CENTER);
         buttonPanel.add(rejectButton);
 
         rightPanel.add(buttonPanel, BorderLayout.SOUTH);
-        splitPane.setRightComponent(rightPanel);
-        mainPanel.add(splitPane, BorderLayout.CENTER);
-        rootPanel.add(mainPanel, BorderLayout.CENTER);
     }
 
     /** ---------------------------------------------------------------
-     * Load Pending Requests
+     * Load Pending Requests (With State Preservation)
      * --------------------------------------------------------------- */
     private void loadPendingRequests() {
-        // 1. SAVE SELECTION: Remember which ID was selected before refresh
-        int selectedId = -1;
-        int selectedRow = requestsTable.getSelectedRow();
-        if (selectedRow != -1) {
+        // 1. SAVE SELECTION: Remember which IDs were selected before refresh
+        int[] selectedRows = requestsTable.getSelectedRows();
+        List<Integer> selectedIds = new ArrayList<>();
+        for (int row : selectedRows) {
             try {
-                selectedId = (int) tableModel.getValueAt(selectedRow, 0);
+                selectedIds.add((int) tableModel.getValueAt(row, 0));
             } catch (Exception e) {}
         }
-        
+
         // 2. REFRESH DATA
         tableModel.setRowCount(0);
-        List<Request> pendingRequests = requestDataManager.getPendingRequests();
-        for (Request request : pendingRequests) {
-            String type = request.getRequestType().equals("JOB_SUBMISSION") ?
-            "Job" : "Vehicle";
-            String timestamp = request.getTimestamp();
-            
+        List<Request> list = requestDataManager.getPendingRequests();
+
+        for (Request r : list) {
+            String type = r.getRequestType().equals("JOB_SUBMISSION") ? "Job" : "Vehicle";
+            String ts = r.getTimestamp();
+
             try {
                 LocalDateTime dt = LocalDateTime.parse(ts);
                 ts = dt.format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"));
             } catch (Exception ignored) {}
 
             tableModel.addRow(new Object[]{
-                    request.getRequestId(),
+                    r.getRequestId(),
                     type,
-                    request.getUserName(),
-                
-                    timestamp
+                    r.getUserName(),
+                    ts
             });
         }
 
-        if (pendingRequests.isEmpty()) {
-            detailsArea.setText("No pending requests.\n\nAll submissions have been processed.");
+        if (list.isEmpty()) {
+            detailsArea.setText("No pending requests.");
             acceptButton.setEnabled(false);
             rejectButton.setEnabled(false);
         } else {
-            // 3. RESTORE SELECTION: Try to re-select the same ID if it still exists
-            if (selectedId != -1) {
+            // 3. RESTORE SELECTION: Re-select the rows that are still present
+            if (!selectedIds.isEmpty()) {
+                requestsTable.getSelectionModel().setValueIsAdjusting(true); // Prevent events
                 for (int i = 0; i < requestsTable.getRowCount(); i++) {
                     int id = (int) requestsTable.getValueAt(i, 0);
-                    if (id == selectedId) {
-                        requestsTable.setRowSelectionInterval(i, i);
-                        break;
+                    if (selectedIds.contains(id)) {
+                        requestsTable.addRowSelectionInterval(i, i);
                     }
                 }
+                requestsTable.getSelectionModel().setValueIsAdjusting(false); // Re-enable events
             }
         }
     }
@@ -387,7 +329,6 @@ tablePanel.add(sp, BorderLayout.CENTER);
      * --------------------------------------------------------------- */
     private void displayRequestDetails() {
         int[] selected = requestsTable.getSelectedRows();
-
         if (selected.length == 0) {
             detailsArea.setText("Select a request to view details");
             acceptButton.setEnabled(false);
@@ -399,25 +340,20 @@ tablePanel.add(sp, BorderLayout.CENTER);
         sb.append("<html><body style='font-family:Arial;font-size:12px;'>");
 
         for (int row : selected) {
-
             int id = (int) tableModel.getValueAt(row, 0);
             Request r = requestDataManager.getRequestById(id);
             if (r == null) continue;
 
             sb.append("<div style='margin-bottom:15px;'>");
-
             sb.append("<div style='font-size:12px;font-weight:bold;color:#2C7484;'>")
                     .append("Request Details (ID: ").append(id).append(")</div>");
-
             sb.append("<div style='border:1px solid #ccc;padding:8px;font-size:10px;border-radius:6px;background:#FAFAFA;'>");
             sb.append("<b>Type:</b> ").append(r.getRequestType()).append("<br>");
             sb.append("<b>User:</b> ").append(r.getUserName()).append("<br>");
             sb.append("<b>Timestamp:</b> ").append(r.getTimestamp()).append("<br>");
             sb.append("</div>");
-
             sb.append("<div style='font-size:12px;font-weight:bold;margin-top:8px;color:#2C7484;'>")
                     .append("Submission Data:</div>");
-
             sb.append("<div style='border:1px solid #ccc;padding:8px;font-size:10px;border-radius:6px;background:#FAFAFA;'>");
 
             for (String line : r.getData().split("\n")) {
@@ -444,62 +380,64 @@ tablePanel.add(sp, BorderLayout.CENTER);
      * Handle Accept (Single + Bulk)
      * --------------------------------------------------------------- */
     private void handleAccept() {
-
         int[] rows = requestsTable.getSelectedRows();
         if (rows.length == 0) return;
 
         boolean bulk = rows.length > 1;
-
         CustomConfirmDialog confirm = new CustomConfirmDialog(
                 this,
                 bulk ? "Accept ALL selected submissions?" : "Accept this submission?",
                 false
         );
-
         confirm.setVisible(true);
         if (!confirm.getResult()) return;
+        
+        boolean atLeastOneSuccess = false;
 
         for (int row : rows) {
-
             int requestId = (int) tableModel.getValueAt(row, 0);
             Request r = requestDataManager.getRequestById(requestId);
             if (r == null) continue;
 
             boolean ok = false;
-
             if (r.getRequestType().equals("JOB_SUBMISSION")) {
                 ok = processJobSubmission(r);
             } else if (r.getRequestType().equals("VEHICLE_SUBMISSION")) {
                 ok = processVehicleSubmission(r);
             }
 
-        if (success) {
-            // Update status to ACCEPTED (remains in file history)
-            requestDataManager.updateRequestStatus(requestId, RequestStatus.ACCEPTED, null);
+            if (ok) {
+                requestDataManager.updateRequestStatus(requestId, RequestStatus.ACCEPTED, null);
+                atLeastOneSuccess = true;
+            }
+        }
+
+        if (atLeastOneSuccess) {
+            showMessage("Success",
+                    bulk ? "Selected requests have been accepted!"
+                         : "Request accepted successfully!",
+                    CustomDialog.DialogType.SUCCESS);
             
-            showMessage("Success", "Request accepted and data saved successfully!", CustomDialog.DialogType.SUCCESS);
+            resetSelections();
             loadPendingRequests();
-            detailsArea.setText("Request processed successfully.");
-            acceptButton.setEnabled(false);
-            rejectButton.setEnabled(false);
         } else {
-            showMessage("Error", "Failed to save data. Please try again.", CustomDialog.DialogType.WARNING);
+            showMessage("Error", "Failed to process requests.", CustomDialog.DialogType.WARNING);
         }
     }
 
+    /** ---------------------------------------------------------------
+     * Handle Reject (Single + Bulk)
+     * --------------------------------------------------------------- */
     private void handleReject() {
-
         int[] rows = requestsTable.getSelectedRows();
         if (rows.length == 0) return;
 
         boolean bulk = rows.length > 1;
-
         CustomInputDialog dialog = new CustomInputDialog(
                 this,
                 bulk ? "Enter rejection reason for ALL selected requests:"
                      : "Enter rejection reason:"
         );
-
         dialog.setVisible(true);
         String reason = dialog.getInput();
 
@@ -516,7 +454,7 @@ tablePanel.add(sp, BorderLayout.CENTER);
                      : "Request rejected.",
                 CustomDialog.DialogType.SUCCESS
         );
-
+        
         resetSelections();
         loadPendingRequests();
         detailsArea.setText("Request(s) rejected.");
@@ -531,7 +469,7 @@ tablePanel.add(sp, BorderLayout.CENTER);
     }
 
     /** ---------------------------------------------------------------
-     * Job Submission Processor (Socket-safe)
+     * Job Submission Processor (Backend Logic)
      * --------------------------------------------------------------- */
     private boolean processJobSubmission(Request request) {
         try {
@@ -546,15 +484,13 @@ tablePanel.add(sp, BorderLayout.CENTER);
             }
 
             Job job = new Job(
-                    Integer.parseInt(m.getOrDefault("user_id", "0")),
-                    m.getOrDefault("job_type", "Unknown"),
-                    Integer.parseInt(m.getOrDefault("duration", "1")),
-                    m.getOrDefault("deadline", "2025-01-01"),
-                    m.getOrDefault("description", "")
+                    Integer.parseInt(jobData.getOrDefault("user_id", "0")),
+                    jobData.getOrDefault("job_type", "Unknown"),
+                    Integer.parseInt(jobData.getOrDefault("duration", "1")),
+                    jobData.getOrDefault("deadline", "2025-01-01"),
+                    jobData.getOrDefault("description", "")
             );
-
             return jobDataManager.addJob(job);
-
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -562,13 +498,12 @@ tablePanel.add(sp, BorderLayout.CENTER);
     }
 
     /** ---------------------------------------------------------------
-     * Vehicle Submission Processor (Socket-safe)
+     * Vehicle Submission Processor (Backend Logic)
      * --------------------------------------------------------------- */
     private boolean processVehicleSubmission(Request request) {
         try {
-
             String data = request.getData();
-            // Remove socket key if present (legacy support)
+            // Remove socket key if present
             if (data.startsWith("SOCKET_")) {
                 data = data.split("\n", 2)[1];
             }
@@ -600,9 +535,7 @@ tablePanel.add(sp, BorderLayout.CENTER);
                     java.time.LocalDate.parse(vehicleData.get("end_date")),
                     VehicleStatus.AVAILABLE
             );
-
-            return vehicleDataManager.addVehicle(v);
-
+            return vehicleDataManager.addVehicle(vehicle);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -612,10 +545,5 @@ tablePanel.add(sp, BorderLayout.CENTER);
     /** --------------------------------------------------------------- */
     private void showMessage(String title, String message, CustomDialog.DialogType type) {
         new CustomDialog(this, title, message, type).setVisible(true);
-    }
-
-    @Override
-    public void dispose() {
-        super.dispose();
     }
 }
