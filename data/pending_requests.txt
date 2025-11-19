@@ -1,0 +1,9 @@
+request_id: 1
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Client One
+timestamp: 2025-11-18T20:56:17.625854
+status: PENDING
+data: Job ID: 14\nClient ID: 1\nJob Type: Data Storage & Transfer\nDuration: 5\nDeadline: 2025-11-28\nDescription: test
+rejection_reason: 
+---

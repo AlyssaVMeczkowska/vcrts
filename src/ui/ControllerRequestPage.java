@@ -2,6 +2,8 @@ package ui;
 
 import data.*;
 import model.*;
+import ClientServer_owner.VCControllerServer;
+import ClientServer_owner.VehicleOwnerClientHandler;
 import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +20,11 @@ public class ControllerRequestPage extends JFrame {
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
     
+    // Socket server fields
+    private VCControllerServer socketServer;
+    private Thread serverThread;
+    private volatile Map<String, String> pendingSocketDecisions = new HashMap<>();
+    
     private JTable requestsTable;
     private DefaultTableModel tableModel;
     private JTextArea detailsArea;
@@ -30,20 +37,23 @@ public class ControllerRequestPage extends JFrame {
     private static final Color PRIMARY_COLOR = new Color(44, 116, 132);
 
     public ControllerRequestPage(User user) {
-        this.currentUser = user;
-        this.requestDataManager = new RequestDataManager();
-        this.jobDataManager = new JobDataManager();
-        this.vehicleDataManager = new VehicleDataManager();
+    this.currentUser = user;
+    this.requestDataManager = new RequestDataManager();
+    this.jobDataManager = new JobDataManager();
+    this.vehicleDataManager = new VehicleDataManager();
 
-        setTitle("VCRTS - Request Management");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setLocationRelativeTo(null);
+    setTitle("VCRTS - Request Management");
+    setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+    setSize(1200, 800);
+    setLocationRelativeTo(null);
 
+    initComponents();
+    loadPendingRequests();
 
-        initComponents();
-        loadPendingRequests();
-    }
+    startSocketServer();
+    
+}
+
 
     private void initComponents() {
         JPanel rootPanel = new JPanel(new BorderLayout());
@@ -51,66 +61,64 @@ public class ControllerRequestPage extends JFrame {
         setContentPane(rootPanel);
 
         // Header
-        // Unified Header (matches ControllerPage aesthetic)
-JPanel headerPanel = new JPanel(new BorderLayout());
-headerPanel.setBackground(Color.WHITE);
-headerPanel.setBorder(BorderFactory.createCompoundBorder(
-        BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
-        BorderFactory.createEmptyBorder(15, 50, 15, 50)
-));
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(Color.WHITE);
+        headerPanel.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
+                BorderFactory.createEmptyBorder(15, 30, 15, 30)
+        ));
 
-JLabel headerTitle = new JLabel("VCRTS Controller");
-headerTitle.setFont(new Font("Georgia", Font.PLAIN, 28));
-headerPanel.add(headerTitle, BorderLayout.WEST);
+        JLabel titleLabel = new JLabel("Request Management - Controller Dashboard");
+        titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
+        titleLabel.setForeground(PRIMARY_COLOR);
+        headerPanel.add(titleLabel, BorderLayout.WEST);
 
-JButton backButton = new JButton("← Back to Dashboard");
-backButton.setFont(new Font("Arial", Font.BOLD, 14));
-backButton.setFocusPainted(false);
-backButton.setBorderPainted(false);
-backButton.setContentAreaFilled(false);
-backButton.setForeground(PRIMARY_COLOR);
-backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-backButton.addActionListener(e -> {
-    dispose();
-    SwingUtilities.invokeLater(() -> new ControllerPage(currentUser).setVisible(true));
-});
-headerPanel.add(backButton, BorderLayout.EAST);
+        JButton backButton = new JButton("← Back to Dashboard");
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.setFocusPainted(false);
+        backButton.setBorderPainted(false);
+        backButton.setContentAreaFilled(false);
+        backButton.setForeground(PRIMARY_COLOR);
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(e -> {
+            dispose();
+            SwingUtilities.invokeLater(() -> new ControllerPage(currentUser).setVisible(true));
+        });
+        headerPanel.add(backButton, BorderLayout.EAST);
 
-rootPanel.add(headerPanel, BorderLayout.NORTH);
-
+        rootPanel.add(headerPanel, BorderLayout.NORTH);
 
         // Main content area
         JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
         mainPanel.setBackground(Color.WHITE);
 
-        // Top panel with description and refresh button (aligned in one row)
-JPanel topPanel = new JPanel(new BorderLayout());
-topPanel.setBackground(Color.WHITE);
-topPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+        // Top panel with description and refresh button
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setBackground(Color.WHITE);
+        
+        JLabel descLabel = new JLabel("<html>Review and manage pending job and vehicle submissions. " +
+                "Select a request to view details, then <b>Accept</b> or <b>Reject</b>.</html>");
+        descLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        descLabel.setForeground(new Color(100, 100, 100));
+        descLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0));
+        topPanel.add(descLabel, BorderLayout.NORTH);
 
-JLabel descLabel = new JLabel("<html>Review and manage pending job and vehicle submissions. " +
-        "Select a request to view details, then <b>Accept</b> or <b>Reject</b>.</html>");
-descLabel.setFont(new Font("Arial", Font.PLAIN, 14));
-descLabel.setForeground(new Color(100, 100, 100));
+        refreshButton = new JButton("🔄 Refresh");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
+        refreshButton.setFocusPainted(false);
+        refreshButton.setBorderPainted(false);
+        refreshButton.setContentAreaFilled(false);
+        refreshButton.setForeground(PRIMARY_COLOR);
+        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        refreshButton.addActionListener(e -> loadPendingRequests());
+        
+        JPanel refreshPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        refreshPanel.setBackground(Color.WHITE);
+        refreshPanel.add(refreshButton);
+        topPanel.add(refreshPanel, BorderLayout.SOUTH);
 
-refreshButton = new JButton("Refresh");
-refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-refreshButton.setFocusPainted(false);
-refreshButton.setBorderPainted(false);
-refreshButton.setContentAreaFilled(false);
-refreshButton.setForeground(PRIMARY_COLOR);
-refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-refreshButton.addActionListener(e -> loadPendingRequests());
-
-// horizontal layout
-JPanel rowPanel = new JPanel(new BorderLayout());
-rowPanel.setBackground(Color.WHITE);
-rowPanel.add(descLabel, BorderLayout.WEST);
-rowPanel.add(refreshButton, BorderLayout.EAST);
-
-topPanel.add(rowPanel, BorderLayout.CENTER);
-mainPanel.add(topPanel, BorderLayout.NORTH);
+        mainPanel.add(topPanel, BorderLayout.NORTH);
 
         // Split pane for table and details
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
@@ -129,12 +137,7 @@ mainPanel.add(topPanel, BorderLayout.NORTH);
                 new Color(80, 80, 80)
         ));
 
-        String[] columnNames = {
-    "ID", 
-    "User", 
-    "Timestamp", 
-    "Job Deadline", 
-};
+        String[] columnNames = {"ID", "Type", "User", "Timestamp"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -330,6 +333,9 @@ mainPanel.add(topPanel, BorderLayout.NORTH);
             // Update request status
             requestDataManager.updateRequestStatus(requestId, RequestStatus.ACCEPTED, null);
             
+            // Notify socket thread if this was a socket request
+            notifySocketDecision(request, "ACCEPT");
+            
             showMessage("Success", "Request accepted and data saved successfully!", CustomDialog.DialogType.SUCCESS);
             
             // Refresh the table
@@ -367,6 +373,9 @@ mainPanel.add(topPanel, BorderLayout.NORTH);
         boolean updated = requestDataManager.updateRequestStatus(requestId, RequestStatus.REJECTED, reason);
 
         if (updated) {
+            // Notify socket thread if this was a socket request
+            notifySocketDecision(request, "REJECT");
+            
             showMessage("Success", "Request rejected.", CustomDialog.DialogType.SUCCESS);
             loadPendingRequests();
         } else {
@@ -405,27 +414,40 @@ mainPanel.add(topPanel, BorderLayout.NORTH);
     private boolean processVehicleSubmission(Request request) {
         try {
             // Parse vehicle data from request
-            String[] lines = request.getData().split("\n");
+            String data = request.getData();
+            
+            // Remove socket key if present
+            if (data.startsWith("SOCKET_")) {
+                data = data.split("\n", 2)[1];
+            }
+            
+            String[] lines = data.split("\n");
             Map<String, String> vehicleData = new HashMap<>();
             
             for (String line : lines) {
+                if (line.startsWith("type:") || line.equals("---")) {
+                    continue; // Skip type and separator lines
+                }
                 String[] parts = line.split(": ", 2);
                 if (parts.length == 2) {
                     vehicleData.put(parts[0].trim(), parts[1].trim());
                 }
             }
 
+            // Map socket payload field names to vehicle fields
+            int ownerId = Integer.parseInt(vehicleData.get("user_id"));
+            
             Vehicle vehicle = new Vehicle(
-                    Integer.parseInt(vehicleData.get("Owner ID")),
-                    Integer.parseInt(vehicleData.get("Owner ID")),
-                    vehicleData.get("Make"),
-                    vehicleData.get("Model"),
-                    Integer.parseInt(vehicleData.get("Year")),
-                    vehicleData.get("VIN"),
-                    vehicleData.get("License Plate"),
-                    vehicleData.get("Computing Power"),
-                    java.time.LocalDate.parse(vehicleData.get("Arrival Date")),
-                    java.time.LocalDate.parse(vehicleData.get("Departure Date")),
+                    0, // Vehicle ID will be auto-assigned
+                    ownerId,
+                    vehicleData.get("vehicle_make"),
+                    vehicleData.get("vehicle_model"),
+                    Integer.parseInt(vehicleData.get("vehicle_year")),
+                    vehicleData.get("vin"),
+                    vehicleData.get("license_plate"),
+                    vehicleData.get("computing_power"),
+                    java.time.LocalDate.parse(vehicleData.get("start_date")),
+                    java.time.LocalDate.parse(vehicleData.get("end_date")),
                     VehicleStatus.AVAILABLE
             );
 
@@ -440,16 +462,124 @@ mainPanel.add(topPanel, BorderLayout.NORTH);
         CustomDialog dialog = new CustomDialog(this, title, message, type);
         dialog.setVisible(true);
     }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            User testController = new User(
-                    1, "Admin", "Controller", "controller@vcrts.com", "controller",
-                    "123-456-7890", "hash", "Controller",
-                    LocalDateTime.now().toString(), true
-            );
-            ControllerRequestPage page = new ControllerRequestPage(testController);
-            page.setVisible(true);
-        });
+    
+    /**
+     * Start socket server for real-time vehicle submissions
+     */
+    private void startSocketServer() {
+        VehicleOwnerClientHandler.RequestApprovalCallback callback = (vehiclePayload) -> {
+            System.out.println("\n[SOCKET] Received vehicle submission via socket");
+            System.out.println("[SOCKET] Payload:\n" + vehiclePayload);
+            
+            // Generate unique key for this socket request
+            String requestKey = "SOCKET_" + System.currentTimeMillis();
+            
+            // Add to pending requests file for UI display
+            SwingUtilities.invokeLater(() -> {
+                addSocketVehicleToRequests(vehiclePayload, requestKey);
+                loadPendingRequests(); // Refresh UI table
+            });
+            
+            // Wait for controller decision from UI
+            synchronized (pendingSocketDecisions) {
+                try {
+                    while (!pendingSocketDecisions.containsKey(requestKey)) {
+                        pendingSocketDecisions.wait();
+                    }
+                    String decision = pendingSocketDecisions.remove(requestKey);
+                    System.out.println("[SOCKET] Decision sent: " + decision);
+                    return decision;
+                } catch (InterruptedException e) {
+                    System.err.println("[SOCKET] Error waiting for decision: " + e.getMessage());
+                    return "REJECT";
+                }
+            }
+        };
+        
+        try {
+            socketServer = new VCControllerServer(callback);
+            serverThread = new Thread(socketServer);
+            serverThread.setDaemon(true); // Don't block JVM shutdown
+            serverThread.start();
+            
+            System.out.println("[SOCKET] Server started on port 5000 - waiting for vehicle submissions...");
+        } catch (Exception e) {
+            System.err.println("[SOCKET] Failed to start server: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, 
+                "Failed to start socket server on port 5000.\n" +
+                "Make sure no other application is using this port.\n\n" +
+                "Error: " + e.getMessage(),
+                "Socket Server Error",
+                JOptionPane.WARNING_MESSAGE);
+        }
     }
+    
+    /**
+     * Add socket vehicle submission to pending requests
+     */
+    private void addSocketVehicleToRequests(String vehiclePayload, String requestKey) {
+        // Parse user_id from payload
+        int userId = 0;
+        String[] lines = vehiclePayload.split("\n");
+        for (String line : lines) {
+            if (line.startsWith("user_id:")) {
+                try {
+                    userId = Integer.parseInt(line.split(":", 2)[1].trim());
+                } catch (NumberFormatException e) {
+                    System.err.println("Could not parse user_id from socket payload");
+                }
+                break;
+            }
+        }
+        
+        // Add to pending_requests.txt with special marker for socket requests
+        String socketData = requestKey + "\n" + vehiclePayload;
+        requestDataManager.addRequest(
+            "VEHICLE_SUBMISSION",
+            userId,
+            "Vehicle Owner " + userId,
+            socketData
+        );
+    }
+    
+    /**
+     * Notify socket thread of decision
+     */
+    private void notifySocketDecision(Request request, String decision) {
+        // Check if this is a socket request
+        String data = request.getData();
+        if (data.startsWith("SOCKET_")) {
+            String[] parts = data.split("\n", 2);
+            String requestKey = parts[0];
+            
+            synchronized (pendingSocketDecisions) {
+                pendingSocketDecisions.put(requestKey, decision);
+                pendingSocketDecisions.notifyAll();
+            }
+            
+            System.out.println("[SOCKET] Notified socket thread: " + decision);
+        }
+    }
+    
+    @Override
+    public void dispose() {
+        // Stop socket server when closing
+        if (socketServer != null) {
+            socketServer.stop();
+            System.out.println("[SOCKET] Server stopped");
+        }
+        super.dispose();
+    }
+
+    //public static void main(String[] args) {
+    //    SwingUtilities.invokeLater(() -> {
+    //        User testController = new User(
+    //                1, "Admin", "Controller", "controller@vcrts.com", "controller",
+    //                "123-456-7890", "hash", "Controller",
+    //                LocalDateTime.now().toString(), true
+    //        );
+    //        ControllerRequestPage page = new ControllerRequestPage(testController);
+    //        page.setVisible(true);
+    //    });
+    //}
 }

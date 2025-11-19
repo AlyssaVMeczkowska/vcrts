@@ -2,16 +2,17 @@ package ClientServer_owner;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Scanner;
 
-//Connects to Running VCControllerServer and sends information and recieves a response
+//Connects to Running VCControllerServer and sends information and receives a response
 public class VehicleOwnerClientHandler implements Runnable
 {
     private final Socket socket;
+    private final RequestApprovalCallback callback;
 
-    public VehicleOwnerClientHandler(Socket socket)
+    public VehicleOwnerClientHandler(Socket socket, RequestApprovalCallback callback)
     {
         this.socket = socket;
+        this.callback = callback;
     }
 
     @Override
@@ -28,7 +29,6 @@ public class VehicleOwnerClientHandler implements Runnable
                 )
         )
         {
-
             String receivedData = in.readLine();
 
             if (receivedData == null)
@@ -39,17 +39,14 @@ public class VehicleOwnerClientHandler implements Runnable
             System.out.println("\n--- Incoming Request ---");
             System.out.println(receivedData);
 
-
             out.println("ACK: Request Received");
 
+            // Wait for UI decision via callback
+            String decision = callback.waitForDecision(receivedData);
 
-            System.out.println("Accept or Reject this request? (A/R): ");
-            Scanner scanner = new Scanner(System.in);
-            String decision = scanner.nextLine().trim().toUpperCase();
-
-            if (decision.equals("A"))
+            if ("ACCEPT".equals(decision))
             {
-                AcceptedVehicleFileStorage.appendToFile("vehicle_storage.txt", receivedData);
+                AcceptedVehicleFileStorage.appendToFile("data/vcrts_data.txt", receivedData);
                 out.println("Status: ACCEPTED");
                 System.out.println("Request ACCEPTED and saved.\n");
             }
@@ -64,5 +61,11 @@ public class VehicleOwnerClientHandler implements Runnable
         {
             System.err.println("Error handling client: " + e.getMessage());
         }
+    }
+
+    // Callback interface for UI integration
+    public interface RequestApprovalCallback
+    {
+        String waitForDecision(String requestData);
     }
 }

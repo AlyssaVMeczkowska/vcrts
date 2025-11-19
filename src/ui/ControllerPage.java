@@ -11,8 +11,12 @@ import model.Controller;
 import model.Job;
 import model.User;
 import model.Vehicle;
+import ClientServer_owner.VCControllerServer;
+import ClientServer_owner.VehicleOwnerClientHandler;
+
 
 public class ControllerPage extends JFrame {
+
 
     private User currentUser;
     private Controller controller; 
@@ -33,6 +37,8 @@ public class ControllerPage extends JFrame {
         this.currentUser = user;
         this.controller = new Controller(1, null, null, null, null, null);
         this.requestDataManager = new RequestDataManager();
+        System.out.println(">>> NEW ControllerPage CREATED <<<");
+
 
         setTitle("VCRTS Controller Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -208,6 +214,7 @@ public class ControllerPage extends JFrame {
         
         this.validate();
         this.repaint();
+
     }
     
     private void displayJobCompletionTimes() {
@@ -378,17 +385,17 @@ public class ControllerPage extends JFrame {
         return vehiclePanel;
     }
     
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            User testController = new User(
-                 1, "Admin", "User", "controller@vcrts.com", "admin", 
-                 "(123) 456-7890", "dummyhash", "Controller", 
-                 "2025-01-01T12:00:00", 
-                 true
-             );
-            
-             ControllerPage controllerPage = new ControllerPage(testController);
-             controllerPage.setVisible(true);
-         });
-    }
+    //public static void main(String[] args) {
+    //    SwingUtilities.invokeLater(() -> {
+    //        User testController = new User(
+    //             1, "Admin", "User", "controller@vcrts.com", "admin", 
+    //             "(123) 456-7890", "dummyhash", "Controller", 
+    //             "2025-01-01T12:00:00", 
+    //             true
+    //         );
+    //        
+    //         ControllerPage controllerPage = new ControllerPage(testController);
+    //         controllerPage.setVisible(true);
+    //     });
+    //}
 }

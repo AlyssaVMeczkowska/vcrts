@@ -5,30 +5,61 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 //Starts Server For Owner Communication
-public class VCControllerServer
+public class VCControllerServer implements Runnable
 {
     private static final int PORT = 5000;
+    private final VehicleOwnerClientHandler.RequestApprovalCallback callback;
+    private ServerSocket serverSocket;
+    private volatile boolean running = true;
 
-    public static void main(String[] args)
+    public VCControllerServer(VehicleOwnerClientHandler.RequestApprovalCallback callback)
+    {
+        this.callback = callback;
+        System.out.println(">>> VCControllerServer instance created <<<");
+
+    }
+
+    @Override
+    public void run()
     {
         System.out.println("VC Controller Server started on port " + PORT);
 
-        //Uses Threading
-        try (ServerSocket serverSocket = new ServerSocket(PORT))
+        try
         {
-            while (true)
+            serverSocket = new ServerSocket(PORT);
+            
+            while (running)
             {
                 Socket clientSocket = serverSocket.accept();
 
                 VehicleOwnerClientHandler handler =
-                        new VehicleOwnerClientHandler(clientSocket);
+                        new VehicleOwnerClientHandler(clientSocket, callback);
 
                 new Thread(handler).start();
             }
         }
         catch (IOException e)
         {
-            System.err.println("Server failure: " + e.getMessage());
+            if (running)
+            {
+                System.err.println("Server failure: " + e.getMessage());
+            }
+        }
+    }
+
+    public void stop()
+    {
+        running = false;
+        try
+        {
+            if (serverSocket != null && !serverSocket.isClosed())
+            {
+                serverSocket.close();
+            }
+        }
+        catch (IOException e)
+        {
+            System.err.println("Error stopping server: " + e.getMessage());
         }
     }
 }
