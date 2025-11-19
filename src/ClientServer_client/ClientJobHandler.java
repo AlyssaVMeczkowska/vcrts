@@ -25,10 +25,7 @@ public class ClientJobHandler implements Runnable {
             // 1. Parse the incoming data
             // We need to read the multi-line string sent by ClientJobSender
             // Note: Because readLine only reads one line, we need to ensure the sender
-            // sends the data in a way we can capture, OR we assume the sender sends 
-            // newlines replaced by a token. 
-            // HOWEVER, based on your ClientJobSender, it sends a payload string. 
-            // If payload has newlines, readLine() only gets the first line "type: job_submission".
+            // sends the data in a way we can capture.
             // To fix this simply without changing the Sender, we will read lines until "---"
             
             StringBuilder fullPayload = new StringBuilder();
@@ -40,7 +37,8 @@ public class ClientJobHandler implements Runnable {
                 if(line.equals("---")) break;
             }
 
-            System.out.println("[Server-6000] Received Job Data.");
+            // --- UPDATED PRINT STATEMENT ---
+            System.out.println("\n[Server-6000] Job Submission Received.");
 
             // 2. Save to Pending Requests for the Controller
             RequestDataManager requestManager = new RequestDataManager();
@@ -50,7 +48,8 @@ public class ClientJobHandler implements Runnable {
             String[] lines = fullPayload.toString().split("\n");
             for (String l : lines) {
                 if (l.startsWith("user_id:")) {
-                    try { userId = Integer.parseInt(l.split(":")[1].trim()); } catch(Exception e){}
+                    try { userId = Integer.parseInt(l.split(":")[1].trim());
+                    } catch(Exception e){}
                 }
             }
 
@@ -62,7 +61,8 @@ public class ClientJobHandler implements Runnable {
             );
 
             // 3. Send ACK to Client so their UI updates
-            out.println("ACK: Job Received");
+            // --- UPDATED ACKNOWLEDGMENT ---
+            out.println("ACK: Job Submission Received");
             out.println("Status: ACCEPTED");
             System.out.println("[Server-6000] Job saved to pending requests.\n");
 

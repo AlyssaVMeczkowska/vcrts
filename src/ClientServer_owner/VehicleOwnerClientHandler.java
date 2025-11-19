@@ -3,7 +3,7 @@ package ClientServer_owner;
 import java.io.*;
 import java.net.Socket;
 
-//Connects to Running VCControllerServer and sends information and receives a response
+// Connects to Running VCControllerServer and sends information and receives a response
 public class VehicleOwnerClientHandler implements Runnable
 {
     private final Socket socket;
@@ -44,10 +44,12 @@ public class VehicleOwnerClientHandler implements Runnable
             }
 
             String receivedData = payloadBuilder.toString();
-            System.out.println("\n--- Incoming Request ---");
-            // System.out.println(receivedData); // Optional: Comment out to reduce noise
+            
+            // UPDATED: Specific print statement for Vehicle Availability
+            System.out.println("\n[Server-5000] Vehicle Availability Received.");
 
-            out.println("ACK: Request Received");
+            // UPDATED: Specific ACK message
+            out.println("ACK: Vehicle Availability Received");
 
             // Wait for decision from App.java (Auto-save) or Controller UI
             String decision = callback.waitForDecision(receivedData);
