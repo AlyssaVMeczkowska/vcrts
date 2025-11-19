@@ -373,22 +373,19 @@ public class JobSubmissionPage extends JFrame {
             String duration = form.getDuration();
             String deadline = form.getDeadline();
             String description = form.getDescription();
-
-            // Format the job data for the request with the assigned Job ID
-            String jobData = String.format(
-                "Job ID: %d\nClient ID: %d\nJob Type: %s\nDuration: %s\nDeadline: %s\nDescription: %s",
-                nextJobId, currentUser.getId(), jobType, duration.trim(), deadline.trim(), description.trim()
+            Job job = new Job(
+                currentUser.getId(), 
+                jobType,
+                Integer.parseInt(duration.trim()),
+                deadline.trim(),
+                description.trim()
             );
+            String payload = buildJobPayload(job);
 
-            // Submit as request instead of direct save
-            int requestId = requestDataManager.addRequest(
-                "JOB_SUBMISSION",
-                currentUser.getId(),
-                currentUser.getFirstName() + " " + currentUser.getLastName(),
-                jobData
-            );
+            boolean accepted = ClientJobSender.sendJobPayload(payload);
 
-            if (requestId > 0) {
+            if (accepted) {
+                dataManager.addJob(job);
                 successCount++;
                 if (requestIds.length() > 0) {
                     requestIds.append(", ");
@@ -396,6 +393,7 @@ public class JobSubmissionPage extends JFrame {
                 requestIds.append("#").append(nextJobId);
                 nextJobId++; // Increment for next job
             }
+
         }
 
         if (successCount == jobForms.size()) {
@@ -741,6 +739,16 @@ public class JobSubmissionPage extends JFrame {
             g2.drawString(placeholder, getInsets().left + 5, getInsets().top + fm.getAscent());
         }
     }
+    private String buildJobPayload(Job job) {
+        return "type: job_submission\n"
+                + "user_id: " + job.getAccountId() + "\n"
+                + "job_type: " + job.getJobType() + "\n"
+                + "duration: " + job.getDuration() + "\n"
+                + "deadline: " + job.getDeadline() + "\n"
+                + "description: " + job.getDescription() + "\n"
+                + "---";
+    }
+
 
     // public static void main(String[] args) {
     //     User testUser = new User(999, "Test", "User", "test@example.com", "testuser", "1234567890", "hash", "Client", "timestamp", true);
