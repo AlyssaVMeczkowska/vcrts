@@ -1,9 +1,9 @@
 package ui;
 
 import ClientServer_owner.NetworkVehicleSender;
+import data.RequestDataManager;
 import data.UserDataManager;
 import data.VehicleDataManager;
-import data.RequestDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -16,10 +16,10 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.*;
 import javax.swing.border.Border;
+import model.Request;
 import model.User;
 import model.Vehicle;
 import model.VehicleStatus;
-import model.Request;
 import validation.VehicleValidator;
 
 public class VehicleSubmissionPage extends JFrame {
@@ -394,22 +394,19 @@ public class VehicleSubmissionPage extends JFrame {
         StringBuilder vehicleIds = new StringBuilder();
         
         for (VehicleFormPanel form : vehicleForms) {
-            // Format the vehicle data for the request with the assigned Vehicle ID
-            String vehicleData = String.format(
-                "Vehicle ID: %d\nOwner ID: %d\nMake: %s\nModel: %s\nYear: %s\n" +
-                "VIN: %s\nLicense Plate: %s\nPower: %s\nStart: %s\nEnd: %s",
-                nextVehicleId,
-                currentUser.getId(),
-                form.getVehicleMake(),
-                form.getVehicleModel(),
-                form.getVehicleYear(),
-                form.getVinNumber(),
-                form.getLicensePlate(),
-                form.getComputingPower(),
-                LocalDate.parse(form.getResidencyStart()),
-                LocalDate.parse(form.getResidencyEnd()),
-                VehicleStatus.AVAILABLE
-            );
+                    Vehicle vehicle = new Vehicle(
+                        0,
+                        currentUser.getId(),
+                        form.getVehicleMake(),
+                        form.getVehicleModel(),
+                        Integer.parseInt(form.getVehicleYear()),
+                        form.getVinNumber(),
+                        form.getLicensePlate(),
+                        form.getComputingPower(),
+                        LocalDate.parse(form.getResidencyStart()),
+                        LocalDate.parse(form.getResidencyEnd()),
+                        VehicleStatus.AVAILABLE
+                    );
 
             //Initializes Payload Builder
             String payload = buildPayload(vehicle);
