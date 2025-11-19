@@ -1,0 +1,133 @@
+type: vehicle_availability
+user_id: 1
+owner_id: 1
+vin: 1GKGC66K89R258801
+license_plate: ABC-9126
+timestamp: 2025-11-19T00:38:35.736407700-05:00
+vehicle_make: Tesla
+vehicle_model: X
+vehicle_year: 2025
+computing_power: Medium
+start_date: 2025-11-21
+end_date: 2025-11-25
+---
+type: vehicle_availability
+user_id: 2
+owner_id: 1
+vin: 4V1KDDRE6NN762098
+license_plate: HGQ-5291
+timestamp: 2025-11-19T00:38:37.964282200-05:00
+vehicle_make: Tesla
+vehicle_model: Y
+vehicle_year: 2026
+computing_power: High
+start_date: 2025-11-25
+end_date: 2025-11-29
+---
+type: vehicle_availability
+user_id: 3
+owner_id: 1
+vin: 1GCFK24C1PE145713
+license_plate: FXG-4565
+timestamp: 2025-11-19T00:38:39.844882800-05:00
+vehicle_make: BMW
+vehicle_model: X5 M
+vehicle_year: 2026
+computing_power: Low
+start_date: 2025-11-22
+end_date: 2025-11-26
+---
+type: vehicle_availability
+user_id: 4
+owner_id: 2
+vin: 1GTDT136458258545
+license_plate: MDI-4581
+timestamp: 2025-11-19T00:38:42.010119600-05:00
+vehicle_make: Tesla
+vehicle_model: 3
+vehicle_year: 2023
+computing_power: Low
+start_date: 2025-12-17
+end_date: 2025-12-25
+---
+type: job_submission
+job_id: 1
+client_id: 1
+timestamp: 2025-11-19T00:41:24.072292400
+job_type: Computational Task
+duration_hours: 41
+deadline: 2025-11-25
+description: 
+---
+type: job_submission
+job_id: 2
+client_id: 1
+timestamp: 2025-11-19T00:41:27.272151300
+job_type: Real-Time Processing
+duration_hours: 62
+deadline: 2025-12-10
+description: 
+---
+type: job_submission
+job_id: 3
+client_id: 1
+timestamp: 2025-11-19T00:41:30.124443200
+job_type: Simulation
+duration_hours: 81
+deadline: 2025-12-10
+description: 
+---
+type: job_submission
+job_id: 4
+client_id: 2
+timestamp: 2025-11-19T00:41:37.328428800
+job_type: Networking & Communication
+duration_hours: 9
+deadline: 2025-11-24
+description: 
+---
+type: job_submission
+job_id: 5
+client_id: 2
+timestamp: 2025-11-19T00:41:39.224469700
+job_type: Networking & Communication
+duration_hours: 34
+deadline: 2025-11-23
+description: 
+---
+type: job_submission
+job_id: 6
+client_id: 2
+timestamp: 2025-11-19T00:41:41.417134200
+job_type: Simulation
+duration_hours: 67
+deadline: 2025-11-24
+description: 
+---
+type: job_submission
+job_id: 7
+client_id: 2
+timestamp: 2025-11-19T00:41:43.975861700
+job_type: Computational Task
+duration_hours: 23
+deadline: 2025-11-24
+description: 
+---
+type: job_submission
+job_id: 8
+client_id: 1
+timestamp: 2025-11-19T00:41:52.798127400
+job_type: Computational Task
+duration_hours: 6
+deadline: 2025-11-30
+description: 
+---
+type: job_submission
+job_id: 9
+client_id: 2
+timestamp: 2025-11-19T00:42:01.918131900
+job_type: Computational Task
+duration_hours: 4
+deadline: 2025-11-24
+description: 
+---

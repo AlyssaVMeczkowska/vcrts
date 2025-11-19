@@ -1,0 +1,189 @@
+request_id: 1
+request_type: VEHICLE_SUBMISSION
+user_id: 1
+user_name: Vehicle Owner 1
+timestamp: 2025-11-19T00:36:04.3200866
+status: ACCEPTED
+data: type: vehicle_availability\nuser_id: 1\nvin: 1GKGC66K89R258801\nlicense_plate: ABC-9126\nvehicle_make: Tesla\nvehicle_model: X\nvehicle_year: 2025\ncomputing_power: Medium\nstart_date: 2025-11-21\nend_date: 2025-11-25\n---\n
+rejection_reason: 
+---
+request_id: 2
+request_type: VEHICLE_SUBMISSION
+user_id: 1
+user_name: Vehicle Owner 1
+timestamp: 2025-11-19T00:36:04.3260942
+status: ACCEPTED
+data: type: vehicle_availability\nuser_id: 1\nvin: 4V1KDDRE6NN762098\nlicense_plate: HGQ-5291\nvehicle_make: Tesla\nvehicle_model: Y\nvehicle_year: 2026\ncomputing_power: High\nstart_date: 2025-11-25\nend_date: 2025-11-29\n---\n
+rejection_reason: 
+---
+request_id: 3
+request_type: VEHICLE_SUBMISSION
+user_id: 1
+user_name: Vehicle Owner 1
+timestamp: 2025-11-19T00:36:04.3331137
+status: ACCEPTED
+data: type: vehicle_availability\nuser_id: 1\nvin: 1GCFK24C1PE145713\nlicense_plate: FXG-4565\nvehicle_make: BMW\nvehicle_model: X5 M\nvehicle_year: 2026\ncomputing_power: Low\nstart_date: 2025-11-22\nend_date: 2025-11-26\n---\n
+rejection_reason: 
+---
+request_id: 4
+request_type: VEHICLE_SUBMISSION
+user_id: 2
+user_name: Vehicle Owner 2
+timestamp: 2025-11-19T00:37:38.2793297
+status: REJECTED
+data: type: vehicle_availability\nuser_id: 2\nvin: 5KKHALCV1BPAV7456\nlicense_plate: KIF-4810\nvehicle_make: Tesla\nvehicle_model: S\nvehicle_year: 2024\ncomputing_power: Low\nstart_date: 2025-11-26\nend_date: 2025-11-29\n---\n
+rejection_reason: 
+---
+request_id: 5
+request_type: VEHICLE_SUBMISSION
+user_id: 2
+user_name: Vehicle Owner 2
+timestamp: 2025-11-19T00:37:38.2863594
+status: ACCEPTED
+data: type: vehicle_availability\nuser_id: 2\nvin: 1GTDT136458258545\nlicense_plate: MDI-4581\nvehicle_make: Tesla\nvehicle_model: 3\nvehicle_year: 2023\ncomputing_power: Low\nstart_date: 2025-12-17\nend_date: 2025-12-25\n---\n
+rejection_reason: 
+---
+request_id: 6
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:39:25.3130945
+status: ACCEPTED
+data: type: job_submission\nuser_id: 1\njob_type: Computational Task\nduration: 41\ndeadline: 2025-11-25\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 7
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:39:25.3200989
+status: REJECTED
+data: type: job_submission\nuser_id: 1\njob_type: Data Storage & Transfer\nduration: 21\ndeadline: 2025-11-26\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 8
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:39:25.3261098
+status: ACCEPTED
+data: type: job_submission\nuser_id: 1\njob_type: Real-Time Processing\nduration: 62\ndeadline: 2025-12-10\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 9
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:40:10.8125413
+status: REJECTED
+data: type: job_submission\nuser_id: 1\njob_type: Simulation\nduration: 43\ndeadline: 2025-12-11\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 10
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:40:10.8214295
+status: ACCEPTED
+data: type: job_submission\nuser_id: 1\njob_type: Simulation\nduration: 81\ndeadline: 2025-12-10\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 11
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:40:10.8332613
+status: REJECTED
+data: type: job_submission\nuser_id: 1\njob_type: Simulation\nduration: 36\ndeadline: 2025-11-23\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 12
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:40:10.842265
+status: REJECTED
+data: type: job_submission\nuser_id: 1\njob_type: Networking & Communication\nduration: 56\ndeadline: 2025-11-23\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 13
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-11-19T00:40:10.8512797
+status: ACCEPTED
+data: type: job_submission\nuser_id: 1\njob_type: Computational Task\nduration: 6\ndeadline: 2025-11-30\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 14
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:40:35.9525487
+status: ACCEPTED
+data: type: job_submission\nuser_id: 2\njob_type: Computational Task\nduration: 4\ndeadline: 2025-11-24\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 15
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:41:17.7091981
+status: ACCEPTED
+data: type: job_submission\nuser_id: 2\njob_type: Simulation\nduration: 67\ndeadline: 2025-11-24\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 16
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:41:17.7162714
+status: ACCEPTED
+data: type: job_submission\nuser_id: 2\njob_type: Networking & Communication\nduration: 9\ndeadline: 2025-11-24\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 17
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:41:17.7228345
+status: ACCEPTED
+data: type: job_submission\nuser_id: 2\njob_type: Computational Task\nduration: 23\ndeadline: 2025-11-24\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 18
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:41:17.7331726
+status: ACCEPTED
+data: type: job_submission\nuser_id: 2\njob_type: Networking & Communication\nduration: 34\ndeadline: 2025-11-23\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 19
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:41:17.7421734
+status: REJECTED
+data: type: job_submission\nuser_id: 2\njob_type: Networking & Communication\nduration: 89\ndeadline: 2025-11-24\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 20
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:41:17.749686
+status: REJECTED
+data: type: job_submission\nuser_id: 2\njob_type: Simulation\nduration: 49\ndeadline: 2025-11-24\ndescription: \n---\n
+rejection_reason: 
+---
+request_id: 21
+request_type: JOB_SUBMISSION
+user_id: 2
+user_name: Job Client 2
+timestamp: 2025-11-19T00:41:17.7596979
+status: REJECTED
+data: type: job_submission\nuser_id: 2\njob_type: Simulation\nduration: 91\ndeadline: 2025-11-24\ndescription: \n---\n
+rejection_reason: 
+---
