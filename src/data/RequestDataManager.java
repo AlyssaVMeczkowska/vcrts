@@ -9,7 +9,7 @@ import model.RequestStatus;
 
 public class RequestDataManager {
     private static final String REQUESTS_FILE = "data/pending_requests.txt";
-    
+
     /**
      * Get the next request ID
      */
@@ -91,7 +91,7 @@ public class RequestDataManager {
                 if (line.equals("---")) {
                     if (!requestData.isEmpty() && "PENDING".equals(requestData.get("status"))) {
                         try {
-                            Request request = new Request(
+                             Request request = new Request(
                                 Integer.parseInt(requestData.get("request_id")),
                                 requestData.get("request_type"),
                                 Integer.parseInt(requestData.get("user_id")),
@@ -123,47 +123,63 @@ public class RequestDataManager {
     }
     
     /**
-     * Update request status (accept or reject)
+     * DELETE a request from the file (Used when Accepted or Rejected)
      */
-    public boolean updateRequestStatus(int requestId, RequestStatus newStatus, String rejectionReason) {
+    public boolean deleteRequest(int requestIdToDelete) {
         File file = new File(REQUESTS_FILE);
         if (!file.exists()) {
             return false;
         }
         
-        List<String> lines = new ArrayList<>();
-        boolean updated = false;
-        boolean inTargetRequest = false;
-        
+        List<String> newFileContent = new ArrayList<>();
+        List<String> currentBlock = new ArrayList<>();
+        int currentBlockId = -1;
+        boolean deleted = false;
+
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
+                currentBlock.add(line);
+
+                // Check for ID in current block
                 if (line.startsWith("request_id:")) {
-                    int currentId = Integer.parseInt(line.split(":")[1].trim());
-                    inTargetRequest = (currentId == requestId);
+                    try {
+                        currentBlockId = Integer.parseInt(line.split(":")[1].trim());
+                    } catch (NumberFormatException e) {
+                        currentBlockId = -1;
+                    }
                 }
-                
-                if (inTargetRequest && line.startsWith("status:")) {
-                    lines.add("status: " + newStatus.toString());
-                    updated = true;
-                } else if (inTargetRequest && line.startsWith("rejection_reason:")) {
-                    lines.add("rejection_reason: " + (rejectionReason != null ? rejectionReason : ""));
-                } else {
-                    lines.add(line);
-                }
-                
+
+                // End of block
                 if (line.equals("---")) {
-                    inTargetRequest = false;
+                    // If this block matches the ID we want to delete, we skip adding it to newFileContent
+                    if (currentBlockId == requestIdToDelete) {
+                        deleted = true; 
+                        // Block is effectively discarded here
+                    } else {
+                        // Keep this block
+                        newFileContent.addAll(currentBlock);
+                    }
+                    
+                    // Reset for next block
+                    currentBlock.clear();
+                    currentBlockId = -1;
                 }
             }
+            // Handle case where file might not end with "---" (edge case safety)
+            if (!currentBlock.isEmpty() && currentBlockId != requestIdToDelete) {
+                 newFileContent.addAll(currentBlock);
+            }
+
         } catch (IOException ex) {
             System.err.println("Error reading requests file: " + ex.getMessage());
             return false;
         }
         
-        if (updated) {
+        // Rewrite the file
+        if (deleted) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                for (String line : lines) {
+                for (String line : newFileContent) {
                     writer.write(line);
                     writer.newLine();
                 }
@@ -194,7 +210,7 @@ public class RequestDataManager {
                 if (line.equals("---")) {
                     if (!requestData.isEmpty()) {
                         try {
-                            int currentId = Integer.parseInt(requestData.get("request_id"));
+                             int currentId = Integer.parseInt(requestData.get("request_id"));
                             if (currentId == requestId) {
                                 RequestStatus status = RequestStatus.valueOf(requestData.get("status"));
                                 Request request = new Request(

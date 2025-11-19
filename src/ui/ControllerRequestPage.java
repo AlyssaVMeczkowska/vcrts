@@ -42,9 +42,6 @@ public class ControllerRequestPage extends JFrame {
 
         initComponents();
         loadPendingRequests();
-        
-        // REMOVED: startSocketServer(); 
-        // App.java now handles the server. The Controller just reads the file.
     }
 
 
@@ -60,12 +57,10 @@ public class ControllerRequestPage extends JFrame {
                 BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
                 BorderFactory.createEmptyBorder(15, 30, 15, 30)
         ));
-
         JLabel titleLabel = new JLabel("Request Management - Controller Dashboard");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 24));
         titleLabel.setForeground(PRIMARY_COLOR);
         headerPanel.add(titleLabel, BorderLayout.WEST);
-
         JButton backButton = new JButton("← Back to Dashboard");
         backButton.setFont(new Font("Arial", Font.BOLD, 14));
         backButton.setFocusPainted(false);
@@ -147,7 +142,6 @@ public class ControllerRequestPage extends JFrame {
                 displayRequestDetails();
             }
         });
-
         // Center align all columns
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -160,7 +154,6 @@ public class ControllerRequestPage extends JFrame {
         tablePanel.add(tableScrollPane, BorderLayout.CENTER);
 
         splitPane.setLeftComponent(tablePanel);
-
         // Right: Details and Actions
         JPanel rightPanel = new JPanel(new BorderLayout(10, 10));
         rightPanel.setBackground(Color.WHITE);
@@ -184,13 +177,11 @@ public class ControllerRequestPage extends JFrame {
         detailsArea.setWrapStyleWord(true);
         detailsArea.setMargin(new Insets(10, 10, 10, 10));
         detailsArea.setText("Select a request to view details");
-
         JScrollPane detailsScrollPane = new JScrollPane(detailsArea);
         detailsScrollPane.setBorder(null);
         detailsPanel.add(detailsScrollPane, BorderLayout.CENTER);
 
         rightPanel.add(detailsPanel, BorderLayout.CENTER);
-
         // Action buttons
         JPanel buttonPanel = new JPanel(new GridLayout(1, 2, 15, 0));
         buttonPanel.setBackground(Color.WHITE);
@@ -227,7 +218,8 @@ public class ControllerRequestPage extends JFrame {
         tableModel.setRowCount(0);
         List<Request> pendingRequests = requestDataManager.getPendingRequests();
         for (Request request : pendingRequests) {
-            String type = request.getRequestType().equals("JOB_SUBMISSION") ? "Job" : "Vehicle";
+            String type = request.getRequestType().equals("JOB_SUBMISSION") ?
+            "Job" : "Vehicle";
             String timestamp = request.getTimestamp();
             
             try {
@@ -239,6 +231,7 @@ public class ControllerRequestPage extends JFrame {
                     request.getRequestId(),
                     type,
                     request.getUserName(),
+                
                     timestamp
             });
         }
@@ -301,6 +294,7 @@ public class ControllerRequestPage extends JFrame {
                 "Accept this " + (request.getRequestType().equals("JOB_SUBMISSION") ? "job" : "vehicle") + " submission?",
                 "Confirm Acceptance",
                 JOptionPane.YES_NO_OPTION,
+            
                 JOptionPane.QUESTION_MESSAGE
         );
         if (confirm != JOptionPane.YES_OPTION) {
@@ -315,7 +309,9 @@ public class ControllerRequestPage extends JFrame {
         }
 
         if (success) {
-            requestDataManager.updateRequestStatus(requestId, RequestStatus.ACCEPTED, null);
+            // DELETE the request from the file once accepted and moved to vcrts_data
+            requestDataManager.deleteRequest(requestId);
+            
             showMessage("Success", "Request accepted and data saved successfully!", CustomDialog.DialogType.SUCCESS);
             loadPendingRequests();
             detailsArea.setText("Request processed successfully.");
@@ -345,15 +341,17 @@ public class ControllerRequestPage extends JFrame {
         );
         if (reason == null) return;
 
-        boolean updated = requestDataManager.updateRequestStatus(requestId, RequestStatus.REJECTED, reason);
-        if (updated) {
-            showMessage("Success", "Request rejected.", CustomDialog.DialogType.SUCCESS);
+        // DELETE the request from the file on rejection
+        boolean deleted = requestDataManager.deleteRequest(requestId);
+
+        if (deleted) {
+            showMessage("Success", "Request rejected and removed.", CustomDialog.DialogType.SUCCESS);
             loadPendingRequests();
             detailsArea.setText("Request rejected.");
             acceptButton.setEnabled(false);
             rejectButton.setEnabled(false);
         } else {
-            showMessage("Error", "Failed to update request status.", CustomDialog.DialogType.WARNING);
+            showMessage("Error", "Failed to delete request.", CustomDialog.DialogType.WARNING);
         }
     }
 
@@ -369,8 +367,6 @@ public class ControllerRequestPage extends JFrame {
                 }
             }
 
-            // Parse logic depends on how the data was formatted in buildJobPayload
-            // Assuming fields: user_id, job_type, duration, deadline, description
             Job job = new Job(
                     Integer.parseInt(jobData.getOrDefault("user_id", "0")),
                     jobData.getOrDefault("job_type", "Unknown"),
