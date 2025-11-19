@@ -10,15 +10,10 @@ import model.RequestStatus;
 public class RequestDataManager {
     private static final String REQUESTS_FILE = "data/pending_requests.txt";
 
-    /**
-     * Get the next request ID
-     */
     private int getNextRequestId() {
         int maxId = 0;
         File file = new File(REQUESTS_FILE);
-        if (!file.exists()) {
-            return 1;
-        }
+        if (!file.exists()) return 1;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
@@ -26,12 +21,8 @@ public class RequestDataManager {
                 if (line.startsWith("request_id:")) {
                     try {
                         int currentId = Integer.parseInt(line.split(":")[1].trim());
-                        if (currentId > maxId) {
-                            maxId = currentId;
-                        }
-                    } catch (NumberFormatException e) {
-                        System.err.println("Could not parse request ID from line: " + line);
-                    }
+                        if (currentId > maxId) maxId = currentId;
+                    } catch (NumberFormatException e) { }
                 }
             }
         } catch (IOException ex) {
@@ -40,9 +31,6 @@ public class RequestDataManager {
         return maxId + 1;
     }
     
-    /**
-     * Add a new pending request
-     */
     public int addRequest(String requestType, int userId, String userName, String data) {
         int requestId = getNextRequestId();
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -74,14 +62,26 @@ public class RequestDataManager {
     }
     
     /**
-     * Get all pending requests
+     * Returns ONLY requests with status PENDING (For Controller)
      */
     public List<Request> getPendingRequests() {
         List<Request> requests = new ArrayList<>();
-        File file = new File(REQUESTS_FILE);
-        if (!file.exists()) {
-            return requests;
+        List<Request> all = getAllRequests();
+        for(Request r : all) {
+            if(r.getStatus() == RequestStatus.PENDING) {
+                requests.add(r);
+            }
         }
+        return requests;
+    }
+
+    /**
+     * Returns ALL requests regardless of status (For Client History)
+     */
+    public List<Request> getAllRequests() {
+        List<Request> requests = new ArrayList<>();
+        File file = new File(REQUESTS_FILE);
+        if (!file.exists()) return requests;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
@@ -89,17 +89,25 @@ public class RequestDataManager {
             
             while ((line = reader.readLine()) != null) {
                 if (line.equals("---")) {
-                    if (!requestData.isEmpty() && "PENDING".equals(requestData.get("status"))) {
+                    if (!requestData.isEmpty()) {
                         try {
+                             RequestStatus status = RequestStatus.PENDING;
+                             try {
+                                 status = RequestStatus.valueOf(requestData.getOrDefault("status", "PENDING"));
+                             } catch (Exception e) {}
+
                              Request request = new Request(
                                 Integer.parseInt(requestData.get("request_id")),
                                 requestData.get("request_type"),
                                 Integer.parseInt(requestData.get("user_id")),
                                 requestData.get("user_name"),
                                 requestData.get("timestamp"),
-                                RequestStatus.PENDING,
+                                status,
                                 requestData.get("data").replace("\\n", "\n")
                             );
+                            String rejection = requestData.get("rejection_reason");
+                            if(rejection != null) request.setRejectionReason(rejection);
+                            
                             requests.add(request);
                         } catch (Exception e) {
                             System.err.println("Failed to parse request: " + e.getMessage());
@@ -111,7 +119,6 @@ public class RequestDataManager {
                     if (parts.length == 2) {
                         requestData.put(parts[0].trim(), parts[1].trim());
                     } else if (parts.length == 1 && line.contains(":")) {
-                        // Handle empty values
                         requestData.put(parts[0].replace(":", "").trim(), "");
                     }
                 }
@@ -123,63 +130,45 @@ public class RequestDataManager {
     }
     
     /**
-     * DELETE a request from the file (Used when Accepted or Rejected)
+     * Updates the status of a request instead of deleting it.
      */
-    public boolean deleteRequest(int requestIdToDelete) {
+    public boolean updateRequestStatus(int requestId, RequestStatus newStatus, String rejectionReason) {
         File file = new File(REQUESTS_FILE);
-        if (!file.exists()) {
-            return false;
-        }
+        if (!file.exists()) return false;
         
-        List<String> newFileContent = new ArrayList<>();
-        List<String> currentBlock = new ArrayList<>();
-        int currentBlockId = -1;
-        boolean deleted = false;
-
+        List<String> lines = new ArrayList<>();
+        boolean updated = false;
+        boolean inTargetRequest = false;
+        
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                currentBlock.add(line);
-
-                // Check for ID in current block
                 if (line.startsWith("request_id:")) {
-                    try {
-                        currentBlockId = Integer.parseInt(line.split(":")[1].trim());
-                    } catch (NumberFormatException e) {
-                        currentBlockId = -1;
-                    }
+                    int currentId = Integer.parseInt(line.split(":")[1].trim());
+                    inTargetRequest = (currentId == requestId);
                 }
-
-                // End of block
+                
+                if (inTargetRequest && line.startsWith("status:")) {
+                    lines.add("status: " + newStatus.toString());
+                    updated = true;
+                } else if (inTargetRequest && line.startsWith("rejection_reason:")) {
+                    lines.add("rejection_reason: " + (rejectionReason != null ? rejectionReason : ""));
+                } else {
+                    lines.add(line);
+                }
+                
                 if (line.equals("---")) {
-                    // If this block matches the ID we want to delete, we skip adding it to newFileContent
-                    if (currentBlockId == requestIdToDelete) {
-                        deleted = true; 
-                        // Block is effectively discarded here
-                    } else {
-                        // Keep this block
-                        newFileContent.addAll(currentBlock);
-                    }
-                    
-                    // Reset for next block
-                    currentBlock.clear();
-                    currentBlockId = -1;
+                    inTargetRequest = false;
                 }
             }
-            // Handle case where file might not end with "---" (edge case safety)
-            if (!currentBlock.isEmpty() && currentBlockId != requestIdToDelete) {
-                 newFileContent.addAll(currentBlock);
-            }
-
         } catch (IOException ex) {
             System.err.println("Error reading requests file: " + ex.getMessage());
             return false;
         }
         
-        // Rewrite the file
-        if (deleted) {
+        if (updated) {
             try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                for (String line : newFileContent) {
+                for (String line : lines) {
                     writer.write(line);
                     writer.newLine();
                 }
@@ -189,61 +178,13 @@ public class RequestDataManager {
                 return false;
             }
         }
-        
         return false;
     }
-    
-    /**
-     * Get request by ID
-     */
-    public Request getRequestById(int requestId) {
-        File file = new File(REQUESTS_FILE);
-        if (!file.exists()) {
-            return null;
-        }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            Map<String, String> requestData = new HashMap<>();
-            
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("---")) {
-                    if (!requestData.isEmpty()) {
-                        try {
-                             int currentId = Integer.parseInt(requestData.get("request_id"));
-                            if (currentId == requestId) {
-                                RequestStatus status = RequestStatus.valueOf(requestData.get("status"));
-                                Request request = new Request(
-                                    currentId,
-                                    requestData.get("request_type"),
-                                    Integer.parseInt(requestData.get("user_id")),
-                                    requestData.get("user_name"),
-                                    requestData.get("timestamp"),
-                                    status,
-                                    requestData.get("data").replace("\\n", "\n")
-                                );
-                                String rejectionReason = requestData.get("rejection_reason");
-                                if (rejectionReason != null && !rejectionReason.isEmpty()) {
-                                    request.setRejectionReason(rejectionReason);
-                                }
-                                return request;
-                            }
-                        } catch (Exception e) {
-                            System.err.println("Failed to parse request: " + e.getMessage());
-                        }
-                    }
-                    requestData.clear();
-                } else {
-                    String[] parts = line.split(": ", 2);
-                    if (parts.length == 2) {
-                        requestData.put(parts[0].trim(), parts[1].trim());
-                    } else if (parts.length == 1 && line.contains(":")) {
-                        requestData.put(parts[0].replace(":", "").trim(), "");
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    public Request getRequestById(int requestId) {
+        List<Request> all = getAllRequests();
+        for(Request r : all) {
+            if(r.getRequestId() == requestId) return r;
         }
         return null;
     }
