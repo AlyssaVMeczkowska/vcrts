@@ -1,5 +1,6 @@
 package ui;
 
+import data.RequestDataManager;
 import java.awt.*;
 import java.util.List;
 import java.util.Map;
@@ -10,13 +11,13 @@ import model.Controller;
 import model.Job;
 import model.User;
 import model.Vehicle;
-import data.RequestDataManager;
 
 public class ControllerPage extends JFrame {
 
     private User currentUser;
     private Controller controller; 
     private JPanel tablesContainer;
+    private JPanel mainPanel; 
     
     private JLabel vehicleCountLabel;
     private JLabel jobCountLabel;
@@ -48,7 +49,6 @@ public class ControllerPage extends JFrame {
                 BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
                 BorderFactory.createEmptyBorder(15, 50, 15, 50)
         ));
-        
         JLabel headerTitle = new JLabel("VCRTS Controller");
         headerTitle.setFont(new Font("Georgia", Font.PLAIN, 28));
         headerPanel.add(headerTitle, BorderLayout.WEST);
@@ -67,7 +67,6 @@ public class ControllerPage extends JFrame {
         headerPanel.add(logoutButton, BorderLayout.EAST);
         rootPanel.add(headerPanel, BorderLayout.NORTH);
 
-        // Main content area with scroll pane
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -76,21 +75,29 @@ public class ControllerPage extends JFrame {
         JPanel scrollContent = new JPanel(new GridBagLayout());
         scrollContent.setBackground(PAGE_BG);
         
-        JPanel mainPanel = new JPanel();
+
+        mainPanel = new JPanel() {
+            @Override
+            public Dimension getPreferredSize() {
+                Dimension d = super.getPreferredSize();
+                return new Dimension(1100, Math.max(800, d.height));
+            }
+        };
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
         mainPanel.setBackground(Color.WHITE);
-        mainPanel.setPreferredSize(new Dimension(1200, 1200)); 
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weightx = 1.0;
+        gbc.weightx = 1.0; 
         gbc.anchor = GridBagConstraints.NORTH;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(20, 20, 20, 20);
-        scrollContent.add(mainPanel, gbc);
+
+        gbc.fill = GridBagConstraints.NONE; 
+
+        gbc.insets = new Insets(30, 0, 30, 0);
         
+        scrollContent.add(mainPanel, gbc);
         scrollPane.setViewportView(scrollContent);
 
         JLabel welcomeLabel = new JLabel("Welcome, " + currentUser.getFirstName() + "!");
@@ -113,7 +120,7 @@ public class ControllerPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 35)));
         
-        // Add summary stats panel with pending requests
+
         int totalVehicles = controller.viewVehicles() != null ? controller.viewVehicles().size() : 0;
         int totalJobs = controller.viewJobs() != null ? controller.viewJobs().size() : 0;
         int pendingRequests = requestDataManager.getPendingRequests().size();
@@ -166,7 +173,6 @@ public class ControllerPage extends JFrame {
         actionButtonsPanel.setBackground(Color.WHITE);
         actionButtonsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // Manage Requests Button
         GradientButton manageRequestsButton = new GradientButton("Manage Requests");
         manageRequestsButton.setFont(new Font("Arial", Font.BOLD, 16));
         manageRequestsButton.setForeground(Color.WHITE);
@@ -177,7 +183,6 @@ public class ControllerPage extends JFrame {
             SwingUtilities.invokeLater(() -> new ControllerRequestPage(currentUser).setVisible(true));
         });
         
-        // Calculate Completion Times Button
         GradientButton calcButton = new GradientButton("Calculate Job Completion Times");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setForeground(Color.WHITE);
@@ -240,6 +245,7 @@ public class ControllerPage extends JFrame {
         }
         
         tablesContainer.setVisible(true);
+        mainPanel.revalidate();
         this.revalidate();
         this.repaint();
     }
@@ -363,6 +369,9 @@ public class ControllerPage extends JFrame {
             };
             tableModel.addRow(row);
         }
+        
+
+        jobTable.adjustTableHeight();
         
         vehiclePanel.add(jobTable);
         
