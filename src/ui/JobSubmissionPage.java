@@ -1,5 +1,6 @@
 package ui;
 
+import ClientServer_client.ClientJobSender;
 import data.JobDataManager;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
