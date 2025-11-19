@@ -11,12 +11,8 @@ import model.Controller;
 import model.Job;
 import model.User;
 import model.Vehicle;
-import ClientServer_owner.VCControllerServer;
-import ClientServer_owner.VehicleOwnerClientHandler;
-
 
 public class ControllerPage extends JFrame {
-
 
     private User currentUser;
     private Controller controller; 
@@ -27,7 +23,8 @@ public class ControllerPage extends JFrame {
     private JLabel jobCountLabel;
     private JLabel pendingRequestsLabel;
     private RequestDataManager requestDataManager;
-    
+    private Timer liveUpdateTimer;
+
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
     private static final Color VEHICLE_HEADER_BG = new Color(44, 116, 132);
@@ -38,8 +35,7 @@ public class ControllerPage extends JFrame {
         this.controller = new Controller(1, null, null, null, null, null);
         this.requestDataManager = new RequestDataManager();
         System.out.println(">>> NEW ControllerPage CREATED <<<");
-
-
+        
         setTitle("VCRTS Controller Dashboard");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
@@ -80,8 +76,6 @@ public class ControllerPage extends JFrame {
         
         JPanel scrollContent = new JPanel(new GridBagLayout());
         scrollContent.setBackground(PAGE_BG);
-        
-
         mainPanel = new JPanel() {
             @Override
             public Dimension getPreferredSize() {
@@ -96,7 +90,7 @@ public class ControllerPage extends JFrame {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weightx = 1.0; 
+        gbc.weightx = 1.0;
         gbc.anchor = GridBagConstraints.NORTH;
 
         gbc.fill = GridBagConstraints.NONE; 
@@ -105,14 +99,12 @@ public class ControllerPage extends JFrame {
         
         scrollContent.add(mainPanel, gbc);
         scrollPane.setViewportView(scrollContent);
-
         JLabel welcomeLabel = new JLabel("Welcome, " + currentUser.getFirstName() + "!");
         welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 32));
         welcomeLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(welcomeLabel);
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
-        
         JLabel descriptionLabel = new JLabel("<html><div style='text-align: center;'>" +
             "Manage job assignments, review pending requests, and monitor system status.<br>" +
             "Use the buttons below to access different management functions." +
@@ -125,8 +117,6 @@ public class ControllerPage extends JFrame {
         mainPanel.add(descriptionLabel);
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 35)));
-        
-
         int totalVehicles = controller.viewVehicles() != null ? controller.viewVehicles().size() : 0;
         int totalJobs = controller.viewJobs() != null ? controller.viewJobs().size() : 0;
         int pendingRequests = requestDataManager.getPendingRequests().size();
@@ -148,7 +138,6 @@ public class ControllerPage extends JFrame {
             new Color(44, 116, 132),
             new Color(230, 245, 248)
         );
-        
         JPanel jobsCard = createStyledSummaryCard(
             "Total Jobs",
             jobCountLabel, 
@@ -156,7 +145,6 @@ public class ControllerPage extends JFrame {
             new Color(52, 199, 89),
             new Color(235, 250, 240)
         );
-        
         JPanel requestsCard = createStyledSummaryCard(
             "Pending Requests",
             pendingRequestsLabel,
@@ -164,7 +152,6 @@ public class ControllerPage extends JFrame {
             new Color(255, 149, 0),
             new Color(255, 245, 235)
         );
-        
         summaryContainer.add(vehicleCard);
         summaryContainer.add(jobsCard);
         summaryContainer.add(requestsCard);
@@ -188,7 +175,6 @@ public class ControllerPage extends JFrame {
             dispose();
             SwingUtilities.invokeLater(() -> new ControllerRequestPage(currentUser).setVisible(true));
         });
-        
         GradientButton calcButton = new GradientButton("Calculate Job Completion Times");
         calcButton.setFont(new Font("Arial", Font.BOLD, 16));
         calcButton.setForeground(Color.WHITE);
@@ -212,21 +198,58 @@ public class ControllerPage extends JFrame {
         
         rootPanel.add(scrollPane, BorderLayout.CENTER);
         
+        // --- LIVE UPDATE LOGIC ---
+        // Timer set to 500ms (0.5 seconds)
+        liveUpdateTimer = new Timer(500, e -> updateDashboardData());
+        liveUpdateTimer.start();
+        
         this.validate();
         this.repaint();
+    }
+    
+    /**
+     * Background timer calls this method every 0.5 seconds.
+     * It checks for new files data and updates the UI.
+     */
+    private void updateDashboardData() {
+        // 1. Update Pending Requests Count (Always needed)
+        int currentPending = requestDataManager.getPendingRequests().size();
+        pendingRequestsLabel.setText(String.valueOf(currentPending));
 
+        // 2. Refresh Controller Data (Jobs & Vehicles)
+        // If tables are visible, we do a full UI refresh of the tables.
+        // If not, we just update the summary numbers.
+        if (tablesContainer.isVisible()) {
+            displayJobCompletionTimes(); 
+        } else {
+            // Just refresh data model and update summary labels
+            controller.refreshAndProcessData();
+            int totalVehicles = controller.viewVehicles().size();
+            int totalJobs = controller.viewJobs().size();
+            
+            vehicleCountLabel.setText(String.valueOf(totalVehicles));
+            jobCountLabel.setText(String.valueOf(totalJobs));
+        }
+    }
+
+    @Override
+    public void dispose() {
+        if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
+            liveUpdateTimer.stop();
+        }
+        super.dispose();
     }
     
     private void displayJobCompletionTimes() {
         controller.refreshAndProcessData();
-
         int newVehicleCount = controller.viewVehicles().size();
         int newJobCount = controller.viewJobs().size();
-        int newPendingRequests = requestDataManager.getPendingRequests().size();
         
         vehicleCountLabel.setText(String.valueOf(newVehicleCount));
         jobCountLabel.setText(String.valueOf(newJobCount));
-        pendingRequestsLabel.setText(String.valueOf(newPendingRequests));
+
+        // Note: We don't re-fetch pending requests here because the timer loop 
+        // handles it in the first step of updateDashboardData
 
         tablesContainer.removeAll();
         Map<Integer, Queue<Job>> vehicleQueues = controller.getVehicleJobQueues();
@@ -238,7 +261,6 @@ public class ControllerPage extends JFrame {
             tablesContainer.add(noDataLabel);
         } else {
             List<Integer> vehicleIDs = controller.getAllVehicleIDs();
-            
             for (Integer vehicleId : vehicleIDs) {
                 Vehicle vehicle = controller.getVehicleById(vehicleId);
                 List<Job> vehicleJobs = controller.getJobsForVehicle(vehicleId);
@@ -271,12 +293,10 @@ public class ControllerPage extends JFrame {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.WHITE);
-        
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Arial", Font.PLAIN, 13));
         titleLabel.setForeground(new Color(70, 70, 70));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        
         JPanel accentBarWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         accentBarWrapper.setBackground(Color.WHITE);
         accentBarWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -312,8 +332,7 @@ public class ControllerPage extends JFrame {
         headerPanel.setBackground(VEHICLE_HEADER_BG);
         headerPanel.setBorder(BorderFactory.createEmptyBorder(12, 20, 12, 20));
         headerPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 60));
-        headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT); 
-        
+        headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
         JPanel leftHeaderPanel = new JPanel();
         leftHeaderPanel.setLayout(new BoxLayout(leftHeaderPanel, BoxLayout.Y_AXIS));
         leftHeaderPanel.setBackground(VEHICLE_HEADER_BG);
@@ -327,7 +346,6 @@ public class ControllerPage extends JFrame {
         JLabel vehicleLabel = new JLabel(vehicleInfo);
         vehicleLabel.setFont(new Font("Arial", Font.BOLD, 18));
         vehicleLabel.setForeground(VEHICLE_HEADER_TEXT);
-        
         JLabel vehicleDetailsLabel = new JLabel(String.format("VIN: %s | License: %s | Power: %s", 
             vehicle.getVin(), 
             vehicle.getLicensePlate(),
@@ -348,10 +366,8 @@ public class ControllerPage extends JFrame {
         headerPanel.add(jobCountLabel, BorderLayout.EAST);
         
         vehiclePanel.add(headerPanel);
-        vehiclePanel.add(Box.createRigidArea(new Dimension(0, 0))); 
-        
+        vehiclePanel.add(Box.createRigidArea(new Dimension(0, 0)));
         String[] columnNames = {"Job ID", "Client ID", "Job Type", "Duration (hrs)", "Arrival Time", "Completion Time (hrs)"};
-        
         int[] columnWidths = {
             90,  
             90,  
@@ -360,17 +376,16 @@ public class ControllerPage extends JFrame {
             300, 
             180  
         };
-        
         CustomTable jobTable = new CustomTable(columnNames, columnWidths);
         jobTable.setAlignmentX(Component.CENTER_ALIGNMENT); 
         DefaultTableModel tableModel = jobTable.getModel();
-        
         for (Job job : jobs) {
             Object[] row = {
                 job.getJobId(),
                 job.getAccountId(),
                 job.getJobType(),
                 job.getDuration(),
+                
                 job.getSubmissionTimestamp(),
                 job.getCompletionTime()
             };
@@ -381,21 +396,6 @@ public class ControllerPage extends JFrame {
         jobTable.adjustTableHeight();
         
         vehiclePanel.add(jobTable);
-        
         return vehiclePanel;
     }
-    
-    //public static void main(String[] args) {
-    //    SwingUtilities.invokeLater(() -> {
-    //        User testController = new User(
-    //             1, "Admin", "User", "controller@vcrts.com", "admin", 
-    //             "(123) 456-7890", "dummyhash", "Controller", 
-    //             "2025-01-01T12:00:00", 
-    //             true
-    //         );
-    //        
-    //         ControllerPage controllerPage = new ControllerPage(testController);
-    //         controllerPage.setVisible(true);
-    //     });
-    //}
 }

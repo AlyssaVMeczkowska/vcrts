@@ -17,6 +17,7 @@ import model.User;
 public class ClientRequestStatusPage extends JFrame {
     private User currentUser;
     private RequestDataManager requestDataManager;
+    private Timer liveUpdateTimer;
     
     private static final Color PAGE_BG = new Color(238, 238, 238);
     private static final Color BORDER_COLOR = new Color(220, 220, 220);
@@ -37,8 +38,18 @@ public class ClientRequestStatusPage extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         initComponents();
-        loadRequestData();
-        checkNotifications(); // Check for new updates
+        loadRequestData(); // Load table data immediately so page isn't blank
+        
+        // --- LIVE UPDATE LOGIC ---
+        // Check for updates every 500ms
+        liveUpdateTimer = new Timer(500, e -> {
+            loadRequestData(); 
+            checkNotifications(); 
+        });
+        
+        // Wait 1 second (1000ms) before the first check to allow UI to render fully
+        liveUpdateTimer.setInitialDelay(1000); 
+        liveUpdateTimer.start();
     }
     
     private void checkNotifications() {
@@ -60,9 +71,19 @@ public class ClientRequestStatusPage extends JFrame {
             allIdsToMark.addAll(rejectedIds);
         }
         
+        // Mark as viewed immediately
         if (!allIdsToMark.isEmpty()) {
             requestDataManager.markAsViewed(allIdsToMark);
+            loadRequestData(); 
         }
+    }
+
+    @Override
+    public void dispose() {
+        if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
+            liveUpdateTimer.stop();
+        }
+        super.dispose();
     }
 
     private void initComponents() {
@@ -108,8 +129,10 @@ public class ClientRequestStatusPage extends JFrame {
         headerButtonsPanel.add(backButton);
         headerButtonsPanel.add(logoutButton);
         headerPanel.add(headerButtonsPanel, BorderLayout.EAST);
+
         rootPanel.add(headerPanel, BorderLayout.NORTH);
 
+        // Main content area with scroll
         JScrollPane scrollPane = new JScrollPane();
         scrollPane.setBorder(null);
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
@@ -138,6 +161,7 @@ public class ClientRequestStatusPage extends JFrame {
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 32));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         mainPanel.add(titleLabel);
+
         mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         JLabel descLabel = new JLabel("<html><div style='text-align: center;'>" +
@@ -149,6 +173,7 @@ public class ClientRequestStatusPage extends JFrame {
         descLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         descLabel.setHorizontalAlignment(SwingConstants.CENTER);
         mainPanel.add(descLabel);
+
         mainPanel.add(Box.createRigidArea(new Dimension(0, 35)));
 
         JPanel summaryContainer = new JPanel();
@@ -167,28 +192,8 @@ public class ClientRequestStatusPage extends JFrame {
         summaryContainer.add(acceptedCard);
 
         mainPanel.add(summaryContainer);
+        
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
-
-        JPanel refreshPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        refreshPanel.setBackground(Color.WHITE);
-        refreshPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        refreshPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JButton refreshButton = new JButton("Refresh");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 14));
-        refreshButton.setFocusPainted(false);
-        refreshButton.setBorderPainted(false);
-        refreshButton.setContentAreaFilled(false);
-        refreshButton.setForeground(PRIMARY_COLOR);
-        refreshButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        refreshButton.addActionListener(e -> {
-            loadRequestData();
-            checkNotifications();
-        });
-
-        refreshPanel.add(refreshButton);
-        mainPanel.add(refreshPanel);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
 
         String[] columnNames = {"Request ID", "Job Type", "Duration (hrs)", "Deadline", "Submitted", "Status"};
         int[] columnWidths = {120, 250, 150, 180, 250, 150};
@@ -198,6 +203,7 @@ public class ClientRequestStatusPage extends JFrame {
         tableModel = requestTable.getModel();
         requestTable.getTable().getColumnModel().getColumn(5).setCellRenderer(new StatusCellRenderer());
         mainPanel.add(requestTable);
+
         rootPanel.add(scrollPane, BorderLayout.CENTER);
     }
 
@@ -238,7 +244,9 @@ public class ClientRequestStatusPage extends JFrame {
         contentPanel.add(titleLabel);
         contentPanel.add(Box.createRigidArea(new Dimension(0, 4)));
         contentPanel.add(valueLabel);
+
         card.add(contentPanel, BorderLayout.CENTER);
+
         return card;
     }
 
