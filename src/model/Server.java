@@ -12,19 +12,14 @@ public class Server {
         this.serverID = serverID;
         this.completedJobs = completedJobs;
     }
-    /* 
-     * A method that will be called by the Controller after a job is completed 
-     * to add the job to the server's storage
-     */
+
     public void addCompletedJob(Job job) {
     	if(job != null) {
     		this.completedJobs.add(job);
     	}
     }
     
-    /* 
-     * Uses activeVehicle to check whether a job is completed by a departing vehicle
-     */
+
     public void eraseJobOnVehicle(String vehicleID, Date departureDate){
     	if(vehicleID == null || departureDate == null) {
     		return;

@@ -4,12 +4,12 @@ import java.time.LocalDateTime;
 
 public class Request {
     private int requestId;
-    private String requestType; // "JOB_SUBMISSION" or "VEHICLE_SUBMISSION"
+    private String requestType; 
     private int userId;
     private String userName;
     private String timestamp;
     private RequestStatus status;
-    private String data; // JSON or serialized data
+    private String data; 
     private String rejectionReason;
     
     public Request(int requestId, String requestType, int userId, String userName, 
@@ -24,7 +24,7 @@ public class Request {
         this.rejectionReason = "";
     }
     
-    // Getters
+
     public int getRequestId() { return requestId; }
     public String getRequestType() { return requestType; }
     public int getUserId() { return userId; }
@@ -34,7 +34,7 @@ public class Request {
     public String getData() { return data; }
     public String getRejectionReason() { return rejectionReason; }
     
-    // Setters
+
     public void setStatus(RequestStatus status) { this.status = status; }
     public void setRejectionReason(String reason) { this.rejectionReason = reason; }
 }

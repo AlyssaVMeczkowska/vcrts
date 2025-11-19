@@ -13,13 +13,13 @@ public class Owner extends User
         this.vehicles = vehicles;
     }
 
-    //New Method to get list of vehicles
+
     public List<Vehicle> getVehicles()
     {
         return new ArrayList<>(vehicles);
     }
 
-    //Implemented Method to add new vehicles
+
     public void addVehicle(Vehicle vehicle)
     {
         if (vehicle == null) return;
@@ -33,7 +33,7 @@ public class Owner extends User
         vehicles.add(vehicle);
     }
 
-    //Implemented Method to delete new vehicles
+
     public void deleteVehicle(Vehicle vehicle)
     {
         if (vehicle == null) return;
@@ -50,7 +50,7 @@ public class Owner extends User
         throw new IllegalArgumentException("Vehicle to be deleted does not exist for this owner.");
     }
 
-    //New Owner("Client-Side") Communication Methods
+
     public void requestVehicleSubmission(Vehicle vehicle, Controller controller)
     {
         if (controller == null || vehicle == null)
@@ -70,14 +70,14 @@ public class Owner extends User
         controller.receiveVehicleSubmissionRequest(this, vehicle);
     }
 
-    //Temporary Notification Recieving Method (Pre-UI)
+
     public void receiveNotification(String message)
     {
         System.out.println("--- NOTIFICATION for " + getUsername() + " ---");
         System.out.println(message);
         System.out.println("----------------------------------------");
     }
-    //End of New Client-Side Methods
+
 
 }
 
