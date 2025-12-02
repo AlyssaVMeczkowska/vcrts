@@ -118,3 +118,25 @@ computing_power: Medium
 start_date: 2025-11-28
 end_date: 2025-12-04
 ---
+type: vehicle_availability
+user_id: 4
+owner_id: 1
+vin: asdasddas
+license_plate: asadasd
+timestamp: 2025-12-01T22:38:53.452187100-05:00
+vehicle_make: sfdsfdfs
+vehicle_model: sfdssf
+vehicle_year: 2009
+computing_power: Low
+start_date: 2025-12-09
+end_date: 2025-12-11
+---
+type: job_submission
+job_id: 10
+client_id: 1
+timestamp: 2025-12-01T22:38:57.546176
+job_type: Data Storage & Transfer
+duration_hours: 12
+deadline: 2025-12-10
+description: qadadsda
+---

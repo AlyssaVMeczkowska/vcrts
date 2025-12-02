@@ -1,6 +1,6 @@
 package ui;
 
-import ClientServer_client.ClientJobSender;
+import ClientServer.RequestSender;
 import data.JobDataManager;
 import data.RequestDataManager;
 import java.awt.*;
@@ -345,9 +345,6 @@ public class JobSubmissionPage extends JFrame {
             return;
         }
 
-        RequestDataManager requestDataManager = new RequestDataManager();
-        JobDataManager jobDataManager = new JobDataManager();
-        
         int nextJobId = getNextJobIdForUser();
         int successCount = 0;
         StringBuilder requestIds = new StringBuilder();
@@ -357,19 +354,21 @@ public class JobSubmissionPage extends JFrame {
             String duration = form.getDuration();
             String deadline = form.getDeadline();
             String description = form.getDescription();
+
             Job job = new Job(
-                currentUser.getId(), 
-                jobType,
-                Integer.parseInt(duration.trim()),
-                deadline.trim(),
-                description.trim()
+                    currentUser.getId(),
+                    jobType,
+                    Integer.parseInt(duration.trim()),
+                    deadline.trim(),
+                    description.trim()
             );
+
             String payload = buildJobPayload(job);
 
-            boolean accepted = ClientJobSender.sendJobPayload(payload);
+
+            boolean accepted = RequestSender.sendJobSubmission(payload);
 
             if (accepted) {
-                
                 successCount++;
                 if (requestIds.length() > 0) {
                     requestIds.append(", ");
@@ -377,30 +376,30 @@ public class JobSubmissionPage extends JFrame {
                 requestIds.append("#").append(nextJobId);
                 nextJobId++;
             }
-
         }
 
+        // Show appropriate success/failure message based on results
         if (successCount == jobForms.size()) {
             String message = String.format(
-                "%d job(s) submitted for controller review!\n\nJob ID(s): %s\n\n" +
-                "You will be notified once the controller reviews your submission(s).",
-                successCount, requestIds.toString()
+                    "%d job(s) submitted for controller review!\n\nJob ID(s): %s\n\n" +
+                            "You will be notified once the controller reviews your submission(s).",
+                    successCount, requestIds.toString()
             );
-            CustomDialog dialog = new CustomDialog(this, "Requests Submitted", 
-                message, CustomDialog.DialogType.SUCCESS);
+            CustomDialog dialog = new CustomDialog(this, "Requests Submitted",
+                    message, CustomDialog.DialogType.SUCCESS);
             dialog.setVisible(true);
             clearAllForms();
         } else if (successCount > 0) {
             String message = String.format(
-                "%d of %d job(s) submitted for review.\n\nJob ID(s): %s\n\nSome jobs failed to submit.",
-                successCount, jobForms.size(), requestIds.toString()
+                    "%d of %d job(s) submitted for review.\n\nJob ID(s): %s\n\nSome jobs failed to submit.",
+                    successCount, jobForms.size(), requestIds.toString()
             );
-            CustomDialog dialog = new CustomDialog(this, "Partial Success", 
-                message, CustomDialog.DialogType.WARNING);
+            CustomDialog dialog = new CustomDialog(this, "Partial Success",
+                    message, CustomDialog.DialogType.WARNING);
             dialog.setVisible(true);
         } else {
-            CustomDialog dialog = new CustomDialog(this, "Submission Failed", 
-                "Failed to submit jobs. Please try again.", CustomDialog.DialogType.WARNING);
+            CustomDialog dialog = new CustomDialog(this, "Submission Failed",
+                    "Failed to submit jobs. Please try again.", CustomDialog.DialogType.WARNING);
             dialog.setVisible(true);
         }
     }

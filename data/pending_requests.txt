@@ -218,3 +218,33 @@ notification_viewed: true
 data: type: vehicle_availability\nuser_id: 2\nvin: 3N1AB6AP6BL602066\nlicense_plate: JLP-2810\nvehicle_make: Tesla\nvehicle_model: X\nvehicle_year: 2024\ncomputing_power: High\nstart_date: 2025-12-16\nend_date: 2025-12-18\n---\n
 rejection_reason: 
 ---
+request_id: 23
+request_type: VEHICLE_SUBMISSION
+user_id: 1
+user_name: Vehicle Owner 1
+timestamp: 2025-12-01T22:37:34.2668913
+status: ACCEPTED
+notification_viewed: true
+data: type: vehicle_availability\nuser_id: 1\nvin: asdasddas\nlicense_plate: asadasd\nvehicle_make: sfdsfdfs\nvehicle_model: sfdssf\nvehicle_year: 2009\ncomputing_power: Low\nstart_date: 2025-12-09\nend_date: 2025-12-11\n---\n
+rejection_reason: 
+---
+request_id: 24
+request_type: JOB_SUBMISSION
+user_id: 1
+user_name: Job Client 1
+timestamp: 2025-12-01T22:38:11.4035464
+status: ACCEPTED
+notification_viewed: true
+data: type: job_submission\nuser_id: 1\njob_type: Data Storage & Transfer\nduration: 12\ndeadline: 2025-12-10\ndescription: qadadsda\n---\n
+rejection_reason: 
+---
+request_id: 25
+request_type: VEHICLE_SUBMISSION
+user_id: 1
+user_name: Vehicle Owner 1
+timestamp: 2025-12-01T22:41:31.4924217
+status: REJECTED
+notification_viewed: true
+data: type: vehicle_availability\nuser_id: 1\nvin: adasdds\nlicense_plate: adsasd\nvehicle_make: adas\nvehicle_model: adasd\nvehicle_year: 2011\ncomputing_power: Low\nstart_date: 2025-12-11\nend_date: 2025-12-12\n---\n
+rejection_reason: 
+---

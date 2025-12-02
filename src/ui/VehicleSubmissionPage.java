@@ -1,6 +1,6 @@
 package ui;
 
-import ClientServer_owner.NetworkVehicleSender;
+import ClientServer.RequestSender;
 import data.RequestDataManager;
 import data.UserDataManager;
 import data.VehicleDataManager;
@@ -352,84 +352,89 @@ public class VehicleSubmissionPage extends JFrame {
         return allValid;
     }
 
-    private void submitAllVehicles() {
-        if (!currentUser.hasAgreedToTerms()) {
+    private void submitAllVehicles()
+    {
+        if (!currentUser.hasAgreedToTerms())
+        {
             ConsentForm consentForm = new ConsentForm(this);
             consentForm.setVisible(true);
 
-            if (consentForm.isConsentGiven()) {
+            if (consentForm.isConsentGiven())
+            {
                 userDataManager.updateUserConsent(currentUser);
                 currentUser.setHasAgreedToTerms(true);
-            } else {
-                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled", 
-                    "You must agree to the terms and conditions to register a vehicle.", 
-                    CustomDialog.DialogType.WARNING);
+            }
+            else
+            {
+                CustomDialog dialog = new CustomDialog(this, "Submission Cancelled",
+                        "You must agree to the terms and conditions to register a vehicle.",
+                        CustomDialog.DialogType.WARNING);
                 dialog.setVisible(true);
                 return;
             }
         }
 
-        if (!validateAllForms()) {
+        if (!validateAllForms())
+        {
             return;
         }
+
         int nextVehicleId = getNextVehicleId();
         int successCount = 0;
         StringBuilder vehicleIds = new StringBuilder();
-        
-        for (VehicleFormPanel form : vehicleForms) {
-                    Vehicle vehicle = new Vehicle(
-                        0,
-                        currentUser.getId(),
-              
-                        form.getVehicleMake(),
-                        form.getVehicleModel(),
-                        Integer.parseInt(form.getVehicleYear()),
-                        form.getVinNumber(),
-                  
-                        form.getLicensePlate(),
-                        form.getComputingPower(),
-                        LocalDate.parse(form.getResidencyStart()),
-                        LocalDate.parse(form.getResidencyEnd()),
-                      
-                        VehicleStatus.AVAILABLE
-                    );
+
+        for (VehicleFormPanel form : vehicleForms)
+        {
+            Vehicle vehicle = new Vehicle(
+                    0,
+                    currentUser.getId(),
+                    form.getVehicleMake(),
+                    form.getVehicleModel(),
+                    Integer.parseInt(form.getVehicleYear()),
+                    form.getVinNumber(),
+                    form.getLicensePlate(),
+                    form.getComputingPower(),
+                    LocalDate.parse(form.getResidencyStart()),
+                    LocalDate.parse(form.getResidencyEnd()),
+                    VehicleStatus.AVAILABLE
+            );
+
             String payload = buildPayload(vehicle);
-            boolean accepted = NetworkVehicleSender.sendVehiclePayload(payload);
-            if (accepted) {   
+
+
+            boolean accepted = RequestSender.sendVehicleSubmission(payload);
+
+            if (accepted) {
                 successCount++;
                 if (vehicleIds.length() > 0) {
                     vehicleIds.append(", ");
                 }
                 vehicleIds.append("#").append(nextVehicleId);
                 nextVehicleId++;
-
             }
-
-
-
         }
 
         if (successCount == vehicleForms.size()) {
             String message = String.format(
-                "%d vehicle(s) submitted for controller review!\n\nVehicle ID(s): %s\n\n" +
-                "You will be notified once the controller reviews your submission(s).",
-                successCount, vehicleIds.toString()
+                    "%d vehicle(s) submitted for controller review!\n\nVehicle ID(s): %s\n\n" +
+                            "You will be notified once the controller reviews your submission(s).",
+                    successCount, vehicleIds.toString()
             );
-            CustomDialog dialog = new CustomDialog(this, "Requests Submitted", 
-                message, CustomDialog.DialogType.SUCCESS);
+            CustomDialog dialog = new CustomDialog(this, "Requests Submitted",
+                    message, CustomDialog.DialogType.SUCCESS);
             dialog.setVisible(true);
             clearAllForms();
         } else if (successCount > 0) {
             String message = String.format(
-                "%d of %d vehicle(s) submitted for review.\n\nVehicle ID(s): %s\n\nSome vehicles failed to submit.",
-                successCount, vehicleForms.size(), vehicleIds.toString()
+                    "%d of %d vehicle(s) submitted for review.\n\nVehicle ID(s): %s\n\nSome vehicles failed to submit.",
+                    successCount, vehicleForms.size(), vehicleIds.toString()
             );
-            CustomDialog dialog = new CustomDialog(this, "Partial Success", 
-                message, CustomDialog.DialogType.WARNING);
+            CustomDialog dialog = new CustomDialog(this, "Partial Success",
+                    message, CustomDialog.DialogType.WARNING);
             dialog.setVisible(true);
         } else {
-            CustomDialog dialog = new CustomDialog(this, "Submission Failed", 
-                "Failed to submit vehicles. Please try again.", CustomDialog.DialogType.WARNING);
+            CustomDialog dialog = new CustomDialog(this, "Submission Failed",
+                    "Failed to submit vehicles. Please try again.", CustomDialog.DialogType.WARNING);
             dialog.setVisible(true);
         }
     }
