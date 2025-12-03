@@ -452,38 +452,6 @@ public class VehicleSubmissionPage extends JFrame {
             dialog.setVisible(true);
         }
     }
-    
-    private int getNextVehicleId() {
-        int maxVehicleId = 0;
-        List<Vehicle> allVehicles = dataManager.getAllVehicles();
-        for (Vehicle vehicle : allVehicles) {
-            if (vehicle.getVehicleId() > maxVehicleId) {
-                maxVehicleId = vehicle.getVehicleId();
-            }
-        }
-
-        List<Request> allRequests = requestDataManager.getPendingRequests();
-        for (Request request : allRequests) {
-            if ("VEHICLE_SUBMISSION".equals(request.getRequestType())) {
-                String[] dataLines = request.getData().split("\n");
-                for (String line : dataLines) {
-                    if (line.startsWith("Vehicle ID:")) {
-                        try {
-                            int vehicleId = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
-                            if (vehicleId > maxVehicleId) {
-                                maxVehicleId = vehicleId;
-                            }
-                        } catch (NumberFormatException e) {
-                        }
-                
-                        break;
-                    }
-                }
-            }
-        }
-        
-        return maxVehicleId + 1;
-    }
 
     private String buildPayload(Vehicle v)
     {
@@ -884,7 +852,6 @@ false, minEndDate, residencyEndErrorLabel);
         
         int maxVehicleId = 0;
 
-        // 1. Check actual saved vehicles
         List<Vehicle> allVehicles = vehicleDataManager.getAllVehicles();
         for (Vehicle v : allVehicles) {
             if (v.getVehicleId() > maxVehicleId) {
@@ -892,7 +859,6 @@ false, minEndDate, residencyEndErrorLabel);
             }
         }
 
-        // 2. Check pending vehicle submissions (requests)
         List<Request> allRequests = requestDataManager.getPendingRequests();
         for (Request request : allRequests) {
             String[] dataLines = request.getData().split("\n");
