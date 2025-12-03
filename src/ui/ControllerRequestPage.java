@@ -51,7 +51,6 @@ public class ControllerRequestPage extends JFrame {
 
         initComponents();
         loadPendingRequests();
-        
         liveUpdateTimer = new Timer(500, e -> loadPendingRequests());
         liveUpdateTimer.start();
     }
@@ -97,7 +96,7 @@ public class ControllerRequestPage extends JFrame {
             dispose();
             SwingUtilities.invokeLater(() -> new ControllerPage(currentUser).setVisible(true));
         });
-
+        
         JPanel backWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 25, 15));
         backWrapper.setBackground(Color.WHITE);
         backWrapper.add(backButton);
@@ -128,7 +127,7 @@ public class ControllerRequestPage extends JFrame {
         splitPane.setBorder(null);
         splitPane.setBackground(Color.WHITE);
         splitPane.setOpaque(false);
-
+        
         BasicSplitPaneUI ui = new BasicSplitPaneUI() {
             public BasicSplitPaneDivider createDefaultDivider() {
                 return new BasicSplitPaneDivider(this) {
@@ -189,7 +188,7 @@ public class ControllerRequestPage extends JFrame {
         center.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i < cols.length; i++)
             requestsTable.getColumnModel().getColumn(i).setCellRenderer(center);
-
+        
         requestsTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting())
                 displayRequestDetails();
@@ -287,14 +286,16 @@ public class ControllerRequestPage extends JFrame {
             rejectButton.setEnabled(false);
         } else {
             if (!selectedIds.isEmpty()) {
-                requestsTable.getSelectionModel().setValueIsAdjusting(true); // Prevent events
+                requestsTable.getSelectionModel().setValueIsAdjusting(true);
+                // Prevent events
                 for (int i = 0; i < requestsTable.getRowCount(); i++) {
                     int id = (int) requestsTable.getValueAt(i, 0);
                     if (selectedIds.contains(id)) {
                         requestsTable.addRowSelectionInterval(i, i);
                     }
                 }
-                requestsTable.getSelectionModel().setValueIsAdjusting(false); // Re-enable events
+                requestsTable.getSelectionModel().setValueIsAdjusting(false);
+                // Re-enable events
             }
         }
     }
@@ -334,13 +335,7 @@ public class ControllerRequestPage extends JFrame {
                 }
             }
 
-            if (r.getRequestType().equals("VEHICLE_SUBMISSION")) {
-                Vehicle v = vehicleDataManager.getLatestVehicleByOwner(r.getUserId());
-                if (v != null) {
-                    sb.append("vehicle_id: <b>").append(v.getVehicleId()).append("</b><br>");
-                }
-            }
-
+            // REMOVED: The block that appended redundant vehicle_id information here.
 
             sb.append("</div>");
             sb.append("<hr>");
@@ -429,11 +424,11 @@ public class ControllerRequestPage extends JFrame {
                      : "Request rejected.",
                 CustomDialog.DialogType.SUCCESS
         );
-        
         resetSelections();
         loadPendingRequests();
         detailsArea.setText("Request(s) rejected.");
     }
+    
     private void resetSelections() {
         selectAllCheckbox.setSelected(false);
         requestsTable.clearSelection();
@@ -461,7 +456,7 @@ public class ControllerRequestPage extends JFrame {
                     jobData.getOrDefault("description", "")
             );
             
-            // CRITICAL FIX: Link the Job to the Request ID!
+            // Link the Job to the Request ID!
             job.setRequestId(request.getRequestId());
             
             return jobDataManager.addJob(job);
@@ -505,9 +500,8 @@ public class ControllerRequestPage extends JFrame {
                     java.time.LocalDate.parse(vehicleData.get("end_date")),
                     VehicleStatus.AVAILABLE
             );
-            // Optionally, we could set request_id on vehicle here too if we update Vehicle.java
-            // but this fix specifically targets jobs as requested.
             
+            // Optionally link Request ID here if Vehicle supported it, but mainly needed for Jobs
             return vehicleDataManager.addVehicle(vehicle);
         } catch (Exception e) {
             e.printStackTrace();
