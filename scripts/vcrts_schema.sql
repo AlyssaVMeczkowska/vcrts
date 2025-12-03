@@ -126,15 +126,13 @@ INSERT IGNORE INTO jobs (job_id, client_id, job_type, duration_hours, deadline, 
 (6, 3, 'Simulation', 24, '2025-11-24', '', '2025-11-19 03:20:08', 'PENDING'),
 (7, 4, 'Networking & Communication', 14, '2025-12-11', '', '2025-11-19 03:20:17', 'PENDING'),
 (8, 3, 'Networking & Communication', 40, '2025-11-24', '', '2025-11-19 03:20:38', 'PENDING'),
-(9, 3, 'Data Storage & Transfer', 2, '2025-11-24', '', '2025-11-19 03:20:51', 'PENDING'),
-(10, 3, 'Data Storage & Transfer', 12, '2025-12-10', 'qadadsda', '2025-12-01 22:38:57', 'PENDING');
+(9, 3, 'Data Storage & Transfer', 2, '2025-11-24', '', '2025-11-19 03:20:51', 'PENDING');
 
 -- Insert vehicles
 INSERT IGNORE INTO vehicles (vehicle_id, owner_id, vin, license_plate, vehicle_make, vehicle_model, vehicle_year, computing_power, arrival_date, departure_date, status, submission_timestamp) VALUES
 (1, 1, '1G1PC5SB0E7180475', 'HUY-5810', 'Tesla', 'Y', 2025, 'Medium', '2025-12-01', '2025-12-18', 'AVAILABLE', '2025-11-19 03:19:42'),
 (2, 2, '3N1AB6AP6BL602066', 'JLP-2810', 'Tesla', 'X', 2024, 'High', '2025-12-16', '2025-12-18', 'AVAILABLE', '2025-11-19 03:20:27'),
-(3, 1, '1FMJK2A51DEF50669', 'XHY-5481', 'Tesla', 'X', 2024, 'Medium', '2025-11-28', '2025-12-04', 'AVAILABLE', '2025-11-19 03:21:08'),
-(4, 1, 'asdasddas', 'asadasd', 'sfdsfdfs', 'sfdssf', 2009, 'Low', '2025-12-09', '2025-12-11', 'AVAILABLE', '2025-12-01 22:38:53');
+(3, 1, '1FMJK2A51DEF50669', 'XHY-5481', 'Tesla', 'X', 2024, 'Medium', '2025-11-28', '2025-12-04', 'AVAILABLE', '2025-11-19 03:21:08');
 
 -- Insert requests
 INSERT IGNORE INTO requests (request_id, request_type, user_id, user_name, submission_timestamp, status, notification_viewed, request_data, rejection_reason) VALUES
