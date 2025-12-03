@@ -190,7 +190,7 @@ public class ClientRequestStatusPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
-        String[] columnNames = {"Request ID", "Job Type", "Duration (hrs)", "Deadline", "Submitted", "Status"};
+        String[] columnNames = {"Vehicle ID", "Make/Model", "Year", "License Plate", "Submitted", "Status"};
         int[] columnWidths = {120, 250, 150, 180, 250, 150};
 
         CustomTable requestTable = new CustomTable(columnNames, columnWidths);
@@ -249,39 +249,61 @@ public class ClientRequestStatusPage extends JFrame {
         tableModel.setRowCount(0);
         int pendingCount = 0;
         int acceptedCount = 0;
-        
+
         List<Request> allRequests = requestDataManager.getAllRequests();
         List<Object[]> allRows = new ArrayList<>();
 
         for (Request request : allRequests) {
-            if (request.getUserId() == currentUser.getId() && "JOB_SUBMISSION".equals(request.getRequestType())) {
-                
+            if (request.getUserId() == currentUser.getId() && "VEHICLE_SUBMISSION".equals(request.getRequestType())) {
+
                 String[] dataLines = request.getData().split("\n");
-                String jobType = "";
-                String duration = "";
-                String deadline = "";
-                
+                String vehicleId = "";
+                String make = "";
+                String model = "";
+                String year = "";
+                String licensePlate = "";
+
                 for (String line : dataLines) {
-                    if (line.trim().startsWith("job_type:")) jobType = line.split(":")[1].trim();
-                    else if (line.trim().startsWith("duration:")) duration = line.split(":")[1].trim();
-                    else if (line.trim().startsWith("deadline:")) deadline = line.split(":")[1].trim();
+                    String trimmedLine = line.trim();
+                    if (trimmedLine.startsWith("vehicle_id:")) vehicleId = line.split(":")[1].trim();
+                    else if (trimmedLine.startsWith("vehicle_make:")) make = line.split(":")[1].trim();
+                    else if (trimmedLine.startsWith("vehicle_model:")) model = line.split(":")[1].trim();
+                    else if (trimmedLine.startsWith("vehicle_year:")) year = line.split(":")[1].trim();
+                    else if (trimmedLine.startsWith("license_plate:")) licensePlate = line.split(":")[1].trim();
                 }
-                
+
                 String timestamp = request.getTimestamp();
                 try {
                     LocalDateTime dt = LocalDateTime.parse(timestamp);
                     timestamp = dt.format(DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm"));
                 } catch (Exception e) { }
-                
+
                 String statusStr = request.getStatus().toString();
                 if (request.getStatus() == RequestStatus.PENDING) pendingCount++;
                 else if (request.getStatus() == RequestStatus.ACCEPTED) acceptedCount++;
 
-                allRows.add(new Object[]{ request.getRequestId(), jobType, duration, deadline, timestamp, statusStr });
+                // Now includes Vehicle ID in the first column
+                allRows.add(new Object[]{
+                        vehicleId.isEmpty() ? request.getRequestId() : vehicleId,  // Show vehicle_id if available
+                        make + " " + model,
+                        year,
+                        licensePlate,
+                        timestamp,
+                        statusStr
+                });
             }
         }
-        
-        allRows.sort((row1, row2) -> ((Integer) row2[0]).compareTo((Integer) row1[0])); 
+
+        allRows.sort((row1, row2) -> {
+            try {
+                int id1 = Integer.parseInt(row1[0].toString());
+                int id2 = Integer.parseInt(row2[0].toString());
+                return Integer.compare(id2, id1); // Sort descending
+            } catch (NumberFormatException e) {
+                return row2[0].toString().compareTo(row1[0].toString());
+            }
+        });
+
         for (Object[] row : allRows) {
             tableModel.addRow(row);
         }

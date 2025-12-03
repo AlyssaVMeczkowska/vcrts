@@ -65,34 +65,54 @@ public class VehicleDataManager {
      * @return true if successful, false otherwise
      */
     public boolean addVehicle(Vehicle vehicle) {
-        String sql = "INSERT INTO vehicles (owner_id, vin, license_plate, vehicle_make, vehicle_model, " +
-                    "vehicle_year, computing_power, arrival_date, departure_date, status) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+        String sql;
+        boolean useExplicitId = (vehicle.getVehicleId() > 0);
+
+        if (useExplicitId) {
+            sql = "INSERT INTO vehicles (vehicle_id, owner_id, vin, license_plate, " +
+                    "vehicle_make, vehicle_model, vehicle_year, computing_power, " +
+                    "arrival_date, departure_date, status) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        } else {
+            sql = "INSERT INTO vehicles (owner_id, vin, license_plate, vehicle_make, " +
+                    "vehicle_model, vehicle_year, computing_power, arrival_date, " +
+                    "departure_date, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        }
+
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
-            pstmt.setInt(1, vehicle.getOwnerId());
-            pstmt.setString(2, vehicle.getVin());
-            pstmt.setString(3, vehicle.getLicensePlate());
-            pstmt.setString(4, vehicle.getMake());
-            pstmt.setString(5, vehicle.getModel());
-            pstmt.setInt(6, vehicle.getYear());
-            pstmt.setString(7, vehicle.getComputingPower());
-            pstmt.setDate(8, Date.valueOf(vehicle.getArrivalDate()));
-            pstmt.setDate(9, Date.valueOf(vehicle.getDepartureDate()));
-            pstmt.setString(10, vehicle.getStatus().toString());
-            
+
+            int paramIndex = 1;
+
+            if (useExplicitId) {
+                pstmt.setInt(paramIndex++, vehicle.getVehicleId());
+            }
+
+            pstmt.setInt(paramIndex++, vehicle.getOwnerId());
+            pstmt.setString(paramIndex++, vehicle.getVin());
+            pstmt.setString(paramIndex++, vehicle.getLicensePlate());
+            pstmt.setString(paramIndex++, vehicle.getMake());
+            pstmt.setString(paramIndex++, vehicle.getModel());
+            pstmt.setInt(paramIndex++, vehicle.getYear());
+            pstmt.setString(paramIndex++, vehicle.getComputingPower());
+            pstmt.setDate(paramIndex++, Date.valueOf(vehicle.getArrivalDate()));
+            pstmt.setDate(paramIndex++, Date.valueOf(vehicle.getDepartureDate()));
+            pstmt.setString(paramIndex++, vehicle.getStatus().toString());
+
             int rowsAffected = pstmt.executeUpdate();
-            
+
             if (rowsAffected > 0) {
-                // Get the generated vehicle ID
-                ResultSet rs = pstmt.getGeneratedKeys();
-                if (rs.next()) {
-                    int vehicleId = rs.getInt(1);
-                    System.out.println("Vehicle added successfully with ID: " + vehicleId);
-                    return true;
+                if (!useExplicitId) {
+
+                    ResultSet rs = pstmt.getGeneratedKeys();
+                    if (rs.next()) {
+                        int vehicleId = rs.getInt(1);
+                        System.out.println("Vehicle added with auto-generated ID: " + vehicleId);
+                    }
+                } else {
+                    System.out.println("Vehicle added with explicit ID: " + vehicle.getVehicleId());
                 }
+                return true;
             }
         } catch (SQLException e) {
             System.err.println("Error adding vehicle: " + e.getMessage());

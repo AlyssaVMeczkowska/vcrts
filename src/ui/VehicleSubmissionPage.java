@@ -394,14 +394,16 @@ public class VehicleSubmissionPage extends JFrame {
             return;
         }
 
-        int nextVehicleId = getNextVehicleId();
         int successCount = 0;
         StringBuilder vehicleIds = new StringBuilder();
 
         for (VehicleFormPanel form : vehicleForms)
         {
+
+            int assignedVehicleId = form.getVehicleId();
+
             Vehicle vehicle = new Vehicle(
-                    0,
+                    assignedVehicleId,
                     currentUser.getId(),
                     form.getVehicleMake(),
                     form.getVehicleModel(),
@@ -416,7 +418,6 @@ public class VehicleSubmissionPage extends JFrame {
 
             String payload = buildPayload(vehicle);
 
-
             boolean accepted = RequestSender.sendVehicleSubmission(payload);
 
             if (accepted) {
@@ -424,7 +425,7 @@ public class VehicleSubmissionPage extends JFrame {
                 if (vehicleIds.length() > 0) {
                     vehicleIds.append(", ");
                 }
-                vehicleIds.append("#").append(form.getVehicleId());
+                vehicleIds.append("#").append(assignedVehicleId);
             }
         }
 
@@ -455,49 +456,56 @@ public class VehicleSubmissionPage extends JFrame {
     
     private int getNextVehicleId() {
         int maxVehicleId = 0;
+
         List<Vehicle> allVehicles = dataManager.getAllVehicles();
-        for (Vehicle vehicle : allVehicles) {
-            if (vehicle.getVehicleId() > maxVehicleId) {
+        for (Vehicle vehicle : allVehicles)
+        {
+            if (vehicle.getVehicleId() > maxVehicleId)
+            {
                 maxVehicleId = vehicle.getVehicleId();
             }
         }
 
-        List<Request> allRequests = requestDataManager.getPendingRequests();
+        List<Request> allRequests = requestDataManager.getAllRequests();
         for (Request request : allRequests) {
             if ("VEHICLE_SUBMISSION".equals(request.getRequestType())) {
+                // Parse the request data to find vehicle_id
                 String[] dataLines = request.getData().split("\n");
                 for (String line : dataLines) {
-                    if (line.startsWith("Vehicle ID:")) {
+                    line = line.trim();
+
+
+                    if (line.startsWith("vehicle_id:")) {
                         try {
-                            int vehicleId = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
+                            String idPart = line.substring(line.indexOf(":") + 1).trim();
+                            int vehicleId = Integer.parseInt(idPart);
                             if (vehicleId > maxVehicleId) {
                                 maxVehicleId = vehicleId;
                             }
                         } catch (NumberFormatException e) {
+                            System.err.println("Error parsing vehicle_id from request: " + e.getMessage());
                         }
-                
                         break;
                     }
                 }
             }
         }
-        
+
         return maxVehicleId + 1;
     }
 
     private String buildPayload(Vehicle v)
     {
         return "type: vehicle_availability\n"
+                + "vehicle_id: " + v.getVehicleId() + "\n"
                 + "user_id: " + v.getOwnerId() + "\n"
                 + "vin: " + v.getVin() + "\n"
                 + "license_plate: " + v.getLicensePlate() + "\n"
-        
                 + "vehicle_make: " + v.getMake() + "\n"
                 + "vehicle_model: " + v.getModel() + "\n"
                 + "vehicle_year: " + v.getYear() + "\n"
                 + "computing_power: " + v.getComputingPower() + "\n"
-                + "start_date: " + 
-v.getArrivalDate() + "\n"
+                + "start_date: " + v.getArrivalDate() + "\n"
                 + "end_date: " + v.getDepartureDate() + "\n"
                 + "---";
     }

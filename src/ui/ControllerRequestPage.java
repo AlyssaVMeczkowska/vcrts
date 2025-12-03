@@ -328,9 +328,37 @@ public class ControllerRequestPage extends JFrame {
                     .append("Submission Data:</div>");
             sb.append("<div style='border:1px solid #ccc;padding:8px;font-size:10px;border-radius:6px;background:#FAFAFA;'>");
 
-            for (String line : r.getData().split("\n")) {
-                if (!line.trim().isEmpty()) {
-                    sb.append(line.replace(":", ": <b>")).append("</b><br>");
+            // Parse and format the data nicely
+            String[] dataLines = r.getData().split("\n");
+            boolean isVehicleSubmission = "VEHICLE_SUBMISSION".equals(r.getRequestType());
+
+            for (String line : dataLines) {
+                line = line.trim();
+                if (line.isEmpty() || line.equals("---") || line.startsWith("type:")) {
+                    continue;
+                }
+
+                // Format the line
+                if (line.contains(":")) {
+                    String[] parts = line.split(":", 2);
+                    if (parts.length == 2) {
+                        String key = parts[0].trim();
+                        String value = parts[1].trim();
+
+                        // Make labels more readable
+                        String displayKey = key.replace("_", " ")
+                                .substring(0, 1).toUpperCase() +
+                                key.replace("_", " ").substring(1);
+
+                        // Highlight Vehicle ID and Job ID
+                        if (key.equals("vehicle_id") || key.equals("job_id")) {
+                            sb.append("<b style='color:#2C7484;'>").append(displayKey).append(":</b> <b>")
+                                    .append(value).append("</b><br>");
+                        } else {
+                            sb.append("<b>").append(displayKey).append(":</b> ")
+                                    .append(value).append("<br>");
+                        }
+                    }
                 }
             }
 
@@ -465,10 +493,10 @@ public class ControllerRequestPage extends JFrame {
             if (data.startsWith("SOCKET_")) {
                 data = data.split("\n", 2)[1];
             }
-            
+
             String[] lines = data.split("\n");
             Map<String, String> vehicleData = new HashMap<>();
-            
+
             for (String line : lines) {
                 if (line.startsWith("type:") || line.equals("---")) {
                     continue;
@@ -479,9 +507,20 @@ public class ControllerRequestPage extends JFrame {
                 }
             }
 
+            // Extract the vehicle_id from the request payload
+            int vehicleId = 0;
+            if (vehicleData.containsKey("vehicle_id")) {
+                try {
+                    vehicleId = Integer.parseInt(vehicleData.get("vehicle_id"));
+                } catch (NumberFormatException e) {
+                    System.err.println("Error parsing vehicle_id: " + e.getMessage());
+                }
+            }
+
             int ownerId = Integer.parseInt(vehicleData.getOrDefault("user_id", "0"));
+
             Vehicle vehicle = new Vehicle(
-                    0, 
+                    vehicleId,  // Use the ID from the request, not 0!
                     ownerId,
                     vehicleData.get("vehicle_make"),
                     vehicleData.get("vehicle_model"),
