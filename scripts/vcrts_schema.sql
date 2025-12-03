@@ -1,11 +1,7 @@
--- VCRTS Database Schema
--- Updated with Request ID linking
-
-
 CREATE DATABASE IF NOT EXISTS vcrts_db;
 USE vcrts_db;
 
--- 1. Users table (Must be first)
+-- 1. Users table 
 CREATE TABLE IF NOT EXISTS users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     account_type ENUM('Owner', 'Client', 'Controller') NOT NULL,
@@ -22,7 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_account_type (account_type)
 );
 
--- 2. Requests table (Moved UP so Jobs/Vehicles can reference it)
+-- 2. Requests table
 CREATE TABLE IF NOT EXISTS requests (
     request_id INT PRIMARY KEY AUTO_INCREMENT,
     request_type ENUM('JOB_SUBMISSION', 'VEHICLE_SUBMISSION') NOT NULL,
@@ -39,11 +35,11 @@ CREATE TABLE IF NOT EXISTS requests (
     INDEX idx_type (request_type)
 );
 
--- 3. Vehicles table (Added request_id column and FK)
+-- 3. Vehicles table
 CREATE TABLE IF NOT EXISTS vehicles (
     vehicle_id INT PRIMARY KEY AUTO_INCREMENT,
     owner_id INT NOT NULL,
-    request_id INT, -- New Foreign Key Column
+    request_id INT,
     vin VARCHAR(17) NOT NULL UNIQUE,
     license_plate VARCHAR(20) NOT NULL UNIQUE,
     vehicle_make VARCHAR(50) NOT NULL,
@@ -55,18 +51,18 @@ CREATE TABLE IF NOT EXISTS vehicles (
     status ENUM('AVAILABLE', 'IN_USE', 'MAINTENANCE', 'DEPARTED') DEFAULT 'AVAILABLE',
     submission_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (owner_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (request_id) REFERENCES requests(request_id) ON DELETE SET NULL, -- Link to Requests
+    FOREIGN KEY (request_id) REFERENCES requests(request_id) ON DELETE SET NULL,
     INDEX idx_owner (owner_id),
     INDEX idx_request (request_id),
     INDEX idx_status (status),
     INDEX idx_dates (arrival_date, departure_date)
 );
 
--- 4. Jobs table (Added request_id column and FK)
+-- 4. Jobs table
 CREATE TABLE IF NOT EXISTS jobs (
     job_id INT PRIMARY KEY AUTO_INCREMENT,
     client_id INT NOT NULL,
-    request_id INT, -- New Foreign Key Column
+    request_id INT,
     job_type VARCHAR(100) NOT NULL,
     duration_hours INT NOT NULL,
     deadline DATE NOT NULL,
@@ -74,15 +70,11 @@ CREATE TABLE IF NOT EXISTS jobs (
     submission_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     completion_time INT DEFAULT 0,
     FOREIGN KEY (client_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (request_id) REFERENCES requests(request_id) ON DELETE SET NULL, -- Link to Requests
+    FOREIGN KEY (request_id) REFERENCES requests(request_id) ON DELETE SET NULL,
     INDEX idx_client (client_id),
     INDEX idx_request (request_id),
     INDEX idx_deadline (deadline)
 );
-
--- ============================================================================
--- DATA POPULATION
--- ============================================================================
 
 -- Insert users
 INSERT IGNORE INTO users (user_id, account_type, first_name, last_name, email, username, phone_number, password_hash, has_agreed_to_terms, creation_timestamp) VALUES
@@ -118,7 +110,7 @@ INSERT IGNORE INTO requests (request_id, request_type, user_id, user_name, submi
 (21, 'VEHICLE_SUBMISSION', 2, 'Vehicle Owner 2', '2025-11-19 03:17:59', 'REJECTED', TRUE, 'type: vehicle_availability\nuser_id: 2\nvin: 1GNDX13E53D159157\nlicense_plate: GHY-2014\nvehicle_make: BMW\nvehicle_model: X5 M\nvehicle_year: 2026\ncomputing_power: Medium\nstart_date: 2025-12-18\nend_date: 2025-12-25\n---\n', ''),
 (22, 'VEHICLE_SUBMISSION', 2, 'Vehicle Owner 2', '2025-11-19 03:17:59', 'ACCEPTED', TRUE, 'type: vehicle_availability\nuser_id: 2\nvin: 3N1AB6AP6BL602066\nlicense_plate: JLP-2810\nvehicle_make: Tesla\nvehicle_model: X\nvehicle_year: 2024\ncomputing_power: High\nstart_date: 2025-12-16\nend_date: 2025-12-18\n---\n', '');
 
--- Insert jobs (NOW WITH REQUEST IDs LINKED)
+-- Insert jobs
 INSERT IGNORE INTO jobs (job_id, client_id, request_id, job_type, duration_hours, deadline, description, submission_timestamp) VALUES
 (1, 3, 5, 'Simulation', 53, '2025-12-09', '', '2025-11-19 03:18:42'),
 (2, 3, 8, 'Computational Task', 6, '2025-11-28', '', '2025-11-19 03:18:54'),
@@ -130,7 +122,7 @@ INSERT IGNORE INTO jobs (job_id, client_id, request_id, job_type, duration_hours
 (8, 3, 4, 'Networking & Communication', 40, '2025-11-24', '', '2025-11-19 03:20:38'),
 (9, 3, 1, 'Data Storage & Transfer', 2, '2025-11-24', '', '2025-11-19 03:20:51');
 
--- Insert vehicles (NOW WITH REQUEST IDs LINKED)
+-- Insert vehicles
 INSERT IGNORE INTO vehicles (vehicle_id, owner_id, request_id, vin, license_plate, vehicle_make, vehicle_model, vehicle_year, computing_power, arrival_date, departure_date, status, submission_timestamp) VALUES
 (1, 1, 19, '1G1PC5SB0E7180475', 'HUY-5810', 'Tesla', 'Y', 2025, 'Medium', '2025-12-01', '2025-12-18', 'AVAILABLE', '2025-11-19 03:19:42'),
 (2, 2, 22, '3N1AB6AP6BL602066', 'JLP-2810', 'Tesla', 'X', 2024, 'High', '2025-12-16', '2025-12-18', 'AVAILABLE', '2025-11-19 03:20:27'),
