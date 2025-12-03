@@ -10,10 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.User;
 
-/**
- * UserDataManager - MySQL implementation
- * Manages all user-related database operations
- */
+
 public class UserDataManager {
     private DatabaseManager dbManager;
 
@@ -21,9 +18,7 @@ public class UserDataManager {
         this.dbManager = DatabaseManager.getInstance();
     }
 
-    /**
-     * Hash password using SHA-256
-     */
+
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -42,9 +37,7 @@ public class UserDataManager {
         }
     }
 
-    /**
-     * Check if email is already taken
-     */
+
     public boolean isEmailTaken(String email) {
         String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         
@@ -63,9 +56,7 @@ public class UserDataManager {
         return false;
     }
 
-    /**
-     * Check if username is already taken
-     */
+
     public boolean isUsernameTaken(String username) {
         String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
         
@@ -84,9 +75,7 @@ public class UserDataManager {
         return false;
     }
 
-    /**
-     * Add new user to database
-     */
+
     public void addUser(String firstName, String lastName, String email, String username, 
                        String phoneNumber, String password, String accountType, boolean hasAgreedToTerms) {
         String sql = "INSERT INTO users (account_type, first_name, last_name, email, username, " +
@@ -116,9 +105,7 @@ public class UserDataManager {
         }
     }
 
-    /**
-     * Update user consent (terms agreement)
-     */
+
     public void updateUserConsent(User userToUpdate) {
         String sql = "UPDATE users SET has_agreed_to_terms = TRUE WHERE user_id = ?";
         
@@ -136,10 +123,7 @@ public class UserDataManager {
         }
     }
 
-    /**
-     * Verify user credentials for login
-     * @return User object if credentials are valid, null otherwise
-     */
+
     public User verifyUser(String usernameOrEmail, String password) {
         String sql = "SELECT * FROM users WHERE (username = ? OR email = ?) AND password_hash = ?";
         
@@ -163,9 +147,7 @@ public class UserDataManager {
         return null;
     }
 
-    /**
-     * Get user by ID
-     */
+
     public User getUserById(int userId) {
         String sql = "SELECT * FROM users WHERE user_id = ?";
         
@@ -184,9 +166,7 @@ public class UserDataManager {
         return null;
     }
 
-    /**
-     * Get all users of a specific account type
-     */
+
     public List<User> getUsersByType(String accountType) {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users WHERE account_type = ?";
@@ -206,9 +186,7 @@ public class UserDataManager {
         return users;
     }
 
-    /**
-     * Get all users
-     */
+
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         String sql = "SELECT * FROM users ORDER BY user_id";
@@ -226,9 +204,7 @@ public class UserDataManager {
         return users;
     }
 
-    /**
-     * Extract User object from ResultSet
-     */
+
     private User extractUserFromResultSet(ResultSet rs) throws SQLException {
         return new User(
             rs.getInt("user_id"),

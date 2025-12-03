@@ -18,18 +18,14 @@ public class RequestSender
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())))
         {
 
-            // To Send the payload to the server
             out.println(payload);
 
-            // To Read acknowledgment from server
             String ack = in.readLine();
             System.out.println("SERVER: " + ack);
 
-            // To Read status from server
             String result = in.readLine();
             System.out.println("SERVER: " + result);
 
-            //To Return true if the server accepted the request
             return result != null && result.contains("ACCEPTED");
 
         }

@@ -197,7 +197,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
-        // UPDATED: Added "Vehicle ID" column at index 1
         String[] columnNames = {"Request ID", "Vehicle ID", "Make/Model", "Year", "License Plate", 
                                 "Submitted", "Status"};
         int[] columnWidths = {100, 100, 250, 100, 180, 250, 150};
@@ -206,7 +205,6 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         requestTable.setAlignmentX(Component.CENTER_ALIGNMENT);
         tableModel = requestTable.getModel();
         
-        // Status renderer is now at column index 6
         requestTable.getTable().getColumnModel().getColumn(6).setCellRenderer(
             new StatusCellRenderer()
         );
@@ -293,14 +291,13 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
                 String statusStr = request.getStatus().toString();
                 if (request.getStatus() == RequestStatus.PENDING) pendingCount++;
                 else if (request.getStatus() == RequestStatus.ACCEPTED) acceptedCount++;
-                
-                // NEW: Fetch Real Vehicle ID from DB
+
                 int linkedVehicleId = vehicleDataManager.getVehicleIdByRequestId(request.getRequestId());
                 String vehicleIdDisplay = (linkedVehicleId == -1) ? "-" : String.valueOf(linkedVehicleId);
 
                 allRows.add(new Object[]{ 
                     request.getRequestId(), 
-                    vehicleIdDisplay, // Added Vehicle ID column data
+                    vehicleIdDisplay, 
                     make + " " + model, 
                     year, 
                     licensePlate, 

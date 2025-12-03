@@ -5,10 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Job;
 
-/**
- * JobDataManager - MySQL implementation
- * Manages all job-related database operations
- */
 public class JobDataManager {
     private DatabaseManager dbManager;
 
@@ -16,13 +12,8 @@ public class JobDataManager {
         this.dbManager = DatabaseManager.getInstance();
     }
 
-    /**
-     * Add a new job to the database
-     * UPDATED: Now inserts request_id correctly
-     * @return true if successful, false otherwise
-     */
+
     public boolean addJob(Job job) {
-        // Updated SQL to include request_id column
         String sql = "INSERT INTO jobs (client_id, request_id, job_type, duration_hours, deadline, description, " +
                     "submission_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
@@ -31,8 +22,6 @@ public class JobDataManager {
             
             pstmt.setInt(1, job.getAccountId());
             
-            // Check if request_id exists on the job object. 
-            // If it is > 0, we insert it. Otherwise, we insert NULL.
             if (job.getRequestId() > 0) {
                 pstmt.setInt(2, job.getRequestId());
             } else {
@@ -48,7 +37,7 @@ public class JobDataManager {
             int rowsAffected = pstmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                // Get the generated job ID
+
                 ResultSet rs = pstmt.getGeneratedKeys();
                 if (rs.next()) {
                     job.setJobId(rs.getInt(1));
@@ -63,10 +52,7 @@ public class JobDataManager {
         return false;
     }
 
-    /**
-     * NEW METHOD: Get the Job ID associated with a specific Request ID
-     * This connects the Request table to the Job table via the Foreign Key
-     */
+
     public int getJobIdByRequestId(int requestId) {
         String sql = "SELECT job_id FROM jobs WHERE request_id = ?";
         
@@ -82,13 +68,11 @@ public class JobDataManager {
         } catch (SQLException e) {
             System.err.println("Error fetching Job ID for Request " + requestId + ": " + e.getMessage());
         }
-        // Return -1 if no job is found (e.g. request is still pending or rejected)
+
         return -1;
     }
 
-    /**
-     * Get all jobs from database
-     */
+
     public List<Job> getAllJobs() {
         List<Job> jobs = new ArrayList<>();
         String sql = "SELECT * FROM jobs ORDER BY submission_timestamp";
@@ -106,9 +90,7 @@ public class JobDataManager {
         return jobs;
     }
 
-    /**
-     * Get job by ID
-     */
+
     public Job getJobById(int jobId) {
         String sql = "SELECT * FROM jobs WHERE job_id = ?";
         
@@ -127,9 +109,7 @@ public class JobDataManager {
         return null;
     }
 
-    /**
-     * Get all jobs for a specific client
-     */
+
     public List<Job> getJobsByClientId(int clientId) {
         List<Job> jobs = new ArrayList<>();
         String sql = "SELECT * FROM jobs WHERE client_id = ? ORDER BY submission_timestamp";
@@ -149,9 +129,7 @@ public class JobDataManager {
         return jobs;
     }
 
-    /**
-     * Update job status
-     */
+
     public boolean updateJobStatus(int jobId, String status) {
         String sql = "UPDATE jobs SET status = ? WHERE job_id = ?";
         
@@ -169,9 +147,7 @@ public class JobDataManager {
         return false;
     }
 
-    /**
-     * Update job completion time
-     */
+
     public boolean updateJobCompletionTime(int jobId, int completionTime) {
         String sql = "UPDATE jobs SET completion_time = ? WHERE job_id = ?";
         
@@ -189,9 +165,7 @@ public class JobDataManager {
         return false;
     }
 
-    /**
-     * Update job progress
-     */
+
     public boolean updateJobProgress(int jobId, double progress) {
         String sql = "UPDATE jobs SET progress = ? WHERE job_id = ?";
         
@@ -209,9 +183,7 @@ public class JobDataManager {
         return false;
     }
 
-    /**
-     * Delete job by ID
-     */
+
     public boolean deleteJob(int jobId) {
         String sql = "DELETE FROM jobs WHERE job_id = ?";
         
@@ -231,9 +203,7 @@ public class JobDataManager {
         return false;
     }
 
-    /**
-     * Get jobs by status
-     */
+
     public List<Job> getJobsByStatus(String status) {
         List<Job> jobs = new ArrayList<>();
         String sql = "SELECT * FROM jobs WHERE status = ? ORDER BY submission_timestamp";
@@ -253,9 +223,7 @@ public class JobDataManager {
         return jobs;
     }
 
-    /**
-     * Extract Job object from ResultSet
-     */
+
     private Job extractJobFromResultSet(ResultSet rs) throws SQLException {
         Job job = new Job(
             rs.getInt("job_id"),
@@ -268,7 +236,7 @@ public class JobDataManager {
         );
         job.setCompletionTime(rs.getInt("completion_time"));
         
-        // Extract request_id if present (so when we read jobs back, we know their origin)
+
         int reqId = rs.getInt("request_id");
         if (!rs.wasNull()) {
             job.setRequestId(reqId);

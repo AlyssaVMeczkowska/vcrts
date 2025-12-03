@@ -11,26 +11,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Scanner;
 
-/**
- * DatabaseManager - Singleton class for managing MySQL database connections
- * Reads configuration from .env file for security
- */
 public class DatabaseManager {
-    // Singleton instance
     private static DatabaseManager instance;
-    
-    // Database configuration (loaded from .env)
     private String dbUrl;
     private String dbUser;
     private String dbPassword;
-    
-    // Connection properties
     private Properties connectionProps;
     
-    /**
-     * Private constructor for Singleton pattern
-     * Loads configuration from .env file
-     */
     private DatabaseManager() {
         loadEnvFile();
         connectionProps = new Properties();
@@ -38,9 +25,9 @@ public class DatabaseManager {
         connectionProps.put("password", dbPassword);
         connectionProps.put("useSSL", "false");
         connectionProps.put("serverTimezone", "UTC");
-        connectionProps.put("allowPublicKeyRetrieval", "true"); // Often needed for local dev
+        connectionProps.put("allowPublicKeyRetrieval", "true"); 
 
-        // Load MySQL JDBC driver
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             System.out.println("MySQL JDBC Driver loaded successfully");
@@ -50,22 +37,19 @@ public class DatabaseManager {
         }
     }
     
-    /**
-     * Load environment variables from .env file
-     */
+
     private void loadEnvFile() {
         Map<String, String> env = new HashMap<>();
-        // Try to read .env file
+
         try (BufferedReader reader = new BufferedReader(new FileReader(".env"))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                // Skip empty lines and comments
+
                 line = line.trim();
                 if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
                 
-                // Parse key=value pairs
                 String[] parts = line.split("=", 2);
                 if (parts.length == 2) {
                     String key = parts[0].trim();
@@ -78,20 +62,17 @@ public class DatabaseManager {
             System.err.println("Warning: .env file not found, using default values");
         }
         
-        // Get configuration values (with defaults)
         String host = env.getOrDefault("DB_HOST", "localhost");
         String port = env.getOrDefault("DB_PORT", "3306");
         String database = env.getOrDefault("DB_NAME", "vcrts_db");
         
-        // Construct JDBC URL
+
         this.dbUrl = "jdbc:mysql://" + host + ":" + port + "/" + database;
         this.dbUser = env.getOrDefault("DB_USER", "root");
         this.dbPassword = env.getOrDefault("DB_PASSWORD", "");
     }
     
-    /**
-     * Get singleton instance
-     */
+
     public static synchronized DatabaseManager getInstance() {
         if (instance == null) {
             instance = new DatabaseManager();
@@ -99,24 +80,18 @@ public class DatabaseManager {
         return instance;
     }
 
-    /**
-     * Reads the SQL script and executes it to create DB and Tables.
-     * Use this when the application starts to ensure DB exists.
-     */
     public void initializeDatabase(String scriptPath) {
         System.out.println("Initializing database from script: " + scriptPath);
         
-        // We need to connect without the database name first to run DROP/CREATE DATABASE
+
         String rootUrl = this.dbUrl;
         
-        // Strip the database name from the URL to connect to the server root
-        // Example: jdbc:mysql://localhost:3306/vcrts_db -> jdbc:mysql://localhost:3306/
         int lastSlashIndex = this.dbUrl.lastIndexOf("/");
         if (lastSlashIndex > 0) {
             rootUrl = this.dbUrl.substring(0, lastSlashIndex + 1);
         }
         
-        // Add allowMultiQueries for script execution support
+
         String scriptUrl = rootUrl + "?allowMultiQueries=true";
 
         try (Connection conn = DriverManager.getConnection(scriptUrl, connectionProps);
@@ -128,9 +103,7 @@ public class DatabaseManager {
                 return;
             }
 
-            // Read the script
             Scanner scanner = new Scanner(scriptFile);
-            // Use ";" as delimiter to execute statement by statement
             scanner.useDelimiter(";");
 
             while (scanner.hasNext()) {
@@ -154,16 +127,12 @@ public class DatabaseManager {
         }
     }
     
-    /**
-     * Get a database connection
-     */
+
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(dbUrl, connectionProps);
     }
     
-    /**
-     * Test database connection
-     */
+ 
     public boolean testConnection() {
         try (Connection conn = getConnection()) {
             boolean isValid = conn != null && !conn.isClosed();

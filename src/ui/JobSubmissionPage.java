@@ -29,8 +29,7 @@ public class JobSubmissionPage extends JFrame {
     private JPanel mainPanel;
     
     private int nextJobId;
-    
-    // Timer for live updates
+
     private Timer liveUpdateTimer;
 
     public JobSubmissionPage(User user) { 
@@ -168,28 +167,24 @@ public class JobSubmissionPage extends JFrame {
         mainPanel.add(submitButton);
 
         this.getRootPane().setDefaultButton(submitButton);
-        
-        // Start the live update timer when the page loads
+
         startLiveUpdate();
     }
 
-    // Method to handle live updates - UPDATED TO 500ms
     private void startLiveUpdate() {
         liveUpdateTimer = new Timer(500, e -> {
             int baseId = getNextJobIdForUser();
             this.nextJobId = baseId;
-            
-            // Loop through active forms and update their displayed IDs
+
             for (int i = 0; i < jobForms.size(); i++) {
                 JobFormPanel form = jobForms.get(i);
-                // Job 1 = baseId, Job 2 = baseId + 1, etc.
+
                 form.updateJobIdDisplay(baseId + i);
             }
         });
         liveUpdateTimer.start();
     }
 
-    // Dispose method to clean up timer
     @Override
     public void dispose() {
         if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
@@ -365,8 +360,7 @@ public class JobSubmissionPage extends JFrame {
 
             formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
         }
-        
-        // This ensures the new form gets the most current ID when created
+
         int currentBaseId = getNextJobIdForUser(); 
         int newId = currentBaseId + jobForms.size(); 
         
@@ -485,9 +479,8 @@ public class JobSubmissionPage extends JFrame {
         for (Request request : allRequests) {
             String[] dataLines = request.getData().split("\n");
             for (String line : dataLines) {
-                if (line.startsWith("Job ID:")) { // Updated to match payload format if needed
+                if (line.startsWith("Job ID:")) { 
                     try {
-                        // Fallback parsing or standard parsing logic
                         String idStr = line.substring(line.indexOf(":") + 1).trim();
                         int jobId = Integer.parseInt(idStr);
                         if (jobId > maxJobId) {
@@ -496,7 +489,6 @@ public class JobSubmissionPage extends JFrame {
                     } catch (NumberFormatException e) {
                     }
                 }
-                // Also check for "job_id:" as seen in buildJobPayload
                 if (line.startsWith("job_id:")) {
                     try {
                         String idStr = line.substring(line.indexOf(":") + 1).trim();
@@ -549,7 +541,6 @@ public class JobSubmissionPage extends JFrame {
         	return jobId;
         }
 
-        // Method to update ID on the fly
         public void updateJobIdDisplay(int newId) {
             this.jobId = newId;
             if (this.jobIdField != null) {

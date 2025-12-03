@@ -160,7 +160,6 @@ public class ControllerPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
         
-        // Action buttons panel
         JPanel actionButtonsPanel = new JPanel();
         actionButtonsPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 0));
         actionButtonsPanel.setBackground(Color.WHITE);
@@ -188,7 +187,6 @@ public class ControllerPage extends JFrame {
         mainPanel.add(actionButtonsPanel);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        // Container for all vehicle tables
         tablesContainer = new JPanel();
         tablesContainer.setLayout(new BoxLayout(tablesContainer, BoxLayout.Y_AXIS));
         tablesContainer.setBackground(Color.WHITE);
@@ -198,7 +196,6 @@ public class ControllerPage extends JFrame {
         
         rootPanel.add(scrollPane, BorderLayout.CENTER);
         
-        // Live Update Logic
         liveUpdateTimer = new Timer(500, e -> updateDashboardData());
         liveUpdateTimer.start();
         

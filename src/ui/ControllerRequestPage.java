@@ -287,7 +287,6 @@ public class ControllerRequestPage extends JFrame {
         } else {
             if (!selectedIds.isEmpty()) {
                 requestsTable.getSelectionModel().setValueIsAdjusting(true);
-                // Prevent events
                 for (int i = 0; i < requestsTable.getRowCount(); i++) {
                     int id = (int) requestsTable.getValueAt(i, 0);
                     if (selectedIds.contains(id)) {
@@ -295,7 +294,6 @@ public class ControllerRequestPage extends JFrame {
                     }
                 }
                 requestsTable.getSelectionModel().setValueIsAdjusting(false);
-                // Re-enable events
             }
         }
     }
@@ -499,7 +497,6 @@ public class ControllerRequestPage extends JFrame {
                     VehicleStatus.AVAILABLE
             );
             
-            // NEW: Link the Vehicle to the Request ID (FIXED MISSING LINK)
             vehicle.setRequestId(request.getRequestId());
             
             return vehicleDataManager.addVehicle(vehicle);

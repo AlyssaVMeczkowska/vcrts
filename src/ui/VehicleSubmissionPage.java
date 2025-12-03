@@ -173,28 +173,25 @@ public class VehicleSubmissionPage extends JFrame {
         mainPanel.add(submitButton);
 
         this.getRootPane().setDefaultButton(submitButton);
-        
-        // Start the live update timer
+ 
         startLiveUpdate();
     }
 
-    // Method to handle live updates - UPDATED TO 500ms
+
     private void startLiveUpdate() {
         liveUpdateTimer = new Timer(500, e -> {
             int baseId = getNextVehicleIdForUser();
             this.nextVehicleId = baseId;
             
-            // Loop through active forms and update their displayed IDs
+
             for (int i = 0; i < vehicleForms.size(); i++) {
                 VehicleFormPanel form = vehicleForms.get(i);
-                // Vehicle 1 = baseId, Vehicle 2 = baseId + 1, etc.
                 form.updateVehicleIdDisplay(baseId + i);
             }
         });
         liveUpdateTimer.start();
     }
 
-    // Dispose method to clean up timer
     @Override
     public void dispose() {
         if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
@@ -253,7 +250,6 @@ public class VehicleSubmissionPage extends JFrame {
             formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
         }
         
-        // Calculate new ID based on DB + count of forms currently on screen
         int currentBaseId = getNextVehicleIdForUser();
         int newId = currentBaseId + vehicleForms.size();
         
@@ -273,7 +269,6 @@ public class VehicleSubmissionPage extends JFrame {
     }
 
     private void rebuildFormsContainer() {
-        // Recalculate IDs locally based on the first one
         int baseId = getNextVehicleIdForUser();
         
         formsContainer.removeAll();
@@ -289,7 +284,6 @@ public class VehicleSubmissionPage extends JFrame {
         formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
         
         for (int i = 0; i < vehicleForms.size(); i++) {
-            // Update the ID of the form based on its new position
             vehicleForms.get(i).updateVehicleIdDisplay(baseId + i);
 
             if (i > 0) {
@@ -540,7 +534,6 @@ public class VehicleSubmissionPage extends JFrame {
         private JLabel residencyStartErrorLabel, residencyEndErrorLabel;
         private JPanel addButtonPanel;
         
-        // Promoted to class member so updateVehicleIdDisplay can access it
         private JTextField idField; 
         private int vehicleId;
         
@@ -548,7 +541,6 @@ public class VehicleSubmissionPage extends JFrame {
             return vehicleId;
         }
         
-        // Method to update ID on the fly from Timer
         public void updateVehicleIdDisplay(int newId) {
             this.vehicleId = newId;
             if (this.idField != null) {
@@ -569,7 +561,6 @@ public class VehicleSubmissionPage extends JFrame {
             idLabelPanel.setBackground(Color.WHITE);
             idLabelPanel.add(idLabel);
 
-            // Initialized class member here
             this.idField = new JTextField(String.valueOf(vehicleId));
             idField.setEditable(false);
             idField.setEnabled(true);
@@ -869,7 +860,6 @@ public class VehicleSubmissionPage extends JFrame {
         
         int maxVehicleId = 0;
 
-        // 1. Check existing vehicles in the DB
         List<Vehicle> allVehicles = vehicleDataManager.getAllVehicles();
         for (Vehicle v : allVehicles) {
             if (v.getVehicleId() > maxVehicleId) {
@@ -877,12 +867,10 @@ public class VehicleSubmissionPage extends JFrame {
             }
         }
 
-        // 2. Check pending requests (so we don't reuse an ID waiting for approval)
         List<Request> allRequests = requestDataManager.getPendingRequests();
         for (Request request : allRequests) {
             String[] dataLines = request.getData().split("\n");
             for (String line : dataLines) {
-                // FIXED: Changed "Vehicle ID:" to "vehicle_id:" to match buildPayload()
                 if (line.trim().startsWith("vehicle_id:")) {
                     try {
                         String idStr = line.split(":")[1].trim();

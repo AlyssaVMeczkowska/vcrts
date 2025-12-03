@@ -10,7 +10,7 @@ public class Client extends User{
         this.jobs = jobs;
     }
 
-    //Implementation to Add Jobs
+
     public void addJobs(Job jobID)
     {
         if (jobID != null && jobs != null)
@@ -19,7 +19,6 @@ public class Client extends User{
         }
     }
 
-    //Implementation to Delete Jobs
     public void deleteJobs(Job jobID)
     {
         if (jobID != null && jobs != null)
@@ -28,7 +27,6 @@ public class Client extends User{
         }
     }
 
-    //Implementation to submit jobs
     public void submitJobs()
     {
         if (jobs != null && !jobs.isEmpty())
@@ -46,7 +44,7 @@ public class Client extends User{
         }
     }
 
-    //New Method to return list of Jobs
+
     public List<Job> getJobs()
     {
         return jobs;

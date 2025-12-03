@@ -6,10 +6,7 @@ import java.util.List;
 import model.Vehicle;
 import model.VehicleStatus;
 
-/**
- * VehicleDataManager - MySQL implementation
- * Manages all vehicle-related database operations
- */
+
 public class VehicleDataManager {
     private DatabaseManager dbManager;
 
@@ -17,9 +14,7 @@ public class VehicleDataManager {
         this.dbManager = DatabaseManager.getInstance();
     }
 
-    /**
-     * Get the Vehicle ID associated with a specific Request ID
-     */
+
     public int getVehicleIdByRequestId(int requestId) {
         String sql = "SELECT vehicle_id FROM vehicles WHERE request_id = ?";
         try (Connection conn = dbManager.getConnection();
@@ -34,13 +29,11 @@ public class VehicleDataManager {
         } catch (SQLException e) {
             System.err.println("Error fetching Vehicle ID for Request " + requestId + ": " + e.getMessage());
         }
-        // Return -1 if no vehicle is found
+
         return -1;
     }
 
-    /**
-     * Check if VIN is already taken
-     */
+
     public boolean isVinTaken(String vin) {
         String sql = "SELECT COUNT(*) FROM vehicles WHERE vin = ?";
         try (Connection conn = dbManager.getConnection();
@@ -58,9 +51,7 @@ public class VehicleDataManager {
         return false;
     }
 
-    /**
-     * Check if license plate is already taken
-     */
+
     public boolean isLicensePlateTaken(String licensePlate) {
         String sql = "SELECT COUNT(*) FROM vehicles WHERE license_plate = ?";
         try (Connection conn = dbManager.getConnection();
@@ -78,13 +69,8 @@ public class VehicleDataManager {
         return false;
     }
 
-    /**
-     * Add a new vehicle to the database
-     * UPDATED: Now inserts request_id correctly
-     * @return true if successful, false otherwise
-     */
+
     public boolean addVehicle(Vehicle vehicle) {
-        // Updated SQL to include request_id
         String sql = "INSERT INTO vehicles (owner_id, request_id, vin, license_plate, vehicle_make, vehicle_model, " +
                     "vehicle_year, computing_power, arrival_date, departure_date, status) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -93,7 +79,6 @@ public class VehicleDataManager {
             
             pstmt.setInt(1, vehicle.getOwnerId());
             
-            // Check if request_id exists on the vehicle object
             if (vehicle.getRequestId() > 0) {
                 pstmt.setInt(2, vehicle.getRequestId());
             } else {
@@ -113,7 +98,6 @@ public class VehicleDataManager {
             int rowsAffected = pstmt.executeUpdate();
             
             if (rowsAffected > 0) {
-                // Get the generated vehicle ID
                 ResultSet rs = pstmt.getGeneratedKeys();
                 if (rs.next()) {
                     int vehicleId = rs.getInt(1);
@@ -128,9 +112,6 @@ public class VehicleDataManager {
         return false;
     }
 
-    /**
-     * Get all vehicles from database
-     */
     public List<Vehicle> getAllVehicles() {
         List<Vehicle> vehicles = new ArrayList<>();
         String sql = "SELECT * FROM vehicles ORDER BY vehicle_id";
@@ -147,9 +128,6 @@ public class VehicleDataManager {
         return vehicles;
     }
 
-    /**
-     * Get vehicle by ID
-     */
     public Vehicle getVehicleById(int vehicleId) {
         String sql = "SELECT * FROM vehicles WHERE vehicle_id = ?";
         try (Connection conn = dbManager.getConnection();
@@ -167,9 +145,6 @@ public class VehicleDataManager {
         return null;
     }
 
-    /**
-     * Get all vehicles for a specific owner
-     */
     public List<Vehicle> getVehiclesByOwnerId(int ownerId) {
         List<Vehicle> vehicles = new ArrayList<>();
         String sql = "SELECT * FROM vehicles WHERE owner_id = ? ORDER BY vehicle_id";
@@ -188,9 +163,7 @@ public class VehicleDataManager {
         return vehicles;
     }
 
-    /**
-     * Get vehicles by status
-     */
+
     public List<Vehicle> getVehiclesByStatus(VehicleStatus status) {
         List<Vehicle> vehicles = new ArrayList<>();
         String sql = "SELECT * FROM vehicles WHERE status = ? ORDER BY vehicle_id";
@@ -209,9 +182,6 @@ public class VehicleDataManager {
         return vehicles;
     }
 
-    /**
-     * Update vehicle status
-     */
     public boolean updateVehicleStatus(int vehicleId, VehicleStatus status) {
         String sql = "UPDATE vehicles SET status = ? WHERE vehicle_id = ?";
         try (Connection conn = dbManager.getConnection();
@@ -231,9 +201,7 @@ public class VehicleDataManager {
         return false;
     }
 
-    /**
-     * Delete vehicle by ID
-     */
+
     public boolean deleteVehicle(int vehicleId) {
         String sql = "DELETE FROM vehicles WHERE vehicle_id = ?";
         try (Connection conn = dbManager.getConnection();
@@ -251,16 +219,12 @@ public class VehicleDataManager {
         return false;
     }
 
-    /**
-     * Get available vehicles (AVAILABLE status)
-     */
+ 
     public List<Vehicle> getAvailableVehicles() {
         return getVehiclesByStatus(VehicleStatus.AVAILABLE);
     }
 
-    /**
-     * Extract Vehicle object from ResultSet
-     */
+
     private Vehicle extractVehicleFromResultSet(ResultSet rs) throws SQLException {
         VehicleStatus status = VehicleStatus.AVAILABLE;
         try {
@@ -283,13 +247,11 @@ public class VehicleDataManager {
             status
         );
         
-        // Set submission timestamp if available
         Timestamp submissionTimestamp = rs.getTimestamp("submission_timestamp");
         if (submissionTimestamp != null) {
             vehicle.setSubmissionTimestamp(submissionTimestamp.toString());
         }
-        
-        // Set request ID if available
+
         int reqId = rs.getInt("request_id");
         if (!rs.wasNull()) {
             vehicle.setRequestId(reqId);

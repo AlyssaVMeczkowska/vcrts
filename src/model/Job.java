@@ -7,7 +7,7 @@ import java.util.List;
 public class Job {
     private int jobId;
     private int accountId;
-    private int requestId; // NEW: Link to the request
+    private int requestId; 
     private String jobType;
     private int duration;
     private String deadline;
@@ -47,12 +47,10 @@ public class Job {
         return accountId;
     }
 
-    // NEW Getter
     public int getRequestId() {
         return requestId;
     }
 
-    // NEW Setter
     public void setRequestId(int requestId) {
         this.requestId = requestId;
     }

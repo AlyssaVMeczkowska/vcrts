@@ -7,10 +7,7 @@ import java.util.*;
 import model.Request;
 import model.RequestStatus;
 
-/**
- * RequestDataManager - MySQL implementation
- * Manages all request-related database operations
- */
+
 public class RequestDataManager {
     private DatabaseManager dbManager;
 
@@ -18,10 +15,7 @@ public class RequestDataManager {
         this.dbManager = DatabaseManager.getInstance();
     }
 
-    /**
-     * Add a new request to the database
-     * @return the generated request ID, or -1 if failed
-     */
+
     public int addRequest(String requestType, int userId, String userName, String data) {
         String sql = "INSERT INTO requests (request_type, user_id, user_name, request_data, " +
                     "status, notification_viewed) VALUES (?, ?, ?, ?, 'PENDING', TRUE)";
@@ -51,9 +45,7 @@ public class RequestDataManager {
         return -1;
     }
 
-    /**
-     * Get all pending requests
-     */
+
     public List<Request> getPendingRequests() {
         List<Request> requests = new ArrayList<>();
         String sql = "SELECT * FROM requests WHERE status = 'PENDING' ORDER BY submission_timestamp";
@@ -71,9 +63,7 @@ public class RequestDataManager {
         return requests;
     }
 
-    /**
-     * Get all requests
-     */
+
     public List<Request> getAllRequests() {
         List<Request> requests = new ArrayList<>();
         String sql = "SELECT * FROM requests ORDER BY submission_timestamp DESC";
@@ -91,9 +81,7 @@ public class RequestDataManager {
         return requests;
     }
 
-    /**
-     * Get request by ID
-     */
+
     public Request getRequestById(int requestId) {
         String sql = "SELECT * FROM requests WHERE request_id = ?";
         
@@ -112,9 +100,7 @@ public class RequestDataManager {
         return null;
     }
 
-    /**
-     * Get unnotified requests for a specific user and request type
-     */
+
     public Map<String, List<Integer>> getUnnotifiedRequests(int userId, String targetRequestType) {
         Map<String, List<Integer>> result = new HashMap<>();
         result.put("ACCEPTED", new ArrayList<>());
@@ -147,13 +133,11 @@ public class RequestDataManager {
         return result;
     }
 
-    /**
-     * Mark requests as viewed
-     */
+
     public void markAsViewed(List<Integer> requestIds) {
         if (requestIds == null || requestIds.isEmpty()) return;
         
-        // Build SQL with placeholders for IN clause
+
         StringBuilder sql = new StringBuilder("UPDATE requests SET notification_viewed = TRUE WHERE request_id IN (");
         for (int i = 0; i < requestIds.size(); i++) {
             sql.append("?");
@@ -177,9 +161,7 @@ public class RequestDataManager {
         }
     }
 
-    /**
-     * Update request status
-     */
+
     public boolean updateRequestStatus(int requestId, RequestStatus newStatus, String rejectionReason) {
         String sql = "UPDATE requests SET status = ?, rejection_reason = ?, notification_viewed = FALSE " +
                     "WHERE request_id = ?";
@@ -202,9 +184,7 @@ public class RequestDataManager {
         return false;
     }
 
-    /**
-     * Get requests by user ID
-     */
+
     public List<Request> getRequestsByUserId(int userId) {
         List<Request> requests = new ArrayList<>();
         String sql = "SELECT * FROM requests WHERE user_id = ? ORDER BY submission_timestamp DESC";
@@ -224,9 +204,7 @@ public class RequestDataManager {
         return requests;
     }
 
-    /**
-     * Get requests by type
-     */
+
     public List<Request> getRequestsByType(String requestType) {
         List<Request> requests = new ArrayList<>();
         String sql = "SELECT * FROM requests WHERE request_type = ? ORDER BY submission_timestamp DESC";
@@ -246,9 +224,7 @@ public class RequestDataManager {
         return requests;
     }
 
-    /**
-     * Delete request by ID
-     */
+
     public boolean deleteRequest(int requestId) {
         String sql = "DELETE FROM requests WHERE request_id = ?";
         
@@ -268,9 +244,7 @@ public class RequestDataManager {
         return false;
     }
 
-    /**
-     * Extract Request object from ResultSet
-     */
+
     private Request extractRequestFromResultSet(ResultSet rs) throws SQLException {
         RequestStatus status = RequestStatus.PENDING;
         try {

@@ -18,7 +18,7 @@ import model.User;
 public class ClientRequestStatusPage extends JFrame {
     private User currentUser;
     private RequestDataManager requestDataManager;
-    private JobDataManager jobDataManager; // Added JobDataManager
+    private JobDataManager jobDataManager; 
     private Timer liveUpdateTimer;
     
     private static final Color PAGE_BG = new Color(238, 238, 238);
@@ -32,7 +32,7 @@ public class ClientRequestStatusPage extends JFrame {
     public ClientRequestStatusPage(User user) {
         this.currentUser = user;
         this.requestDataManager = new RequestDataManager();
-        this.jobDataManager = new JobDataManager(); // Initialize JobDataManager
+        this.jobDataManager = new JobDataManager(); 
 
         setTitle("VCRTS - My Submissions");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -291,7 +291,7 @@ public class ClientRequestStatusPage extends JFrame {
 
                 allRows.add(new Object[]{ 
                     request.getRequestId(), 
-                    jobIdDisplay, // New Job ID Column
+                    jobIdDisplay, 
                     jobType, 
                     duration, 
                     deadline, 
