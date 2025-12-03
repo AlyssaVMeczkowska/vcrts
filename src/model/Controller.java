@@ -1,10 +1,8 @@
 package model;
 
 import data.JobDataManager;
-import data.VehicleDataManager;
 import data.RequestDataManager;
-import java.io.*;
-import java.time.LocalDate;
+import data.VehicleDataManager;
 import java.util.*;
 
 public class Controller {
@@ -139,16 +137,25 @@ public class Controller {
 
     /**
      * Calculate completion times for jobs in each vehicle's queue using FIFO
+     * UPDATED: Now persists the calculated time to the database
      */
     private void calculateCompletionTimesPerVehicle() {
         for (Map.Entry<Integer, Queue<Job>> entry : vehicleJobQueues.entrySet()) {
             Queue<Job> jobQueue = entry.getValue();
             int cumulativeTime = 0;
+            
             for (Job job : jobQueue) {
+                // FIFO Algorithm: Add current job duration to cumulative time
                 cumulativeTime += job.getDuration();
+                
+                // Update Memory Object
                 job.setCompletionTime(cumulativeTime);
+                
+                // NEW: Update Database Immediately
+                jobDataManager.updateJobCompletionTime(job.getJobId(), cumulativeTime);
             }
         }
+        System.out.println("Completion times recalculated and saved to database.");
     }
 
     /**
@@ -238,6 +245,8 @@ public class Controller {
         for (Job job : jobQueue) {
             cumulativeTime += job.getDuration();
             job.setCompletionTime(cumulativeTime);
+            // Also update DB here just in case this legacy path is used
+            jobDataManager.updateJobCompletionTime(job.getJobId(), cumulativeTime);
         }
     }
 
