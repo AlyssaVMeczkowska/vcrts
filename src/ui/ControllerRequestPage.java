@@ -334,6 +334,14 @@ public class ControllerRequestPage extends JFrame {
                 }
             }
 
+            if (r.getRequestType().equals("VEHICLE_SUBMISSION")) {
+                Vehicle v = vehicleDataManager.getLatestVehicleByOwner(r.getUserId());
+                if (v != null) {
+                    sb.append("vehicle_id: <b>").append(v.getVehicleId()).append("</b><br>");
+                }
+            }
+
+
             sb.append("</div>");
             sb.append("<hr>");
             sb.append("</div>");

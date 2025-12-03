@@ -271,4 +271,23 @@ public class VehicleDataManager {
         
         return vehicle;
     }
+    public Vehicle getLatestVehicleByOwner(int ownerId) {
+        String sql = "SELECT * FROM vehicles WHERE owner_id = ? ORDER BY vehicle_id DESC LIMIT 1";
+
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, ownerId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                return extractVehicleFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching latest vehicle by owner: " + e.getMessage());
+        }
+
+        return null;
+    }
+
 }
