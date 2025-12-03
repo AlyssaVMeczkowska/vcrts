@@ -18,8 +18,7 @@ public class VehicleDataManager {
     }
 
     /**
-     * NEW METHOD: Get the Vehicle ID associated with a specific Request ID
-     * This connects the Request table to the Vehicles table via the Foreign Key
+     * Get the Vehicle ID associated with a specific Request ID
      */
     public int getVehicleIdByRequestId(int requestId) {
         String sql = "SELECT vehicle_id FROM vehicles WHERE request_id = ?";
@@ -35,7 +34,7 @@ public class VehicleDataManager {
         } catch (SQLException e) {
             System.err.println("Error fetching Vehicle ID for Request " + requestId + ": " + e.getMessage());
         }
-        // Return -1 if no vehicle is found (e.g. request is still pending or rejected)
+        // Return -1 if no vehicle is found
         return -1;
     }
 
@@ -81,25 +80,35 @@ public class VehicleDataManager {
 
     /**
      * Add a new vehicle to the database
+     * UPDATED: Now inserts request_id correctly
      * @return true if successful, false otherwise
      */
     public boolean addVehicle(Vehicle vehicle) {
-        String sql = "INSERT INTO vehicles (owner_id, vin, license_plate, vehicle_make, vehicle_model, " +
+        // Updated SQL to include request_id
+        String sql = "INSERT INTO vehicles (owner_id, request_id, vin, license_plate, vehicle_make, vehicle_model, " +
                     "vehicle_year, computing_power, arrival_date, departure_date, status) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setInt(1, vehicle.getOwnerId());
-            pstmt.setString(2, vehicle.getVin());
-            pstmt.setString(3, vehicle.getLicensePlate());
-            pstmt.setString(4, vehicle.getMake());
-            pstmt.setString(5, vehicle.getModel());
-            pstmt.setInt(6, vehicle.getYear());
-            pstmt.setString(7, vehicle.getComputingPower());
-            pstmt.setDate(8, Date.valueOf(vehicle.getArrivalDate()));
-            pstmt.setDate(9, Date.valueOf(vehicle.getDepartureDate()));
-            pstmt.setString(10, vehicle.getStatus().toString());
+            
+            // Check if request_id exists on the vehicle object
+            if (vehicle.getRequestId() > 0) {
+                pstmt.setInt(2, vehicle.getRequestId());
+            } else {
+                pstmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            
+            pstmt.setString(3, vehicle.getVin());
+            pstmt.setString(4, vehicle.getLicensePlate());
+            pstmt.setString(5, vehicle.getMake());
+            pstmt.setString(6, vehicle.getModel());
+            pstmt.setInt(7, vehicle.getYear());
+            pstmt.setString(8, vehicle.getComputingPower());
+            pstmt.setDate(9, Date.valueOf(vehicle.getArrivalDate()));
+            pstmt.setDate(10, Date.valueOf(vehicle.getDepartureDate()));
+            pstmt.setString(11, vehicle.getStatus().toString());
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -278,6 +287,12 @@ public class VehicleDataManager {
         Timestamp submissionTimestamp = rs.getTimestamp("submission_timestamp");
         if (submissionTimestamp != null) {
             vehicle.setSubmissionTimestamp(submissionTimestamp.toString());
+        }
+        
+        // Set request ID if available
+        int reqId = rs.getInt("request_id");
+        if (!rs.wasNull()) {
+            vehicle.setRequestId(reqId);
         }
         
         return vehicle;

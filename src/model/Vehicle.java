@@ -6,6 +6,7 @@ import java.time.OffsetDateTime;
 public class Vehicle {
     private int vehicleId;
     private int ownerId;
+    private int requestId; // NEW: Link to the request
     private String make;
     private String model;
     private int year;
@@ -32,11 +33,19 @@ public class Vehicle {
         this.submissionTimestamp = OffsetDateTime.now().toString();
     }
 
-
     public int getVehicleId() {
         return vehicleId;
     }
 
+    // NEW Getter
+    public int getRequestId() {
+        return requestId;
+    }
+
+    // NEW Setter
+    public void setRequestId(int requestId) {
+        this.requestId = requestId;
+    }
 
     public String getMake() {
         return make;
@@ -73,6 +82,7 @@ public class Vehicle {
     public VehicleStatus getStatus() {
         return status;
     }
+
     public void setSubmissionTimestamp(String timestamp) {
         this.submissionTimestamp = timestamp;
     }
@@ -84,6 +94,7 @@ public class Vehicle {
     public void setStatus(VehicleStatus status) {
         this.status = status;
     }
+
     public int getOwnerId() {
         return ownerId;
     }

@@ -335,8 +335,6 @@ public class ControllerRequestPage extends JFrame {
                 }
             }
 
-            // REMOVED: The block that appended redundant vehicle_id information here.
-
             sb.append("</div>");
             sb.append("<hr>");
             sb.append("</div>");
@@ -456,7 +454,7 @@ public class ControllerRequestPage extends JFrame {
                     jobData.getOrDefault("description", "")
             );
             
-            // Link the Job to the Request ID!
+            // Link the Job to the Request ID
             job.setRequestId(request.getRequestId());
             
             return jobDataManager.addJob(job);
@@ -501,7 +499,9 @@ public class ControllerRequestPage extends JFrame {
                     VehicleStatus.AVAILABLE
             );
             
-            // Optionally link Request ID here if Vehicle supported it, but mainly needed for Jobs
+            // NEW: Link the Vehicle to the Request ID (FIXED MISSING LINK)
+            vehicle.setRequestId(request.getRequestId());
+            
             return vehicleDataManager.addVehicle(vehicle);
         } catch (Exception e) {
             e.printStackTrace();
