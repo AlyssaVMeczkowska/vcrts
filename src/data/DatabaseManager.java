@@ -57,7 +57,7 @@ public class DatabaseManager {
                     env.put(key, value);
                 }
             }
-            System.out.println("✓ Loaded configuration from .env file");
+            System.out.println("Loaded configuration from .env file");
         } catch (IOException e) {
             System.err.println("Warning: .env file not found, using default values");
         }
@@ -117,7 +117,7 @@ public class DatabaseManager {
                 }
             }
             scanner.close();
-            System.out.println("✓ Database initialized successfully from script.");
+            System.out.println("Database initialized successfully from script.");
 
         } catch (FileNotFoundException e) {
             System.err.println("Error: Script file not found: " + e.getMessage());
@@ -137,12 +137,12 @@ public class DatabaseManager {
         try (Connection conn = getConnection()) {
             boolean isValid = conn != null && !conn.isClosed();
             if (isValid) {
-                System.out.println("✓ Database connection successful!");
+                System.out.println("Database connection successful!");
                 System.out.println("  Connected to: " + dbUrl);
             }
             return isValid;
         } catch (SQLException e) {
-            System.err.println("✗ Database connection test failed: " + e.getMessage());
+            System.err.println("Database connection test failed: " + e.getMessage());
             return false;
         }
     }
