@@ -27,10 +27,13 @@ public class JobSubmissionPage extends JFrame {
     private List<JobFormPanel> jobForms;
     private int jobCounter = 1;
     private JPanel mainPanel;
+    
+    private int nextJobId;
 
     public JobSubmissionPage(User user) { 
         this.currentUser = user;
         this.jobForms = new ArrayList<>();
+        this.nextJobId = getNextJobIdForUser();
         setTitle("Job Submission");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
@@ -154,6 +157,17 @@ public class JobSubmissionPage extends JFrame {
     }
 
     private void rebuildFormsContainer() {
+
+        int maxExistingId = 0;
+        for (JobFormPanel form : jobForms) {
+            if (form.getJobId() > maxExistingId) {
+                maxExistingId = form.getJobId();
+            }
+        }
+
+        nextJobId = maxExistingId + 1;
+
+
         formsContainer.removeAll();
         JLabel job1Label = new JLabel("Job 1");
         job1Label.setFont(new Font("Georgia", Font.BOLD, 28));
@@ -165,7 +179,9 @@ public class JobSubmissionPage extends JFrame {
         job1LabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, job1Label.getPreferredSize().height));
         formsContainer.add(job1LabelPanel);
         formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
+
         for (int i = 0; i < jobForms.size(); i++) {
+
             if (i > 0) {
                 formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
                 JSeparator sep = new JSeparator();
@@ -176,15 +192,17 @@ public class JobSubmissionPage extends JFrame {
                 JLabel jLabel = new JLabel("Job " + (i + 1));
                 jLabel.setFont(new Font("Georgia", Font.BOLD, 28));
                 jLabel.setForeground(new Color(0, 124, 137));
+
                 JPanel jLabelPanel = new JPanel(new BorderLayout());
                 jLabelPanel.setBackground(Color.WHITE);
                 jLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
                 jLabelPanel.add(jLabel, BorderLayout.WEST);
+
                 JLabel remBtn = new JLabel("−");
                 remBtn.setFont(new Font("Arial", Font.PLAIN, 24));
                 remBtn.setForeground(new Color(0, 124, 137));
                 remBtn.setCursor(new Cursor(Cursor.HAND_CURSOR));
-                
+
                 final int formIndex = i;
                 remBtn.addMouseListener(new java.awt.event.MouseAdapter() {
                     public void mouseClicked(java.awt.event.MouseEvent evt) {
@@ -199,21 +217,23 @@ public class JobSubmissionPage extends JFrame {
                         remBtn.setForeground(new Color(0, 124, 137));
                     }
                 });
+
                 jLabelPanel.add(remBtn, BorderLayout.EAST);
                 jLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, jLabel.getPreferredSize().height));
                 formsContainer.add(jLabelPanel);
                 formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
             }
-            
+
             JobFormPanel currentForm = jobForms.get(i);
             formsContainer.add(currentForm);
+
             if (i == jobForms.size() - 1) {
                 JPanel addJobButtonPanel = new JPanel();
                 addJobButtonPanel.setLayout(new BoxLayout(addJobButtonPanel, BoxLayout.X_AXIS));
                 addJobButtonPanel.setBackground(Color.WHITE);
                 addJobButtonPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
                 addJobButtonPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-                
+
                 JButton addJobButton = new JButton("+ Add Job");
                 addJobButton.setFont(new Font("Arial", Font.BOLD, 14));
                 addJobButton.setForeground(new Color(0, 124, 137));
@@ -222,19 +242,20 @@ public class JobSubmissionPage extends JFrame {
                 addJobButton.setFocusPainted(false);
                 addJobButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 addJobButton.addActionListener(evt -> addJobForm());
-                
+
                 addJobButtonPanel.add(Box.createHorizontalGlue());
                 addJobButtonPanel.add(addJobButton);
-                
+
                 formsContainer.add(Box.createRigidArea(new Dimension(0, 8)));
                 formsContainer.add(addJobButtonPanel);
             }
         }
-        
+
         jobCounter = jobForms.size() + 1;
         formsContainer.revalidate();
         formsContainer.repaint();
     }
+
 
     private void updateMainPanelHeight() {
         int topBottomUIsHeight = 225;
@@ -304,11 +325,11 @@ public class JobSubmissionPage extends JFrame {
             formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
         }
         
-        JobFormPanel jobForm = new JobFormPanel();
+        JobFormPanel jobForm = new JobFormPanel(nextJobId);
         jobForm.setAlignmentX(Component.CENTER_ALIGNMENT);
         jobForms.add(jobForm);
         formsContainer.add(jobForm);
-        
+        nextJobId++;
         jobCounter++;
         
         int topBottomUIsHeight = 225;
@@ -345,7 +366,6 @@ public class JobSubmissionPage extends JFrame {
             return;
         }
 
-        int nextJobId = getNextJobIdForUser();
         int successCount = 0;
         StringBuilder requestIds = new StringBuilder();
 
@@ -365,20 +385,19 @@ public class JobSubmissionPage extends JFrame {
 
             String payload = buildJobPayload(job);
 
-
             boolean accepted = RequestSender.sendJobSubmission(payload);
 
             if (accepted) {
                 successCount++;
+
                 if (requestIds.length() > 0) {
                     requestIds.append(", ");
                 }
-                requestIds.append("#").append(nextJobId);
-                nextJobId++;
+
+                requestIds.append("#").append(form.getJobId());
             }
         }
 
-        // Show appropriate success/failure message based on results
         if (successCount == jobForms.size()) {
             String message = String.format(
                     "%d job(s) submitted for controller review!\n\nJob ID(s): %s\n\n" +
@@ -403,6 +422,7 @@ public class JobSubmissionPage extends JFrame {
             dialog.setVisible(true);
         }
     }
+
     
     private int getNextJobIdForUser() {
         JobDataManager jobDataManager = new JobDataManager();
@@ -466,11 +486,51 @@ public class JobSubmissionPage extends JFrame {
         private JLabel durationErrorLabel, deadlineErrorLabel, descriptionErrorLabel;
         private JScrollPane descScrollPane;
         private JPanel addButtonPanel;
-        public JobFormPanel() {
+        
+        private JLabel jobIdLabel;
+        private JTextField jobIdField;
+        private int jobId;
+        
+        public int getJobId() { 
+        	return jobId; 
+        	}
+
+
+        public JobFormPanel(int jobIdToDisplay) {
+            this.jobId = jobIdToDisplay;
+
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBackground(Color.WHITE);
             setMaximumSize(new Dimension(Integer.MAX_VALUE, 370));
             setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            JLabel jobIdLabel = new JLabel("Job ID:");
+            jobIdLabel.setFont(new Font("Arial", Font.BOLD, 14));
+            jobIdLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+            JPanel jobIdLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            jobIdLabelPanel.setBackground(Color.WHITE);
+            jobIdLabelPanel.add(jobIdLabel);
+            jobIdLabelPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, jobIdLabel.getPreferredSize().height));
+            add(jobIdLabelPanel);
+
+            add(Box.createRigidArea(new Dimension(0, 3)));
+
+            this.jobIdField = new JTextField(String.valueOf(jobId));
+            jobIdField.setEditable(false);                 
+            jobIdField.setEnabled(true);                  
+            jobIdField.setForeground(Color.BLACK);        
+            jobIdField.setDisabledTextColor(Color.BLACK); 
+            jobIdField.setBackground(new Color(245, 245, 245));  
+            jobIdField.setBorder(defaultBorder);
+            jobIdField.setFont(new Font("Arial", Font.PLAIN, 14));
+            jobIdField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+            jobIdField.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            add(jobIdField);
+
+
+            add(Box.createRigidArea(new Dimension(0, 10)));
             
             FocusAdapter highlightListener = new FocusAdapter() {
                 @Override
@@ -721,12 +781,13 @@ public class JobSubmissionPage extends JFrame {
     }
     private String buildJobPayload(Job job) {
         return "type: job_submission\n"
+                + "job_id: " + job.getJobId() + "\n"
                 + "user_id: " + job.getAccountId() + "\n"
                 + "job_type: " + job.getJobType() + "\n"
                 + "duration: " + job.getDuration() + "\n"
-            
                 + "deadline: " + job.getDeadline() + "\n"
                 + "description: " + job.getDescription() + "\n"
                 + "---";
     }
+
 }
