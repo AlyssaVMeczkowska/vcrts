@@ -2,11 +2,8 @@ package model;
 
 import data.JobDataManager;
 import data.VehicleDataManager;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
+import data.RequestDataManager;
 import java.io.*;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -24,17 +21,14 @@ public class Controller {
 
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
-    
-    private static final String FILE_PATH = "data/vcrts_data.txt";
+    private RequestDataManager requestDataManager;
 
     //New Method For Server State
-    private static class PendingVehicleRequest
-    {
+    private static class PendingVehicleRequest {
         Owner owner; 
         Vehicle vehicle;
 
-        PendingVehicleRequest(Owner owner, Vehicle vehicle)
-        {
+        PendingVehicleRequest(Owner owner, Vehicle vehicle) {
             this.owner = owner;
             this.vehicle = vehicle;
         }
@@ -53,7 +47,7 @@ public class Controller {
 
         this.jobDataManager = new JobDataManager();
         this.vehicleDataManager = new VehicleDataManager();
-        
+        this.requestDataManager = new RequestDataManager();
 
         this.jobs = new ArrayList<>();
         this.parkingLot = new ArrayList<>();
@@ -66,149 +60,17 @@ public class Controller {
     }
     
     /**
-     * Loads all data from files
+     * Loads all data from MySQL database
      */
     public void refreshAndProcessData() {
         this.jobs = jobDataManager.getAllJobs();
-        this.parkingLot = loadAllVehicles();
+        this.parkingLot = vehicleDataManager.getAllVehicles();
         
         this.vehicleJobQueues.clear();
         initializeVehicleQueues();
         
         this.nextVehicleIndex = 0;
         assignAllJobsToVehicles();
-    }
-    
-    private List<Vehicle> loadAllVehicles() {
-        List<Vehicle> vehicles = new ArrayList<>();
-        File file = new File(FILE_PATH);
-        
-        if (!file.exists()) {
-            System.out.println("Data file not found: " + FILE_PATH);
-            return vehicles;
-        }
-        
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            boolean isVehicleBlock = false;
-            
-            Integer vehicleId = null;
-            Integer ownerId = null;
-            String make = null;
-            String model = null;
-            Integer year = null;
-            String vin = null;
-            String licensePlate = null;
-            String computingPower = null;
-            LocalDate arrivalDate = null;
-            LocalDate departureDate = null;
-            
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                
-                if (line.startsWith("type: vehicle_availability")) {
-                    isVehicleBlock = true;
-                    vehicleId = null;
-                    ownerId = null;
-                    make = null;
-                    model = null;
-                    year = null;
-                    vin = null;
-                    licensePlate = null;
-                    computingPower = null;
-                    arrivalDate = null;
-                    departureDate = null;
-                    
-                } else if (line.equals("---")) {
-                    if (isVehicleBlock && vehicleId != null) {
-                        try {
-                            Vehicle vehicle = new Vehicle(
-                                vehicleId,
-                                ownerId != null ? ownerId : 0,
-                                make,
-                                model,
-                                year != null ? year : 0,
-                                vin,
-                                licensePlate,
-                                computingPower,
-                                arrivalDate,
-                                departureDate,
-                                VehicleStatus.AVAILABLE // Default status
-                            );
-                            vehicles.add(vehicle);
-                        } catch (Exception e) {
-                            System.err.println("Error creating vehicle: " + e.getMessage());
-                        }
-                    }
-                    isVehicleBlock = false;
-                    
-                } else if (isVehicleBlock && line.contains(":")) {
-                    String[] parts = line.split(":", 2);
-                    if (parts.length == 2) {
-                        String key = parts[0].trim();
-                        String value = parts[1].trim();
-                        
-                        switch (key) {
-                            case "user_id":
-                                try {
-                                    vehicleId = Integer.parseInt(value);
-                                } catch (NumberFormatException e) {
-                                    System.err.println("Invalid vehicle ID: " + value);
-                                }
-                                break;
-                            case "owner_id":
-                                try {
-                                    ownerId = Integer.parseInt(value);
-                                } catch (NumberFormatException e) {
-                                    System.err.println("Invalid owner ID: " + value);
-                                }
-                                break;
-                            case "vehicle_make":
-                                make = value;
-                                break;
-                            case "vehicle_model":
-                                model = value;
-                                break;
-                            case "vehicle_year":
-                                try {
-                                    year = Integer.parseInt(value);
-                                } catch (NumberFormatException e) {
-                                    System.err.println("Invalid year: " + value);
-                                }
-                                break;
-                            case "vin":
-                                vin = value;
-                                break;
-                            case "license_plate":
-                                licensePlate = value;
-                                break;
-                            case "computing_power":
-                                computingPower = value;
-                                break;
-                            case "start_date":
-                                try {
-                                    arrivalDate = LocalDate.parse(value);
-                                } catch (Exception e) {
-                                    System.err.println("Invalid arrival date: " + value);
-                                }
-                                break;
-                            case "end_date":
-                                try {
-                                    departureDate = LocalDate.parse(value);
-                                } catch (Exception e) {
-                                    System.err.println("Invalid departure date: " + value);
-                                }
-                                break;
-                        }
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            System.err.println("Error reading vehicle data: " + ex.getMessage());
-        }
-        
-        System.out.println("Loaded " + vehicles.size() + " vehicles from file");
-        return vehicles;
     }
 
     /**
@@ -479,75 +341,56 @@ public class Controller {
         return -1;
     }
 
-//New Controller("Server-Side") Recieving Methods
-    public void receiveVehicleSubmissionRequest(Owner owner, Vehicle vehicle)
-    {
-
+    //New Controller("Server-Side") Recieving Methods
+    public void receiveVehicleSubmissionRequest(Owner owner, Vehicle vehicle) {
         pendingVehicleRequests.put(vehicle.getVehicleId(), new PendingVehicleRequest(owner, vehicle));
-
 
         owner.receiveNotification("SERVER: Received submission request for vehicle "
                 + vehicle.getLicensePlate() + ". Awaiting VC Controller approval.");
-
 
         System.out.println("CONTROLLER: New pending vehicle for approval from "
                 + owner.getUsername() + ". Vehicle ID: " + vehicle.getVehicleId());
     }
 
-
-
     //Method For UI To Get Pending Requests
-    public List<Vehicle> getPendingVehicles()
-    {
+    public List<Vehicle> getPendingVehicles() {
         List<Vehicle> vehicles = new ArrayList<>();
-        for (PendingVehicleRequest req : pendingVehicleRequests.values())
-        {
+        for (PendingVehicleRequest req : pendingVehicleRequests.values()) {
             vehicles.add(req.vehicle);
         }
         return vehicles;
     }
 
-
-    //Method to Accept Vehicle Submission
-    public void acceptVehicleSubmission(int vehicleId)
-    {
+    //Method to Accept Vehicle Submission - NOW USES DATABASE
+    public void acceptVehicleSubmission(int vehicleId) {
         PendingVehicleRequest request = pendingVehicleRequests.remove(vehicleId);
-        if (request == null)
-        {
+        if (request == null) {
             System.err.println("CONTROLLER: No pending request found for vehicle ID: " + vehicleId);
             return;
         }
 
+        // Add vehicle to database instead of file
+        boolean saved = vehicleDataManager.addVehicle(request.vehicle);
 
-        boolean saved = appendVehicleToFile(request.vehicle, request.owner);
-
-        if (saved)
-        {
+        if (saved) {
             refreshAndProcessData();
-
 
             request.owner.receiveNotification("SERVER: Your vehicle submission ("
                     + request.vehicle.getLicensePlate() + ") has been ACCEPTED.");
             System.out.println("CONTROLLER: Vehicle " + vehicleId + " accepted and saved.");
-        }
-        else
-        {
-
+        } else {
             pendingVehicleRequests.put(vehicleId, request);
 
-
             request.owner.receiveNotification("SERVER: Your vehicle submission ("
-                    + request.vehicle.getLicensePlate() + ") was REJECTED (File Save Error).");
+                    + request.vehicle.getLicensePlate() + ") was REJECTED (Database Save Error).");
             System.err.println("CONTROLLER: Vehicle " + vehicleId + " approval failed (save error).");
         }
     }
 
     //Method to Reject Vehicle Submission
-    public void rejectVehicleSubmission(int vehicleId)
-    {
+    public void rejectVehicleSubmission(int vehicleId) {
         PendingVehicleRequest request = pendingVehicleRequests.remove(vehicleId);
-        if (request == null)
-        {
+        if (request == null) {
             System.err.println("CONTROLLER: No pending request found for vehicle ID: " + vehicleId);
             return;
         }
@@ -556,37 +399,4 @@ public class Controller {
                 + request.vehicle.getLicensePlate() + ") has been REJECTED by the VC Controller.");
         System.out.println("CONTROLLER: Vehicle " + vehicleId + " rejected.");
     }
-
-    //Method To Append New Vehicle Data To File
-    private boolean appendVehicleToFile(Vehicle vehicle, Owner owner)
-    {
-        try (FileWriter fw = new FileWriter(FILE_PATH, true);
-             BufferedWriter bw = new BufferedWriter(fw);
-             PrintWriter out = new PrintWriter(bw))
-        {
-
-            out.println();
-            out.println("type: vehicle_availability");
-            out.println("user_id: " + vehicle.getVehicleId());
-            out.println("owner_id: " + owner.getId());
-            out.println("vehicle_make: " + vehicle.getMake());
-            out.println("vehicle_model: " + vehicle.getModel());
-            out.println("vehicle_year: " + vehicle.getYear());
-            out.println("vin: " + vehicle.getVin());
-            out.println("license_plate: " + vehicle.getLicensePlate());
-            out.println("computing_power: " + vehicle.getComputingPower());
-            out.println("start_date: " + vehicle.getArrivalDate());
-            out.println("end_date: " + vehicle.getDepartureDate());
-            out.println("---");
-
-            return true;
-        }
-        catch (IOException e)
-        {
-            System.err.println("Error appending vehicle to file: " + e.getMessage());
-            return false;
-        }
-    }
-
-
 }

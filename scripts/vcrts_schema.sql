@@ -52,11 +52,8 @@ CREATE TABLE IF NOT EXISTS jobs (
     description TEXT,
     submission_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     completion_time INT DEFAULT 0,
-    progress DOUBLE DEFAULT 0.0,
-    status ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED') DEFAULT 'PENDING',
     FOREIGN KEY (client_id) REFERENCES users(user_id) ON DELETE CASCADE,
     INDEX idx_client (client_id),
-    INDEX idx_status (status),
     INDEX idx_deadline (deadline)
 );
 
@@ -77,31 +74,6 @@ CREATE TABLE IF NOT EXISTS requests (
     INDEX idx_type (request_type)
 );
 
--- Job-Vehicle assignments
-CREATE TABLE IF NOT EXISTS job_vehicle_assignments (
-    assignment_id INT PRIMARY KEY AUTO_INCREMENT,
-    job_id INT NOT NULL,
-    vehicle_id INT NOT NULL,
-    assignment_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    is_primary BOOLEAN DEFAULT TRUE,
-    FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE,
-    FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id) ON DELETE CASCADE,
-    INDEX idx_job (job_id),
-    INDEX idx_vehicle (vehicle_id)
-);
-
--- Checkpoints table
-CREATE TABLE IF NOT EXISTS checkpoints (
-    checkpoint_id INT PRIMARY KEY AUTO_INCREMENT,
-    job_id INT NOT NULL,
-    vehicle_id INT,
-    created_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    checkpoint_data TEXT,
-    FOREIGN KEY (job_id) REFERENCES jobs(job_id) ON DELETE CASCADE,
-    FOREIGN KEY (vehicle_id) REFERENCES vehicles(vehicle_id) ON DELETE SET NULL,
-    INDEX idx_job (job_id)
-);
-
 -- ============================================================================
 -- DATA POPULATION
 -- Using INSERT IGNORE so we don't get duplicate errors if data already exists
@@ -117,16 +89,16 @@ INSERT IGNORE INTO users (user_id, account_type, first_name, last_name, email, u
 (6, 'Controller', 'Alyssa', 'Meczkowska', 'controller2@email.com', 'controller2', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', FALSE, '2025-11-03 02:31:40');
 
 -- Insert jobs
-INSERT IGNORE INTO jobs (job_id, client_id, job_type, duration_hours, deadline, description, submission_timestamp, status) VALUES
-(1, 3, 'Simulation', 53, '2025-12-09', '', '2025-11-19 03:18:42', 'PENDING'),
-(2, 3, 'Computational Task', 6, '2025-11-28', '', '2025-11-19 03:18:54', 'PENDING'),
-(3, 3, 'Networking & Communication', 61, '2025-11-30', '', '2025-11-19 03:19:18', 'PENDING'),
-(4, 4, 'Simulation', 23, '2025-12-02', '', '2025-11-19 03:19:25', 'PENDING'),
-(5, 3, 'Simulation', 6, '2025-11-24', '', '2025-11-19 03:19:48', 'PENDING'),
-(6, 3, 'Simulation', 24, '2025-11-24', '', '2025-11-19 03:20:08', 'PENDING'),
-(7, 4, 'Networking & Communication', 14, '2025-12-11', '', '2025-11-19 03:20:17', 'PENDING'),
-(8, 3, 'Networking & Communication', 40, '2025-11-24', '', '2025-11-19 03:20:38', 'PENDING'),
-(9, 3, 'Data Storage & Transfer', 2, '2025-11-24', '', '2025-11-19 03:20:51', 'PENDING');
+INSERT IGNORE INTO jobs (job_id, client_id, job_type, duration_hours, deadline, description, submission_timestamp) VALUES
+(1, 3, 'Simulation', 53, '2025-12-09', '', '2025-11-19 03:18:42'),
+(2, 3, 'Computational Task', 6, '2025-11-28', '', '2025-11-19 03:18:54'),
+(3, 3, 'Networking & Communication', 61, '2025-11-30', '', '2025-11-19 03:19:18'),
+(4, 4, 'Simulation', 23, '2025-12-02', '', '2025-11-19 03:19:25'),
+(5, 3, 'Simulation', 6, '2025-11-24', '', '2025-11-19 03:19:48'),
+(6, 3, 'Simulation', 24, '2025-11-24', '', '2025-11-19 03:20:08'),
+(7, 4, 'Networking & Communication', 14, '2025-12-11', '', '2025-11-19 03:20:17'),
+(8, 3, 'Networking & Communication', 40, '2025-11-24', '', '2025-11-19 03:20:38'),
+(9, 3, 'Data Storage & Transfer', 2, '2025-11-24', '', '2025-11-19 03:20:51');
 
 -- Insert vehicles
 INSERT IGNORE INTO vehicles (vehicle_id, owner_id, vin, license_plate, vehicle_make, vehicle_model, vehicle_year, computing_power, arrival_date, departure_date, status, submission_timestamp) VALUES

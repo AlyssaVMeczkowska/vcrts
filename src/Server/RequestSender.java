@@ -8,7 +8,7 @@ import java.net.Socket;
 public class RequestSender
 {
     private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 5000;
+    private static final int SERVER_PORT = 5050;
 
 
     public static boolean sendRequest(String payload)

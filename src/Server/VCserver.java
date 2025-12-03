@@ -8,7 +8,7 @@ import java.net.Socket;
 
 public class VCserver
 {
-    private static final int PORT = 5000;
+    private static final int PORT = 5050;
     private ServerSocket serverSocket;
     private volatile boolean running = true;
 
@@ -65,7 +65,7 @@ public class VCserver
         @Override
         public void run()
         {
-            System.out.println("[Server-5000] Client connected: " + socket.getInetAddress());
+            System.out.println("[Server5050] Client connected: " + socket.getInetAddress());
 
             try (BufferedReader in = new BufferedReader(
                     new InputStreamReader(socket.getInputStream()));
@@ -103,13 +103,13 @@ public class VCserver
                 else
                 {
                     out.println("ERROR: Unknown request type");
-                    System.err.println("[Server-5000] Unknown request type received");
+                    System.err.println("[Server-5050] Unknown request type received");
                 }
 
             }
             catch (IOException e)
             {
-                System.err.println("[Server-5000] Handler error: " + e.getMessage());
+                System.err.println("[Server-5050] Handler error: " + e.getMessage());
             }
         }
 
@@ -128,7 +128,7 @@ public class VCserver
 
         private void handleVehicleSubmission(String payload, PrintWriter out)
         {
-            System.out.println("\n[Server-5000] Vehicle Availability Received.");
+            System.out.println("\n[Server-5050] Vehicle Availability Received.");
 
             RequestDataManager requestManager = new RequestDataManager();
 
@@ -143,12 +143,12 @@ public class VCserver
 
             out.println("ACK: Vehicle Availability Received");
             out.println("Status: ACCEPTED");
-            System.out.println("[Server-5000] Vehicle submission saved to pending requests.\n");
+            System.out.println("[Server5050] Vehicle submission saved to pending requests.\n");
         }
 
         private void handleJobSubmission(String payload, PrintWriter out)
         {
-            System.out.println("\n[Server-5000] Job Submission Received.");
+            System.out.println("\n[Server-5050] Job Submission Received.");
 
             RequestDataManager requestManager = new RequestDataManager();
 
@@ -163,7 +163,7 @@ public class VCserver
 
             out.println("ACK: Job Submission Received");
             out.println("Status: ACCEPTED");
-            System.out.println("[Server-5000] Job submission saved to pending requests.\n");
+            System.out.println("[Server-5050] Job submission saved to pending requests.\n");
         }
 
         private int extractUserId(String payload)
