@@ -6,7 +6,6 @@ Thumbs.db
 desktop.ini
 
 *.class
-*.jar
 *.war
 *.ear
 target/
@@ -24,6 +23,7 @@ target/
 .settings/
 
 .env
+*.env
 *.key
 *.pem
 

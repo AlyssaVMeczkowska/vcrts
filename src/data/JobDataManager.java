@@ -1,126 +1,239 @@
 package data;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;       
 import model.Job;
 
+/**
+ * JobDataManager - MySQL implementation
+ * Manages all job-related database operations
+ */
 public class JobDataManager {
-    private static final String FILE_PATH = "data/vcrts_data.txt";
-    
-    private int getNextJobId() {
-        int maxId = 0;
-        File file = new File(FILE_PATH);
-        if (!file.exists()) {
-            return 1;
-        }
+    private DatabaseManager dbManager;
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            boolean isJobBlock = false;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("type: job_submission")) {
-                    isJobBlock = true;
-                } else if (line.equals("---")) {
-                    isJobBlock = false;
-                } else if (isJobBlock && line.startsWith("job_id:")) {
-   
-                    try {
-                        int currentId = Integer.parseInt(line.split(":")[1].trim());
-                        if (currentId > maxId) {
-                            maxId = currentId;
-                        }
-                    } catch (NumberFormatException e) {
-                        System.err.println("Could not parse job ID from line: " + line);
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            System.err.println("Error reading data file to get next job ID: " + ex.getMessage());
-        }
-        return maxId + 1;
+    public JobDataManager() {
+        this.dbManager = DatabaseManager.getInstance();
     }
 
+    /**
+     * Add a new job to the database
+     * @return true if successful, false otherwise
+     */
     public boolean addJob(Job job) {
-        int newJobId = getNextJobId();
-        job.setJobId(newJobId);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write("type: job_submission");
-            writer.newLine();
-            writer.write("job_id: " + job.getJobId());
-            writer.newLine();
-            writer.write("client_id: " + job.getAccountId());
-            writer.newLine();
-            writer.write("timestamp: " + job.getSubmissionTimestamp());
-            writer.newLine();
-            writer.write("job_type: " + job.getJobType());
-            writer.newLine();
-            writer.write("duration_hours: " + job.getDuration());
-            writer.newLine();
-            writer.write("deadline: " + job.getDeadline());
-            writer.newLine();
-            writer.write("description: " + job.getDescription().replace("\n", " "));
-            writer.newLine();
-            writer.write("---");
-            writer.newLine();
-            return true;
-        } catch (IOException ex) {
-            System.err.println("Error writing to data file: " + ex.getMessage());
-            return false;
-        }
-    }
-
-    public List<Job> getAllJobs() {
-        List<Job> allJobs = new ArrayList<>();
-        File file = new File(FILE_PATH);
-        if (!file.exists()) {
-            return allJobs;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            Map<String, String> jobData = new HashMap<>();
-            boolean inJobBlock = false;
-
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("type: job_submission")) {
-                    inJobBlock = true;
-                    jobData.clear();
-                } else if (line.equals("---")) {
-                    if (inJobBlock) {
-                        try {
-                            Job job = new Job(
-                                Integer.parseInt(jobData.getOrDefault("job_id", "0")),
-                                Integer.parseInt(jobData.getOrDefault("client_id", "0")),
-                                jobData.get("timestamp"),
-                                jobData.get("job_type"),
-                                Integer.parseInt(jobData.getOrDefault("duration_hours", "0")),
-                                jobData.get("deadline"),
-                                jobData.get("description")
-                            );
-                            allJobs.add(job);
-                        } catch (Exception e) {
-                            System.err.println("Failed to parse job block: " + e.getMessage());
-                        }
-                    }
-                    inJobBlock = false;
-                } else if (inJobBlock) {
-                    String[] parts = line.split(": ", 2);
-                    if (parts.length == 2) {
-                        jobData.put(parts[0].trim(), parts[1].trim());
-                    }
+        String sql = "INSERT INTO jobs (client_id, job_type, duration_hours, deadline, description, " +
+                    "submission_timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setInt(1, job.getAccountId());
+            pstmt.setString(2, job.getJobType());
+            pstmt.setInt(3, job.getDuration());
+            pstmt.setString(4, job.getDeadline());
+            pstmt.setString(5, job.getDescription());
+            pstmt.setString(6, job.getSubmissionTimestamp());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                // Get the generated job ID
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if (rs.next()) {
+                    job.setJobId(rs.getInt(1));
+                    System.out.println("Job added successfully with ID: " + job.getJobId());
+                    return true;
                 }
             }
-        } catch (IOException e) {
+        } catch (SQLException e) {
+            System.err.println("Error adding job: " + e.getMessage());
             e.printStackTrace();
         }
-        return allJobs;
+        return false;
+    }
+
+    /**
+     * Get all jobs from database
+     */
+    public List<Job> getAllJobs() {
+        List<Job> jobs = new ArrayList<>();
+        String sql = "SELECT * FROM jobs ORDER BY submission_timestamp";
+        
+        try (Connection conn = dbManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                jobs.add(extractJobFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting all jobs: " + e.getMessage());
+        }
+        return jobs;
+    }
+
+    /**
+     * Get job by ID
+     */
+    public Job getJobById(int jobId) {
+        String sql = "SELECT * FROM jobs WHERE job_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, jobId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return extractJobFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting job by ID: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Get all jobs for a specific client
+     */
+    public List<Job> getJobsByClientId(int clientId) {
+        List<Job> jobs = new ArrayList<>();
+        String sql = "SELECT * FROM jobs WHERE client_id = ? ORDER BY submission_timestamp";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, clientId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                jobs.add(extractJobFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting jobs by client ID: " + e.getMessage());
+        }
+        return jobs;
+    }
+
+    /**
+     * Update job status
+     */
+    public boolean updateJobStatus(int jobId, String status) {
+        String sql = "UPDATE jobs SET status = ? WHERE job_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, status);
+            pstmt.setInt(2, jobId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating job status: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Update job completion time
+     */
+    public boolean updateJobCompletionTime(int jobId, int completionTime) {
+        String sql = "UPDATE jobs SET completion_time = ? WHERE job_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, completionTime);
+            pstmt.setInt(2, jobId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating job completion time: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Update job progress
+     */
+    public boolean updateJobProgress(int jobId, double progress) {
+        String sql = "UPDATE jobs SET progress = ? WHERE job_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setDouble(1, progress);
+            pstmt.setInt(2, jobId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            System.err.println("Error updating job progress: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Delete job by ID
+     */
+    public boolean deleteJob(int jobId) {
+        String sql = "DELETE FROM jobs WHERE job_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, jobId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Job deleted successfully: " + jobId);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error deleting job: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Get jobs by status
+     */
+    public List<Job> getJobsByStatus(String status) {
+        List<Job> jobs = new ArrayList<>();
+        String sql = "SELECT * FROM jobs WHERE status = ? ORDER BY submission_timestamp";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, status);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                jobs.add(extractJobFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting jobs by status: " + e.getMessage());
+        }
+        return jobs;
+    }
+
+    /**
+     * Extract Job object from ResultSet
+     */
+    private Job extractJobFromResultSet(ResultSet rs) throws SQLException {
+        Job job = new Job(
+            rs.getInt("job_id"),
+            rs.getInt("client_id"),
+            rs.getTimestamp("submission_timestamp").toString(),
+            rs.getString("job_type"),
+            rs.getInt("duration_hours"),
+            rs.getString("deadline"),
+            rs.getString("description")
+        );
+        job.setCompletionTime(rs.getInt("completion_time"));
+        return job;
     }
 }

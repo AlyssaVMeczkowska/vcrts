@@ -1,182 +1,274 @@
 package data;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import model.Vehicle;
 import model.VehicleStatus;
+
+/**
+ * VehicleDataManager - MySQL implementation
+ * Manages all vehicle-related database operations
+ */
 public class VehicleDataManager {
-    private static final String FILE_PATH = "data/vcrts_data.txt";
+    private DatabaseManager dbManager;
 
-    private int getNextVehicleId() {
-        int maxId = 0;
-        File file = new File(FILE_PATH);
-        if (!file.exists()) {
-            return 1;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().startsWith("user_id:")) {
-                    try {
-                        int currentId = Integer.parseInt(line.split(":")[1].trim());
-                        if (currentId > maxId) {
-                            maxId = currentId;
-                        }
-                    } catch (NumberFormatException e) {
-                        System.err.println("Could not parse vehicle ID from line: " + line);
-                    }
-                }
-            }
-        } catch (IOException ex) {
-            System.err.println("Error reading data file to get next vehicle ID: " + ex.getMessage());
-        }
-        return maxId + 1;
+    public VehicleDataManager() {
+        this.dbManager = DatabaseManager.getInstance();
     }
 
-    private boolean isValueTaken(String key, String value) {
-        File file = new File(FILE_PATH);
-        if (!file.exists()) {
-            return false;
-        }
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            boolean isVehicleBlock = false;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("type: vehicle_availability")) {
-                    isVehicleBlock = true;
-                } else if (line.equals("---")) {
-                    isVehicleBlock = false;
-                } else if (isVehicleBlock && line.startsWith(key)) {
-                    String fileValue = line.split(":", 2)[1].trim();
-                    if (fileValue.equalsIgnoreCase(value)) {
-                        return true;
-                    }
-                }
+    /**
+     * Check if VIN is already taken
+     */
+    public boolean isVinTaken(String vin) {
+        String sql = "SELECT COUNT(*) FROM vehicles WHERE vin = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, vin);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
             }
-        } catch (IOException ex) {
-            System.err.println("Error reading data file: " + ex.getMessage());
+        } catch (SQLException e) {
+            System.err.println("Error checking VIN: " + e.getMessage());
         }
         return false;
     }
-    
-    public boolean isVinTaken(String vin) {
-        return isValueTaken("vin:", vin);
-    }
-    
+
+    /**
+     * Check if license plate is already taken
+     */
     public boolean isLicensePlateTaken(String licensePlate) {
-        return isValueTaken("license_plate:", licensePlate);
-    }
-    
-    public boolean addVehicle(Vehicle vehicle) {
-        int newVehicleId = getNextVehicleId();
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-            writer.write("type: vehicle_availability");
-            writer.newLine();
-
-            writer.write("user_id: " + newVehicleId); 
-            writer.newLine();
-
-            writer.write("owner_id: " + vehicle.getOwnerId()); 
-            writer.newLine();
-
-            writer.write("vin: " + vehicle.getVin());
-            writer.newLine();
-            writer.write("license_plate: " + vehicle.getLicensePlate());
-            writer.newLine();
-            writer.write("timestamp: " + vehicle.getSubmissionTimestamp());
-            writer.newLine();
-            writer.write("vehicle_make: " + vehicle.getMake());
-            writer.newLine();
-            writer.write("vehicle_model: " + vehicle.getModel());
-            writer.newLine();
-            writer.write("vehicle_year: " + vehicle.getYear());
-            writer.newLine();
-            writer.write("computing_power: " + vehicle.getComputingPower());
-            writer.newLine();
-            writer.write("start_date: " + vehicle.getArrivalDate());
-            writer.newLine();
-            writer.write("end_date: " + vehicle.getDepartureDate());
-            writer.newLine();
-            writer.write("---");
-            writer.newLine();
-            return true;
-        } catch (IOException ex) {
-            System.err.println("Error writing to data file: " + ex.getMessage());
-            return false;
-        }
-    }
-    
-    
-    public List<Vehicle> getAllVehicles() {
-        List<Vehicle> vehicles = new ArrayList<>();
-        File file = new File(FILE_PATH);
+        String sql = "SELECT COUNT(*) FROM vehicles WHERE license_plate = ?";
         
-        if (!file.exists()) {
-            return vehicles;
-        }
-        
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            Map<String, String> vehicleData = new HashMap<>();
-            boolean isVehicleBlock = false;
-            int vehicleIdCounter = 1; 
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("type: vehicle_availability")) {
-                    isVehicleBlock = true;
-                    vehicleData.clear();
-                } else if (line.equals("---")) {
-                    if (isVehicleBlock && !vehicleData.isEmpty()) {
-                        try {
-                            int ownerId = Integer.parseInt(vehicleData.getOrDefault("user_id", "0"));
-                            
-                            Vehicle vehicle = new Vehicle(
-                                vehicleIdCounter++, 
-                                ownerId, 
-                                vehicleData.getOrDefault("vehicle_make", ""),
-                                vehicleData.getOrDefault("vehicle_model", ""),
-                                Integer.parseInt(vehicleData.getOrDefault("vehicle_year", "0")),
-                                vehicleData.getOrDefault("vin", ""),
-                                vehicleData.getOrDefault("license_plate", ""),
-                                vehicleData.getOrDefault("computing_power", "Medium"),
-                                LocalDate.parse(vehicleData.getOrDefault("start_date", "2025-01-01")),
-                                LocalDate.parse(vehicleData.getOrDefault("end_date", "2025-12-31")),
-                                VehicleStatus.AVAILABLE
-                            );
-                            
-                            
-                            if (vehicleData.containsKey("timestamp")) {
-                                vehicle.setSubmissionTimestamp(vehicleData.get("timestamp"));
-                            }
-                            
-                            vehicles.add(vehicle);
-                        } catch (Exception e) {
-                            System.err.println("Error parsing vehicle: " + e.getMessage());
-                        }
-                    }
-                    isVehicleBlock = false;
-                } else if (isVehicleBlock && line.contains(":")) {
-                    String[] parts = line.split(":", 2);
-                    if (parts.length == 2) {
-                        vehicleData.put(parts[0].trim(), parts[1].trim());
-                    }
+            pstmt.setString(1, licensePlate);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking license plate: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Add a new vehicle to the database
+     * @return true if successful, false otherwise
+     */
+    public boolean addVehicle(Vehicle vehicle) {
+        String sql = "INSERT INTO vehicles (owner_id, vin, license_plate, vehicle_make, vehicle_model, " +
+                    "vehicle_year, computing_power, arrival_date, departure_date, status) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            
+            pstmt.setInt(1, vehicle.getOwnerId());
+            pstmt.setString(2, vehicle.getVin());
+            pstmt.setString(3, vehicle.getLicensePlate());
+            pstmt.setString(4, vehicle.getMake());
+            pstmt.setString(5, vehicle.getModel());
+            pstmt.setInt(6, vehicle.getYear());
+            pstmt.setString(7, vehicle.getComputingPower());
+            pstmt.setDate(8, Date.valueOf(vehicle.getArrivalDate()));
+            pstmt.setDate(9, Date.valueOf(vehicle.getDepartureDate()));
+            pstmt.setString(10, vehicle.getStatus().toString());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                // Get the generated vehicle ID
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if (rs.next()) {
+                    int vehicleId = rs.getInt(1);
+                    System.out.println("Vehicle added successfully with ID: " + vehicleId);
+                    return true;
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error reading vehicles: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("Error adding vehicle: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Get all vehicles from database
+     */
+    public List<Vehicle> getAllVehicles() {
+        List<Vehicle> vehicles = new ArrayList<>();
+        String sql = "SELECT * FROM vehicles ORDER BY vehicle_id";
+        
+        try (Connection conn = dbManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                vehicles.add(extractVehicleFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting all vehicles: " + e.getMessage());
+        }
+        return vehicles;
+    }
+
+    /**
+     * Get vehicle by ID
+     */
+    public Vehicle getVehicleById(int vehicleId) {
+        String sql = "SELECT * FROM vehicles WHERE vehicle_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, vehicleId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return extractVehicleFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting vehicle by ID: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Get all vehicles for a specific owner
+     */
+    public List<Vehicle> getVehiclesByOwnerId(int ownerId) {
+        List<Vehicle> vehicles = new ArrayList<>();
+        String sql = "SELECT * FROM vehicles WHERE owner_id = ? ORDER BY vehicle_id";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, ownerId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                vehicles.add(extractVehicleFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting vehicles by owner ID: " + e.getMessage());
+        }
+        return vehicles;
+    }
+
+    /**
+     * Get vehicles by status
+     */
+    public List<Vehicle> getVehiclesByStatus(VehicleStatus status) {
+        List<Vehicle> vehicles = new ArrayList<>();
+        String sql = "SELECT * FROM vehicles WHERE status = ? ORDER BY vehicle_id";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, status.toString());
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                vehicles.add(extractVehicleFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting vehicles by status: " + e.getMessage());
+        }
+        return vehicles;
+    }
+
+    /**
+     * Update vehicle status
+     */
+    public boolean updateVehicleStatus(int vehicleId, VehicleStatus status) {
+        String sql = "UPDATE vehicles SET status = ? WHERE vehicle_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, status.toString());
+            pstmt.setInt(2, vehicleId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Vehicle status updated for ID: " + vehicleId);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error updating vehicle status: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Delete vehicle by ID
+     */
+    public boolean deleteVehicle(int vehicleId) {
+        String sql = "DELETE FROM vehicles WHERE vehicle_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, vehicleId);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("Vehicle deleted successfully: " + vehicleId);
+                return true;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error deleting vehicle: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Get available vehicles (AVAILABLE status)
+     */
+    public List<Vehicle> getAvailableVehicles() {
+        return getVehiclesByStatus(VehicleStatus.AVAILABLE);
+    }
+
+    /**
+     * Extract Vehicle object from ResultSet
+     */
+    private Vehicle extractVehicleFromResultSet(ResultSet rs) throws SQLException {
+        VehicleStatus status = VehicleStatus.AVAILABLE;
+        try {
+            status = VehicleStatus.valueOf(rs.getString("status"));
+        } catch (IllegalArgumentException e) {
+            System.err.println("Invalid vehicle status, defaulting to AVAILABLE");
+        }
+
+        Vehicle vehicle = new Vehicle(
+            rs.getInt("vehicle_id"),
+            rs.getInt("owner_id"),
+            rs.getString("vehicle_make"),
+            rs.getString("vehicle_model"),
+            rs.getInt("vehicle_year"),
+            rs.getString("vin"),
+            rs.getString("license_plate"),
+            rs.getString("computing_power"),
+            rs.getDate("arrival_date").toLocalDate(),
+            rs.getDate("departure_date").toLocalDate(),
+            status
+        );
+        
+        // Set submission timestamp if available
+        Timestamp submissionTimestamp = rs.getTimestamp("submission_timestamp");
+        if (submissionTimestamp != null) {
+            vehicle.setSubmissionTimestamp(submissionTimestamp.toString());
         }
         
-        return vehicles;
+        return vehicle;
     }
 }
