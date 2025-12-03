@@ -39,7 +39,8 @@ public class VehicleSubmissionPage extends JFrame {
     public VehicleSubmissionPage(User user) {
         this.currentUser = user;
         this.vehicleForms = new ArrayList<>();
-        this.nextVehicleId = getNextVehicleId();
+        this.nextVehicleId = getNextVehicleIdForUser();
+
         
         setTitle("Vehicle Availability");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -394,14 +395,13 @@ public class VehicleSubmissionPage extends JFrame {
             return;
         }
 
-        int nextVehicleId = getNextVehicleId();
         int successCount = 0;
         StringBuilder vehicleIds = new StringBuilder();
 
         for (VehicleFormPanel form : vehicleForms)
         {
             Vehicle vehicle = new Vehicle(
-                    0,
+            		form.getVehicleId(), 
                     currentUser.getId(),
                     form.getVehicleMake(),
                     form.getVehicleModel(),
@@ -488,6 +488,7 @@ public class VehicleSubmissionPage extends JFrame {
     private String buildPayload(Vehicle v)
     {
         return "type: vehicle_availability\n"
+        		+ "vehicle_id: " + v.getVehicleId() + "\n"
                 + "user_id: " + v.getOwnerId() + "\n"
                 + "vin: " + v.getVin() + "\n"
                 + "license_plate: " + v.getLicensePlate() + "\n"
@@ -877,4 +878,39 @@ false, minEndDate, residencyEndErrorLabel);
             g2.drawString(placeholder, getInsets().left + 5, y);
         }
     }
+    private int getNextVehicleIdForUser() {
+        VehicleDataManager vehicleDataManager = new VehicleDataManager();
+        RequestDataManager requestDataManager = new RequestDataManager();
+        
+        int maxVehicleId = 0;
+
+        // 1. Check actual saved vehicles
+        List<Vehicle> allVehicles = vehicleDataManager.getAllVehicles();
+        for (Vehicle v : allVehicles) {
+            if (v.getVehicleId() > maxVehicleId) {
+                maxVehicleId = v.getVehicleId();
+            }
+        }
+
+        // 2. Check pending vehicle submissions (requests)
+        List<Request> allRequests = requestDataManager.getPendingRequests();
+        for (Request request : allRequests) {
+            String[] dataLines = request.getData().split("\n");
+
+            for (String line : dataLines) {
+                if (line.startsWith("Vehicle ID:")) {
+                    try {
+                        int vid = Integer.parseInt(line.substring(line.indexOf(":") + 1).trim());
+                        if (vid > maxVehicleId) {
+                            maxVehicleId = vid;
+                        }
+                    } catch (NumberFormatException e) {}
+                    break;
+                }
+            }
+        }
+
+        return maxVehicleId + 1;
+    }
+
 }
