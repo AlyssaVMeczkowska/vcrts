@@ -18,23 +18,32 @@ public class JobDataManager {
 
     /**
      * Add a new job to the database
+     * UPDATED: Now inserts request_id correctly
      * @return true if successful, false otherwise
      */
     public boolean addJob(Job job) {
-        // Updated to include request_id link if the job object has one (handled via overload or raw SQL)
-        // For now keeping standard insert, but ensuring we can query the link later
-        String sql = "INSERT INTO jobs (client_id, job_type, duration_hours, deadline, description, " +
-                    "submission_timestamp) VALUES (?, ?, ?, ?, ?, ?)";
+        // Updated SQL to include request_id column
+        String sql = "INSERT INTO jobs (client_id, request_id, job_type, duration_hours, deadline, description, " +
+                    "submission_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
             pstmt.setInt(1, job.getAccountId());
-            pstmt.setString(2, job.getJobType());
-            pstmt.setInt(3, job.getDuration());
-            pstmt.setString(4, job.getDeadline());
-            pstmt.setString(5, job.getDescription());
-            pstmt.setString(6, job.getSubmissionTimestamp());
+            
+            // Check if request_id exists on the job object. 
+            // If it is > 0, we insert it. Otherwise, we insert NULL.
+            if (job.getRequestId() > 0) {
+                pstmt.setInt(2, job.getRequestId());
+            } else {
+                pstmt.setNull(2, java.sql.Types.INTEGER);
+            }
+            
+            pstmt.setString(3, job.getJobType());
+            pstmt.setInt(4, job.getDuration());
+            pstmt.setString(5, job.getDeadline());
+            pstmt.setString(6, job.getDescription());
+            pstmt.setString(7, job.getSubmissionTimestamp());
             
             int rowsAffected = pstmt.executeUpdate();
             
@@ -56,7 +65,7 @@ public class JobDataManager {
 
     /**
      * NEW METHOD: Get the Job ID associated with a specific Request ID
-     * This connects the Request table to the Job table via the new Foreign Key
+     * This connects the Request table to the Job table via the Foreign Key
      */
     public int getJobIdByRequestId(int requestId) {
         String sql = "SELECT job_id FROM jobs WHERE request_id = ?";
@@ -258,6 +267,13 @@ public class JobDataManager {
             rs.getString("description")
         );
         job.setCompletionTime(rs.getInt("completion_time"));
+        
+        // Extract request_id if present (so when we read jobs back, we know their origin)
+        int reqId = rs.getInt("request_id");
+        if (!rs.wasNull()) {
+            job.setRequestId(reqId);
+        }
+        
         return job;
     }
 }

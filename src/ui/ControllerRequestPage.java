@@ -452,6 +452,10 @@ public class ControllerRequestPage extends JFrame {
                     jobData.getOrDefault("deadline", "2025-01-01"),
                     jobData.getOrDefault("description", "")
             );
+            
+            // CRITICAL FIX: Link the Job to the Request ID!
+            job.setRequestId(request.getRequestId());
+            
             return jobDataManager.addJob(job);
         } catch (Exception e) {
             e.printStackTrace();
@@ -493,6 +497,9 @@ public class ControllerRequestPage extends JFrame {
                     java.time.LocalDate.parse(vehicleData.get("end_date")),
                     VehicleStatus.AVAILABLE
             );
+            // Optionally, we could set request_id on vehicle here too if we update Vehicle.java
+            // but this fix specifically targets jobs as requested.
+            
             return vehicleDataManager.addVehicle(vehicle);
         } catch (Exception e) {
             e.printStackTrace();

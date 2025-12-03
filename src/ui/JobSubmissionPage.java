@@ -375,15 +375,17 @@ public class JobSubmissionPage extends JFrame {
             String deadline = form.getDeadline();
             String description = form.getDescription();
 
+            // FIXED: Use the 5-argument constructor which exists in Job.java
             Job job = new Job(
-            	    form.getJobId(),
-            	    currentUser.getId(),
-            	    jobType,
-            	    Integer.parseInt(duration.trim()),
-            	    deadline.trim(),
-            	    description.trim()
-            	);
-
+                    currentUser.getId(),
+                    jobType,
+                    Integer.parseInt(duration.trim()),
+                    deadline.trim(),
+                    description.trim()
+            );
+            // Manually set the JobID if you want to track it locally, 
+            // though the real one comes from DB later
+            job.setJobId(form.getJobId());
 
             String payload = buildJobPayload(job);
 
@@ -396,13 +398,15 @@ public class JobSubmissionPage extends JFrame {
                     requestIds.append(", ");
                 }
 
+                // We display the "form ID" (the one user sees) 
+                // knowing that the controller will eventually assign a real ID upon approval.
                 requestIds.append("#").append(form.getJobId());
             }
         }
 
         if (successCount == jobForms.size()) {
             String message = String.format(
-                    "%d job(s) submitted for controller review!\n\nJob ID(s): %s\n\n" +
+                    "%d job(s) submitted for controller review!\n\nReference ID(s): %s\n\n" +
                             "You will be notified once the controller reviews your submission(s).",
                     successCount, requestIds.toString()
             );
@@ -412,7 +416,7 @@ public class JobSubmissionPage extends JFrame {
             clearAllForms();
         } else if (successCount > 0) {
             String message = String.format(
-                    "%d of %d job(s) submitted for review.\n\nJob ID(s): %s\n\nSome jobs failed to submit.",
+                    "%d of %d job(s) submitted for review.\n\nReference ID(s): %s\n\nSome jobs failed to submit.",
                     successCount, jobForms.size(), requestIds.toString()
             );
             CustomDialog dialog = new CustomDialog(this, "Partial Success",
