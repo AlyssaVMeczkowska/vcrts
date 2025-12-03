@@ -1,6 +1,6 @@
 package ui;
 
-import ClientServer.RequestSender;
+import Server.RequestSender;
 import data.RequestDataManager;
 import data.UserDataManager;
 import data.VehicleDataManager;

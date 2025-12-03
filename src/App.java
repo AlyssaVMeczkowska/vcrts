@@ -1,4 +1,4 @@
-import ClientServer.VCserver;
+import Server.VCserver;
 import data.DatabaseManager;
 import javax.swing.SwingUtilities;
 import ui.LoginPage;

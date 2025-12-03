@@ -1,4 +1,4 @@
-package ClientServer;
+package Server;
 
 import data.RequestDataManager;
 import java.io.*;
