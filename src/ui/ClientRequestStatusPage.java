@@ -1,5 +1,6 @@
 package ui;
 
+import data.JobDataManager;
 import data.RequestDataManager;
 import java.awt.*;
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ import model.User;
 public class ClientRequestStatusPage extends JFrame {
     private User currentUser;
     private RequestDataManager requestDataManager;
+    private JobDataManager jobDataManager; // Added JobDataManager
     private Timer liveUpdateTimer;
     
     private static final Color PAGE_BG = new Color(238, 238, 238);
@@ -30,6 +32,7 @@ public class ClientRequestStatusPage extends JFrame {
     public ClientRequestStatusPage(User user) {
         this.currentUser = user;
         this.requestDataManager = new RequestDataManager();
+        this.jobDataManager = new JobDataManager(); // Initialize JobDataManager
 
         setTitle("VCRTS - My Submissions");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -190,13 +193,15 @@ public class ClientRequestStatusPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
-        String[] columnNames = {"Request ID", "Job Type", "Duration (hrs)", "Deadline", "Submitted", "Status"};
-        int[] columnWidths = {120, 250, 150, 180, 250, 150};
+        // UPDATED COLUMNS: Added "Job ID" right next to "Request ID"
+        String[] columnNames = {"Request ID", "Job ID", "Job Type", "Duration (hrs)", "Deadline", "Submitted", "Status"};
+        int[] columnWidths = {100, 100, 250, 150, 180, 250, 150};
 
         CustomTable requestTable = new CustomTable(columnNames, columnWidths);
         requestTable.setAlignmentX(Component.CENTER_ALIGNMENT);
         tableModel = requestTable.getModel();
-        requestTable.getTable().getColumnModel().getColumn(5).setCellRenderer(new StatusCellRenderer());
+        // Update column index for status renderer (now at index 6)
+        requestTable.getTable().getColumnModel().getColumn(6).setCellRenderer(new StatusCellRenderer());
         mainPanel.add(requestTable);
 
         rootPanel.add(scrollPane, BorderLayout.CENTER);
@@ -277,7 +282,22 @@ public class ClientRequestStatusPage extends JFrame {
                 if (request.getStatus() == RequestStatus.PENDING) pendingCount++;
                 else if (request.getStatus() == RequestStatus.ACCEPTED) acceptedCount++;
 
-                allRows.add(new Object[]{ request.getRequestId(), jobType, duration, deadline, timestamp, statusStr });
+                // NEW: Fetch Job ID from database in real-time
+                String jobIdDisplay = "-";
+                int linkedJobId = jobDataManager.getJobIdByRequestId(request.getRequestId());
+                if (linkedJobId != -1) {
+                    jobIdDisplay = String.valueOf(linkedJobId);
+                }
+
+                allRows.add(new Object[]{ 
+                    request.getRequestId(), 
+                    jobIdDisplay, // New Job ID Column
+                    jobType, 
+                    duration, 
+                    deadline, 
+                    timestamp, 
+                    statusStr 
+                });
             }
         }
         

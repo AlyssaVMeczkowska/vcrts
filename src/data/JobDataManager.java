@@ -1,7 +1,6 @@
 package data;
 
 import java.sql.*;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import model.Job;
@@ -22,6 +21,8 @@ public class JobDataManager {
      * @return true if successful, false otherwise
      */
     public boolean addJob(Job job) {
+        // Updated to include request_id link if the job object has one (handled via overload or raw SQL)
+        // For now keeping standard insert, but ensuring we can query the link later
         String sql = "INSERT INTO jobs (client_id, job_type, duration_hours, deadline, description, " +
                     "submission_timestamp) VALUES (?, ?, ?, ?, ?, ?)";
         
@@ -51,6 +52,29 @@ public class JobDataManager {
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * NEW METHOD: Get the Job ID associated with a specific Request ID
+     * This connects the Request table to the Job table via the new Foreign Key
+     */
+    public int getJobIdByRequestId(int requestId) {
+        String sql = "SELECT job_id FROM jobs WHERE request_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, requestId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("job_id");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching Job ID for Request " + requestId + ": " + e.getMessage());
+        }
+        // Return -1 if no job is found (e.g. request is still pending or rejected)
+        return -1;
     }
 
     /**
