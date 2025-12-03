@@ -1,12 +1,12 @@
 -- VCRTS Database Schema
 -- Milestone 6: MySQL Database Implementation
 
-DROP DATABASE IF EXISTS vcrts_db;
-CREATE DATABASE vcrts_db;
+-- REMOVED: DROP DATABASE IF EXISTS vcrts_db; -- This line was deleting your data!
+CREATE DATABASE IF NOT EXISTS vcrts_db;
 USE vcrts_db;
 
 -- Users table (unified for all user types)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     user_id INT PRIMARY KEY AUTO_INCREMENT,
     account_type ENUM('Owner', 'Client', 'Controller') NOT NULL,
     first_name VARCHAR(100) NOT NULL,
@@ -23,7 +23,7 @@ CREATE TABLE users (
 );
 
 -- Vehicles table
-CREATE TABLE vehicles (
+CREATE TABLE IF NOT EXISTS vehicles (
     vehicle_id INT PRIMARY KEY AUTO_INCREMENT,
     owner_id INT NOT NULL,
     vin VARCHAR(17) NOT NULL UNIQUE,
@@ -43,7 +43,7 @@ CREATE TABLE vehicles (
 );
 
 -- Jobs table
-CREATE TABLE jobs (
+CREATE TABLE IF NOT EXISTS jobs (
     job_id INT PRIMARY KEY AUTO_INCREMENT,
     client_id INT NOT NULL,
     job_type VARCHAR(100) NOT NULL,
@@ -61,7 +61,7 @@ CREATE TABLE jobs (
 );
 
 -- Requests table (for pending approvals)
-CREATE TABLE requests (
+CREATE TABLE IF NOT EXISTS requests (
     request_id INT PRIMARY KEY AUTO_INCREMENT,
     request_type ENUM('JOB_SUBMISSION', 'VEHICLE_SUBMISSION') NOT NULL,
     user_id INT NOT NULL,
@@ -77,8 +77,8 @@ CREATE TABLE requests (
     INDEX idx_type (request_type)
 );
 
--- Job-Vehicle assignments (for tracking which jobs are assigned to which vehicles)
-CREATE TABLE job_vehicle_assignments (
+-- Job-Vehicle assignments
+CREATE TABLE IF NOT EXISTS job_vehicle_assignments (
     assignment_id INT PRIMARY KEY AUTO_INCREMENT,
     job_id INT NOT NULL,
     vehicle_id INT NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE job_vehicle_assignments (
 );
 
 -- Checkpoints table
-CREATE TABLE checkpoints (
+CREATE TABLE IF NOT EXISTS checkpoints (
     checkpoint_id INT PRIMARY KEY AUTO_INCREMENT,
     job_id INT NOT NULL,
     vehicle_id INT,
@@ -103,12 +103,12 @@ CREATE TABLE checkpoints (
 );
 
 -- ============================================================================
--- DATA POPULATION FROM EXISTING SYSTEM
+-- DATA POPULATION
+-- Using INSERT IGNORE so we don't get duplicate errors if data already exists
 -- ============================================================================
 
--- Insert users from user_database.txt
--- All users use password: "password" (hashed)
-INSERT INTO users (user_id, account_type, first_name, last_name, email, username, phone_number, password_hash, has_agreed_to_terms, creation_timestamp) VALUES
+-- Insert users
+INSERT IGNORE INTO users (user_id, account_type, first_name, last_name, email, username, phone_number, password_hash, has_agreed_to_terms, creation_timestamp) VALUES
 (1, 'Owner', 'Owner', 'One', 'owner1@email.com', 'owner1', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', TRUE, '2025-11-03 02:29:46'),
 (2, 'Owner', 'Owner', 'Two', 'owner2@email.com', 'owner2', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', TRUE, '2025-11-03 02:30:38'),
 (3, 'Client', 'Client', 'One', 'client1@email.com', 'client1', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', FALSE, '2025-11-03 02:31:03'),
@@ -116,8 +116,8 @@ INSERT INTO users (user_id, account_type, first_name, last_name, email, username
 (5, 'Controller', 'Controller', 'Account', 'controller@email.com', 'controller', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', FALSE, '2025-11-03 02:31:40'),
 (6, 'Controller', 'Alyssa', 'Meczkowska', 'controller2@email.com', 'controller2', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', FALSE, '2025-11-03 02:31:40');
 
--- Insert jobs from vcrts_data.txt
-INSERT INTO jobs (job_id, client_id, job_type, duration_hours, deadline, description, submission_timestamp, status) VALUES
+-- Insert jobs
+INSERT IGNORE INTO jobs (job_id, client_id, job_type, duration_hours, deadline, description, submission_timestamp, status) VALUES
 (1, 3, 'Simulation', 53, '2025-12-09', '', '2025-11-19 03:18:42', 'PENDING'),
 (2, 3, 'Computational Task', 6, '2025-11-28', '', '2025-11-19 03:18:54', 'PENDING'),
 (3, 3, 'Networking & Communication', 61, '2025-11-30', '', '2025-11-19 03:19:18', 'PENDING'),
@@ -129,15 +129,15 @@ INSERT INTO jobs (job_id, client_id, job_type, duration_hours, deadline, descrip
 (9, 3, 'Data Storage & Transfer', 2, '2025-11-24', '', '2025-11-19 03:20:51', 'PENDING'),
 (10, 3, 'Data Storage & Transfer', 12, '2025-12-10', 'qadadsda', '2025-12-01 22:38:57', 'PENDING');
 
--- Insert vehicles from vcrts_data.txt
-INSERT INTO vehicles (vehicle_id, owner_id, vin, license_plate, vehicle_make, vehicle_model, vehicle_year, computing_power, arrival_date, departure_date, status, submission_timestamp) VALUES
+-- Insert vehicles
+INSERT IGNORE INTO vehicles (vehicle_id, owner_id, vin, license_plate, vehicle_make, vehicle_model, vehicle_year, computing_power, arrival_date, departure_date, status, submission_timestamp) VALUES
 (1, 1, '1G1PC5SB0E7180475', 'HUY-5810', 'Tesla', 'Y', 2025, 'Medium', '2025-12-01', '2025-12-18', 'AVAILABLE', '2025-11-19 03:19:42'),
 (2, 2, '3N1AB6AP6BL602066', 'JLP-2810', 'Tesla', 'X', 2024, 'High', '2025-12-16', '2025-12-18', 'AVAILABLE', '2025-11-19 03:20:27'),
 (3, 1, '1FMJK2A51DEF50669', 'XHY-5481', 'Tesla', 'X', 2024, 'Medium', '2025-11-28', '2025-12-04', 'AVAILABLE', '2025-11-19 03:21:08'),
 (4, 1, 'asdasddas', 'asadasd', 'sfdsfdfs', 'sfdssf', 2009, 'Low', '2025-12-09', '2025-12-11', 'AVAILABLE', '2025-12-01 22:38:53');
 
--- Insert requests from pending_requests.txt
-INSERT INTO requests (request_id, request_type, user_id, user_name, submission_timestamp, status, notification_viewed, request_data, rejection_reason) VALUES
+-- Insert requests
+INSERT IGNORE INTO requests (request_id, request_type, user_id, user_name, submission_timestamp, status, notification_viewed, request_data, rejection_reason) VALUES
 (1, 'JOB_SUBMISSION', 3, 'Job Client 1', '2025-11-19 03:12:43', 'ACCEPTED', TRUE, 'type: job_submission\nuser_id: 1\njob_type: Data Storage & Transfer\nduration: 2\ndeadline: 2025-11-24\ndescription: \n---\n', ''),
 (2, 'JOB_SUBMISSION', 3, 'Job Client 1', '2025-11-19 03:12:43', 'REJECTED', TRUE, 'type: job_submission\nuser_id: 1\njob_type: Simulation\nduration: 5\ndeadline: 2025-11-24\ndescription: \n---\n', ''),
 (3, 'JOB_SUBMISSION', 3, 'Job Client 1', '2025-11-19 03:12:43', 'REJECTED', TRUE, 'type: job_submission\nuser_id: 1\njob_type: Real-Time Processing\nduration: 15\ndeadline: 2025-11-30\ndescription: \n---\n', ''),
