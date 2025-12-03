@@ -1,114 +1,29 @@
 package data;
 
-import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import model.User;
 
+/**
+ * UserDataManager - MySQL implementation
+ * Manages all user-related database operations
+ */
 public class UserDataManager {
-    private static final String FILE_PATH = "data/user_database.txt";
-    private List<User> users;
+    private DatabaseManager dbManager;
 
     public UserDataManager() {
-        this.users = new ArrayList<>();
-        loadUsersFromFile();
+        this.dbManager = DatabaseManager.getInstance();
     }
 
-    private void loadUsersFromFile() {
-        File file = new File(FILE_PATH);
-        if (!file.exists()) {
-            return;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            Map<String, String> userData = new HashMap<>();
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("---")) {
-                    if (!userData.isEmpty()) {
-                        boolean hasAgreedToTerms = userData.getOrDefault("has_agreed_to_terms", "false").equalsIgnoreCase("true");
-
-                        int id = 0;
-                        if (userData.containsKey("owner_id")) {
-                            id = Integer.parseInt(userData.get("owner_id"));
-                        } else if (userData.containsKey("client_id")) {
-                            id = Integer.parseInt(userData.get("client_id"));
-                        } else if (userData.containsKey("controller_id")) {
-                            id = Integer.parseInt(userData.get("controller_id"));
-                        }
-
-                        User user = new User(
-                                id,
-                                userData.get("first_name"),
-                                userData.get("last_name"),
-                                userData.get("email"),
-                                userData.get("username"),
-                                userData.get("phone_number"),
-                                userData.get("password_hash"),
-                                userData.get("account_type"),
-                                userData.get("timestamp"),
-                                hasAgreedToTerms
-                        );
-                        users.add(user);
-                        userData.clear();
-                    }
-                } else {
-                    String[] parts = line.split(": ", 2);
-                    if (parts.length == 2) {
-                        userData.put(parts[0].trim(), parts[1].trim());
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void saveUsersToFile() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH))) {
-            for (User user : users) {
-                if ("Owner".equals(user.getAccountType())) {
-                    writer.write("owner_id: " + user.getId());
-                } else if ("Client".equals(user.getAccountType())) {
-                    writer.write("client_id: " + user.getId());
-                } else {
-                    writer.write("controller_id: " + user.getId());
-                }
-                writer.newLine();
-                writer.write("timestamp: " + user.getCreationTimestamp());
-                writer.newLine();
-                writer.write("account_type: " + user.getAccountType());
-                writer.newLine();
-                writer.write("first_name: " + user.getFirstName());
-                writer.newLine();
-                writer.write("last_name: " + user.getLastName());
-                writer.newLine();
-                writer.write("email: " + user.getEmail());
-                writer.newLine();
-                writer.write("username: " + user.getUsername());
-                writer.newLine();
-                writer.write("phone_number: " + user.getPhoneNumber());
-                writer.newLine();
-                writer.write("password_hash: " + user.getHashedPassword());
-                writer.newLine();
-                writer.write("has_agreed_to_terms: " + user.hasAgreedToTerms());
-                writer.newLine();
-                writer.write("---");
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+    /**
+     * Hash password using SHA-256
+     */
     private String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -127,73 +42,205 @@ public class UserDataManager {
         }
     }
 
+    /**
+     * Check if email is already taken
+     */
     public boolean isEmailTaken(String email) {
-        return users.stream().anyMatch(user -> user.getEmail().equalsIgnoreCase(email));
-    }
-
-    public boolean isUsernameTaken(String username) {
-        return users.stream().anyMatch(user -> user.getUsername().equalsIgnoreCase(username));
-    }
-    
-    private int getNextOwnerId() {
-        return users.stream()
-                .filter(user -> "Owner".equals(user.getAccountType()))
-                .mapToInt(User::getId)
-                .max()
-                .orElse(0) + 1;
-    }
-
-    private int getNextClientId() {
-        return users.stream()
-                .filter(user -> "Client".equals(user.getAccountType()))
-                .mapToInt(User::getId)
-                .max()
-                .orElse(0) + 1;
-    }
-
-    private int getNextControllerId() {
-        return users.stream()
-                .filter(user -> "Controller".equals(user.getAccountType()))
-                .mapToInt(User::getId)
-                .max()
-                .orElse(0) + 1;
-    }
-
-    public void addUser(String firstName, String lastName, String email, String username, String phoneNumber, String password, String accountType, boolean hasAgreedToTerms) {
-        int newId;
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
         
-        if ("Owner".equals(accountType)) {
-            newId = getNextOwnerId();
-        } else if ("Client".equals(accountType)) {
-            newId = getNextClientId();
-        } else {
-            newId = getNextControllerId();
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, email);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking email: " + e.getMessage());
         }
-        
-        String hashedPassword = hashPassword(password);
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        
-        User newUser = new User(newId, firstName, lastName, email, username, phoneNumber, hashedPassword, accountType, timestamp, hasAgreedToTerms);
-        this.users.add(newUser);
-        saveUsersToFile();
+        return false;
     }
 
+    /**
+     * Check if username is already taken
+     */
+    public boolean isUsernameTaken(String username) {
+        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, username);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error checking username: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Add new user to database
+     */
+    public void addUser(String firstName, String lastName, String email, String username, 
+                       String phoneNumber, String password, String accountType, boolean hasAgreedToTerms) {
+        String sql = "INSERT INTO users (account_type, first_name, last_name, email, username, " +
+                    "phone_number, password_hash, has_agreed_to_terms) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            String hashedPassword = hashPassword(password);
+            
+            pstmt.setString(1, accountType);
+            pstmt.setString(2, firstName);
+            pstmt.setString(3, lastName);
+            pstmt.setString(4, email);
+            pstmt.setString(5, username);
+            pstmt.setString(6, phoneNumber);
+            pstmt.setString(7, hashedPassword);
+            pstmt.setBoolean(8, hasAgreedToTerms);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("User added successfully: " + username);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error adding user: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Update user consent (terms agreement)
+     */
     public void updateUserConsent(User userToUpdate) {
-        users.stream()
-            .filter(user -> user.getId() == userToUpdate.getId())
-            .findFirst()
-            .ifPresent(user -> user.setHasAgreedToTerms(true));
-        saveUsersToFile();
+        String sql = "UPDATE users SET has_agreed_to_terms = TRUE WHERE user_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userToUpdate.getId());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                System.out.println("User consent updated for user ID: " + userToUpdate.getId());
+            }
+        } catch (SQLException e) {
+            System.err.println("Error updating user consent: " + e.getMessage());
+        }
     }
 
+    /**
+     * Verify user credentials for login
+     * @return User object if credentials are valid, null otherwise
+     */
     public User verifyUser(String usernameOrEmail, String password) {
-        String hashedPassword = hashPassword(password);
-        Optional<User> foundUser = users.stream()
-                .filter(user -> user.getUsername().equalsIgnoreCase(usernameOrEmail) || user.getEmail().equalsIgnoreCase(usernameOrEmail))
-                .findFirst();
-        if (foundUser.isPresent() && foundUser.get().getHashedPassword().equals(hashedPassword)) {
-            return foundUser.get();
+        String sql = "SELECT * FROM users WHERE (username = ? OR email = ?) AND password_hash = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            String hashedPassword = hashPassword(password);
+            
+            pstmt.setString(1, usernameOrEmail);
+            pstmt.setString(2, usernameOrEmail);
+            pstmt.setString(3, hashedPassword);
+            
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return extractUserFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error verifying user: " + e.getMessage());
         }
         return null;
+    }
+
+    /**
+     * Get user by ID
+     */
+    public User getUserById(int userId) {
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return extractUserFromResultSet(rs);
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting user by ID: " + e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * Get all users of a specific account type
+     */
+    public List<User> getUsersByType(String accountType) {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users WHERE account_type = ?";
+        
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(1, accountType);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting users by type: " + e.getMessage());
+        }
+        return users;
+    }
+
+    /**
+     * Get all users
+     */
+    public List<User> getAllUsers() {
+        List<User> users = new ArrayList<>();
+        String sql = "SELECT * FROM users ORDER BY user_id";
+        
+        try (Connection conn = dbManager.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                users.add(extractUserFromResultSet(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting all users: " + e.getMessage());
+        }
+        return users;
+    }
+
+    /**
+     * Extract User object from ResultSet
+     */
+    private User extractUserFromResultSet(ResultSet rs) throws SQLException {
+        return new User(
+            rs.getInt("user_id"),
+            rs.getString("first_name"),
+            rs.getString("last_name"),
+            rs.getString("email"),
+            rs.getString("username"),
+            rs.getString("phone_number"),
+            rs.getString("password_hash"),
+            rs.getString("account_type"),
+            rs.getTimestamp("creation_timestamp").toString(),
+            rs.getBoolean("has_agreed_to_terms")
+        );
     }
 }
