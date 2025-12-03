@@ -30,7 +30,7 @@ public class JobSubmissionPage extends JFrame {
     
     private int nextJobId;
     
-    // NEW: Timer for live updates
+    // Timer for live updates
     private Timer liveUpdateTimer;
 
     public JobSubmissionPage(User user) { 
@@ -169,13 +169,13 @@ public class JobSubmissionPage extends JFrame {
 
         this.getRootPane().setDefaultButton(submitButton);
         
-        // NEW: Start the live update timer when the page loads
+        // Start the live update timer when the page loads
         startLiveUpdate();
     }
 
-    // NEW: Method to handle live updates
+    // Method to handle live updates - UPDATED TO 500ms
     private void startLiveUpdate() {
-        liveUpdateTimer = new Timer(2000, e -> {
+        liveUpdateTimer = new Timer(500, e -> {
             int baseId = getNextJobIdForUser();
             this.nextJobId = baseId;
             
@@ -189,7 +189,7 @@ public class JobSubmissionPage extends JFrame {
         liveUpdateTimer.start();
     }
 
-    // NEW: Dispose method to clean up timer
+    // Dispose method to clean up timer
     @Override
     public void dispose() {
         if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
@@ -549,7 +549,7 @@ public class JobSubmissionPage extends JFrame {
         	return jobId;
         }
 
-        // NEW: Method to update ID on the fly
+        // Method to update ID on the fly
         public void updateJobIdDisplay(int newId) {
             this.jobId = newId;
             if (this.jobIdField != null) {

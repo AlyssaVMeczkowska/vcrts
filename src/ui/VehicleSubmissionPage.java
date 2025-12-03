@@ -37,7 +37,7 @@ public class VehicleSubmissionPage extends JFrame {
     private JPanel mainPanel;
     private int nextVehicleId;
     
-    // NEW: Timer for live updates
+    // Timer for live updates
     private Timer liveUpdateTimer;
 
     public VehicleSubmissionPage(User user) {
@@ -178,9 +178,9 @@ public class VehicleSubmissionPage extends JFrame {
         startLiveUpdate();
     }
 
-    // NEW: Method to handle live updates
+    // Method to handle live updates - UPDATED TO 500ms
     private void startLiveUpdate() {
-        liveUpdateTimer = new Timer(2000, e -> {
+        liveUpdateTimer = new Timer(500, e -> {
             int baseId = getNextVehicleIdForUser();
             this.nextVehicleId = baseId;
             
@@ -194,7 +194,7 @@ public class VehicleSubmissionPage extends JFrame {
         liveUpdateTimer.start();
     }
 
-    // NEW: Dispose method to clean up timer
+    // Dispose method to clean up timer
     @Override
     public void dispose() {
         if (liveUpdateTimer != null && liveUpdateTimer.isRunning()) {
@@ -548,7 +548,7 @@ public class VehicleSubmissionPage extends JFrame {
             return vehicleId;
         }
         
-        // NEW: Method to update ID on the fly from Timer
+        // Method to update ID on the fly from Timer
         public void updateVehicleIdDisplay(int newId) {
             this.vehicleId = newId;
             if (this.idField != null) {
