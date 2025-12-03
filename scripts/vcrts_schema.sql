@@ -1,8 +1,8 @@
 -- VCRTS Database Schema
 -- Updated with Request ID linking
 
-DROP DATABASE IF EXISTS vcrts_db;
-CREATE DATABASE vcrts_db;
+
+CREATE DATABASE IF NOT EXISTS vcrts_db;
 USE vcrts_db;
 
 -- 1. Users table (Must be first)
