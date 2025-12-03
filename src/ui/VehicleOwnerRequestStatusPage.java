@@ -41,20 +41,18 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         initComponents();
-        loadRequestData(); 
+        loadRequestData();
         
         liveUpdateTimer = new Timer(500, e -> {
             loadRequestData();
             checkNotifications();
         });
-        
         liveUpdateTimer.setInitialDelay(1000);
         liveUpdateTimer.start();
     }
     
     private void checkNotifications() {
         Map<String, List<Integer>> updates = requestDataManager.getUnnotifiedRequests(currentUser.getId(), "VEHICLE_SUBMISSION");
-        
         List<Integer> acceptedIds = updates.get("ACCEPTED");
         List<Integer> rejectedIds = updates.get("REJECTED");
         
@@ -97,12 +95,14 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
                 BorderFactory.createMatteBorder(0, 0, 1, 0, BORDER_COLOR),
                 BorderFactory.createEmptyBorder(15, 50, 15, 50)
         ));
+        
         JLabel headerTitle = new JLabel("VCRTS");
         headerTitle.setFont(new Font("Georgia", Font.PLAIN, 28));
         headerPanel.add(headerTitle, BorderLayout.WEST);
 
         JPanel headerButtonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 0));
         headerButtonsPanel.setBackground(Color.WHITE);
+        
         JButton backButton = new JButton("← Back");
         backButton.setFont(new Font("Arial", Font.BOLD, 14));
         backButton.setFocusPainted(false);
@@ -114,6 +114,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
             dispose();
             SwingUtilities.invokeLater(() -> new VehicleSubmissionPage(currentUser).setVisible(true));
         });
+        
         JButton logoutButton = new JButton("Logout");
         logoutButton.setFont(new Font("Arial", Font.BOLD, 14));
         logoutButton.setFocusPainted(false);
@@ -125,6 +126,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
             dispose();
             SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
         });
+        
         headerButtonsPanel.add(backButton);
         headerButtonsPanel.add(logoutButton);
         headerPanel.add(headerButtonsPanel, BorderLayout.EAST);
@@ -144,7 +146,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 60, 40, 60));
         mainPanel.setBackground(Color.WHITE);
         mainPanel.setPreferredSize(new Dimension(1200, 900));
-
+        
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -181,10 +183,13 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
 
         pendingCountLabel = new JLabel("0");
         acceptedCountLabel = new JLabel("0");
+        
         JPanel pendingCard = createStatusCard("Pending Review", pendingCountLabel, 
             new Color(255, 149, 0), new Color(255, 245, 235));
+        
         JPanel acceptedCard = createStatusCard("Accepted", acceptedCountLabel, 
             new Color(52, 199, 89), new Color(235, 250, 240));
+        
         summaryContainer.add(pendingCard);
         summaryContainer.add(acceptedCard);
 
@@ -192,14 +197,17 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         
         mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
-        String[] columnNames = {"Request ID", "Make/Model", "Year", "License Plate", 
+        // UPDATED: Added "Vehicle ID" column at index 1
+        String[] columnNames = {"Request ID", "Vehicle ID", "Make/Model", "Year", "License Plate", 
                                 "Submitted", "Status"};
-        int[] columnWidths = {120, 250, 100, 180, 250, 150};
+        int[] columnWidths = {100, 100, 250, 100, 180, 250, 150};
 
         CustomTable requestTable = new CustomTable(columnNames, columnWidths);
         requestTable.setAlignmentX(Component.CENTER_ALIGNMENT);
         tableModel = requestTable.getModel();
-        requestTable.getTable().getColumnModel().getColumn(5).setCellRenderer(
+        
+        // Status renderer is now at column index 6
+        requestTable.getTable().getColumnModel().getColumn(6).setCellRenderer(
             new StatusCellRenderer()
         );
         mainPanel.add(requestTable);
@@ -221,10 +229,12 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         JPanel contentPanel = new JPanel();
         contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
         contentPanel.setBackground(Color.WHITE);
+        
         JLabel titleLabel = new JLabel(title);
         titleLabel.setFont(new Font("Arial", Font.PLAIN, 13));
         titleLabel.setForeground(new Color(70, 70, 70));
         titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        
         JPanel accentBarWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         accentBarWrapper.setBackground(Color.WHITE);
         accentBarWrapper.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -257,7 +267,7 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
         
         List<Request> allRequests = requestDataManager.getAllRequests();
         List<Object[]> allRows = new ArrayList<>();
-
+        
         for (Request request : allRequests) {
             if (request.getUserId() == currentUser.getId() && "VEHICLE_SUBMISSION".equals(request.getRequestType())) {
                 
@@ -283,12 +293,25 @@ public class VehicleOwnerRequestStatusPage extends JFrame {
                 String statusStr = request.getStatus().toString();
                 if (request.getStatus() == RequestStatus.PENDING) pendingCount++;
                 else if (request.getStatus() == RequestStatus.ACCEPTED) acceptedCount++;
+                
+                // NEW: Fetch Real Vehicle ID from DB
+                int linkedVehicleId = vehicleDataManager.getVehicleIdByRequestId(request.getRequestId());
+                String vehicleIdDisplay = (linkedVehicleId == -1) ? "-" : String.valueOf(linkedVehicleId);
 
-                allRows.add(new Object[]{ request.getRequestId(), make + " " + model, year, licensePlate, timestamp, statusStr });
+                allRows.add(new Object[]{ 
+                    request.getRequestId(), 
+                    vehicleIdDisplay, // Added Vehicle ID column data
+                    make + " " + model, 
+                    year, 
+                    licensePlate, 
+                    timestamp, 
+                    statusStr 
+                });
             }
         }
         
-        allRows.sort((row1, row2) -> ((Integer) row2[0]).compareTo((Integer) row1[0])); 
+        allRows.sort((row1, row2) -> ((Integer) row2[0]).compareTo((Integer) row1[0]));
+        
         for (Object[] row : allRows) {
             tableModel.addRow(row);
         }

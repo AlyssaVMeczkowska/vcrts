@@ -1,7 +1,6 @@
 package data;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import model.Vehicle;
@@ -19,11 +18,32 @@ public class VehicleDataManager {
     }
 
     /**
+     * NEW METHOD: Get the Vehicle ID associated with a specific Request ID
+     * This connects the Request table to the Vehicles table via the Foreign Key
+     */
+    public int getVehicleIdByRequestId(int requestId) {
+        String sql = "SELECT vehicle_id FROM vehicles WHERE request_id = ?";
+        try (Connection conn = dbManager.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(1, requestId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getInt("vehicle_id");
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching Vehicle ID for Request " + requestId + ": " + e.getMessage());
+        }
+        // Return -1 if no vehicle is found (e.g. request is still pending or rejected)
+        return -1;
+    }
+
+    /**
      * Check if VIN is already taken
      */
     public boolean isVinTaken(String vin) {
         String sql = "SELECT COUNT(*) FROM vehicles WHERE vin = ?";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -44,7 +64,6 @@ public class VehicleDataManager {
      */
     public boolean isLicensePlateTaken(String licensePlate) {
         String sql = "SELECT COUNT(*) FROM vehicles WHERE license_plate = ?";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -68,7 +87,6 @@ public class VehicleDataManager {
         String sql = "INSERT INTO vehicles (owner_id, vin, license_plate, vehicle_make, vehicle_model, " +
                     "vehicle_year, computing_power, arrival_date, departure_date, status) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             
@@ -107,7 +125,6 @@ public class VehicleDataManager {
     public List<Vehicle> getAllVehicles() {
         List<Vehicle> vehicles = new ArrayList<>();
         String sql = "SELECT * FROM vehicles ORDER BY vehicle_id";
-        
         try (Connection conn = dbManager.getConnection();
              Statement stmt = conn.createStatement();
              ResultSet rs = stmt.executeQuery(sql)) {
@@ -126,7 +143,6 @@ public class VehicleDataManager {
      */
     public Vehicle getVehicleById(int vehicleId) {
         String sql = "SELECT * FROM vehicles WHERE vehicle_id = ?";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -148,7 +164,6 @@ public class VehicleDataManager {
     public List<Vehicle> getVehiclesByOwnerId(int ownerId) {
         List<Vehicle> vehicles = new ArrayList<>();
         String sql = "SELECT * FROM vehicles WHERE owner_id = ? ORDER BY vehicle_id";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -170,7 +185,6 @@ public class VehicleDataManager {
     public List<Vehicle> getVehiclesByStatus(VehicleStatus status) {
         List<Vehicle> vehicles = new ArrayList<>();
         String sql = "SELECT * FROM vehicles WHERE status = ? ORDER BY vehicle_id";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -191,7 +205,6 @@ public class VehicleDataManager {
      */
     public boolean updateVehicleStatus(int vehicleId, VehicleStatus status) {
         String sql = "UPDATE vehicles SET status = ? WHERE vehicle_id = ?";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
@@ -214,12 +227,10 @@ public class VehicleDataManager {
      */
     public boolean deleteVehicle(int vehicleId) {
         String sql = "DELETE FROM vehicles WHERE vehicle_id = ?";
-        
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             
             pstmt.setInt(1, vehicleId);
-            
             int rowsAffected = pstmt.executeUpdate();
             if (rowsAffected > 0) {
                 System.out.println("Vehicle deleted successfully: " + vehicleId);
@@ -271,9 +282,9 @@ public class VehicleDataManager {
         
         return vehicle;
     }
+    
     public Vehicle getLatestVehicleByOwner(int ownerId) {
         String sql = "SELECT * FROM vehicles WHERE owner_id = ? ORDER BY vehicle_id DESC LIMIT 1";
-
         try (Connection conn = dbManager.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
@@ -289,5 +300,4 @@ public class VehicleDataManager {
 
         return null;
     }
-
 }
