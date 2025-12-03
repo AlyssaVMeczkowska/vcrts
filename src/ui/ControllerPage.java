@@ -349,14 +349,14 @@ public class ControllerPage extends JFrame {
         
         vehiclePanel.add(headerPanel);
         vehiclePanel.add(Box.createRigidArea(new Dimension(0, 0)));
-        String[] columnNames = {"Job ID", "Client ID", "Job Type", "Duration (hrs)", "Arrival Time", "Completion Time (hrs)"};
+        String[] columnNames = {"Job ID", "Client ID", "Job Type", "Duration (hrs)", "Completion Time (hrs)", "Deadline"};
         int[] columnWidths = {
             90,  
             90,  
             250, 
             120, 
-            300, 
-            180  
+            180, 
+            200
         };
         CustomTable jobTable = new CustomTable(columnNames, columnWidths);
         jobTable.setAlignmentX(Component.CENTER_ALIGNMENT); 
@@ -367,9 +367,8 @@ public class ControllerPage extends JFrame {
                 job.getAccountId(),
                 job.getJobType(),
                 job.getDuration(),
-                
-                job.getSubmissionTimestamp(),
-                job.getCompletionTime()
+                 job.getCompletionTime(),
+                job.getDeadline()
             };
             tableModel.addRow(row);
         }
