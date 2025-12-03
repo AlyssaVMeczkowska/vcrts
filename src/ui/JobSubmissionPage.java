@@ -376,12 +376,14 @@ public class JobSubmissionPage extends JFrame {
             String description = form.getDescription();
 
             Job job = new Job(
-                    currentUser.getId(),
-                    jobType,
-                    Integer.parseInt(duration.trim()),
-                    deadline.trim(),
-                    description.trim()
-            );
+            	    form.getJobId(),
+            	    currentUser.getId(),
+            	    jobType,
+            	    Integer.parseInt(duration.trim()),
+            	    deadline.trim(),
+            	    description.trim()
+            	);
+
 
             String payload = buildJobPayload(job);
 

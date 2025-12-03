@@ -37,6 +37,17 @@ public class Job {
         this.deadline = deadline;
         this.description = description;
     }
+    
+    public Job(int jobId, int accountId, String jobType, int duration, String deadline, String description) {
+        this.jobId = jobId;
+        this.accountId = accountId;
+        this.jobType = jobType;
+        this.duration = duration;
+        this.deadline = deadline;
+        this.description = description;
+        this.submissionTimestamp = LocalDateTime.now().toString();
+    }
+
 
     public int getJobId() { 
         return jobId;
