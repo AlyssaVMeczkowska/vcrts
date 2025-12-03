@@ -34,9 +34,12 @@ public class VehicleSubmissionPage extends JFrame {
     private List<VehicleFormPanel> vehicleForms;
     private int vehicleCounter = 1;
     private JPanel mainPanel;
+    private int nextVehicleId;
+
     public VehicleSubmissionPage(User user) {
         this.currentUser = user;
         this.vehicleForms = new ArrayList<>();
+        this.nextVehicleId = getNextVehicleId();
         
         setTitle("Vehicle Availability");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -175,9 +178,11 @@ public class VehicleSubmissionPage extends JFrame {
             separator.setForeground(new Color(220, 220, 220));
             formsContainer.add(separator);
             formsContainer.add(Box.createRigidArea(new Dimension(0, 20)));
+            
             JLabel vehicleLabel = new JLabel("Vehicle " + vehicleCounter);
             vehicleLabel.setFont(new Font("Georgia", Font.BOLD, 28));
             vehicleLabel.setForeground(new Color(0, 124, 137));
+            
             JPanel vehicleLabelPanel = new JPanel(new BorderLayout());
             vehicleLabelPanel.setBackground(Color.WHITE);
             vehicleLabelPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -212,12 +217,14 @@ public class VehicleSubmissionPage extends JFrame {
             formsContainer.add(Box.createRigidArea(new Dimension(0, 15)));
         }
         
-        VehicleFormPanel vehicleForm = new VehicleFormPanel();
+        VehicleFormPanel vehicleForm = new VehicleFormPanel(nextVehicleId);
         vehicleForm.setAlignmentX(Component.CENTER_ALIGNMENT);
         vehicleForms.add(vehicleForm);
         formsContainer.add(vehicleForm);
-        
+        nextVehicleId++;
         vehicleCounter++;
+        updateMainPanelHeight();
+    
         
         int topBottomUIsHeight = 225;
         int firstFormHeight = 380;
@@ -239,6 +246,14 @@ public class VehicleSubmissionPage extends JFrame {
     }
 
     private void rebuildFormsContainer() {
+    	int maxId = 0;
+    	for (VehicleFormPanel form : vehicleForms) {
+    	    if (form.getVehicleId() > maxId) {
+    	        maxId = form.getVehicleId();
+    	    }
+    	}
+    	nextVehicleId = maxId + 1;
+
         formsContainer.removeAll();
         JLabel vehicle1Label = new JLabel("Vehicle 1");
         vehicle1Label.setFont(new Font("Georgia", Font.BOLD, 28));
@@ -409,8 +424,7 @@ public class VehicleSubmissionPage extends JFrame {
                 if (vehicleIds.length() > 0) {
                     vehicleIds.append(", ");
                 }
-                vehicleIds.append("#").append(nextVehicleId);
-                nextVehicleId++;
+                vehicleIds.append("#").append(form.getVehicleId());
             }
         }
 
@@ -534,11 +548,39 @@ v.getArrivalDate() + "\n"
         private JLabel licensePlateErrorLabel, vinNumberErrorLabel;
         private JLabel residencyStartErrorLabel, residencyEndErrorLabel;
         private JPanel addButtonPanel;
-        public VehicleFormPanel() {
+        private int vehicleId;
+        
+        public int getVehicleId() { 
+        	return vehicleId; 
+        	}
+        
+        public VehicleFormPanel(int idToDisplay) {
+            this.vehicleId = idToDisplay;
             setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
             setBackground(Color.WHITE);
             setMaximumSize(new Dimension(Integer.MAX_VALUE, 375));
             setAlignmentX(Component.CENTER_ALIGNMENT);
+            
+            JLabel idLabel = new JLabel("Vehicle ID:");
+            idLabel.setFont(new Font("Arial", Font.BOLD, 14));
+
+            JPanel idLabelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+            idLabelPanel.setBackground(Color.WHITE);
+            idLabelPanel.add(idLabel);
+
+            JTextField idField = new JTextField(String.valueOf(vehicleId));
+            idField.setEditable(false);
+            idField.setEnabled(true);
+            idField.setForeground(Color.BLACK);
+            idField.setDisabledTextColor(Color.BLACK);
+            idField.setBackground(new Color(245, 245, 245));
+            idField.setFont(new Font("Arial", Font.PLAIN, 14));
+            idField.setBorder(defaultBorder);
+            idField.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+
+            add(idLabelPanel);
+            add(idField);
+            add(Box.createRigidArea(new Dimension(0, 10)));
             
             FocusAdapter highlightListener = new FocusAdapter() {
                 @Override
