@@ -401,8 +401,8 @@ public class ControllerRequestPage extends JFrame {
         boolean bulk = rows.length > 1;
         CustomInputDialog dialog = new CustomInputDialog(
                 this,
-                bulk ? "Enter rejection reason for ALL selected requests:"
-                     : "Enter rejection reason:"
+                bulk ? "Enter rejection reason for ALL selected requests (optional): "
+                     : "Enter rejection reason (optional): "
         );
         dialog.setVisible(true);
         String reason = dialog.getInput();
