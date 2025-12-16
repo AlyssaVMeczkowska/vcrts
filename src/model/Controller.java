@@ -15,7 +15,6 @@ public class Controller {
     
 
     private Map<Integer, Queue<Job>> vehicleJobQueues;
-    private int nextVehicleIndex = 0;
 
     private JobDataManager jobDataManager;
     private VehicleDataManager vehicleDataManager;
@@ -23,7 +22,7 @@ public class Controller {
 
 
     private static class PendingVehicleRequest {
-        Owner owner; 
+        Owner owner;
         Vehicle vehicle;
 
         PendingVehicleRequest(Owner owner, Vehicle vehicle) {
@@ -50,8 +49,6 @@ public class Controller {
         this.jobs = new ArrayList<>();
         this.parkingLot = new ArrayList<>();
         this.vehicleJobQueues = new HashMap<>();
-
-
         this.pendingVehicleRequests = new HashMap<>();
 
         refreshAndProcessData();
@@ -64,7 +61,6 @@ public class Controller {
         this.vehicleJobQueues.clear();
         initializeVehicleQueues();
         
-        this.nextVehicleIndex = 0;
         assignAllJobsToVehicles();
     }
 
@@ -73,10 +69,9 @@ public class Controller {
             System.out.println("Warning: No vehicles available in parking lot");
             return;
         }
-        
-        for (Vehicle vehicle : parkingLot) {
-            vehicleJobQueues.put(vehicle.getVehicleId(), new LinkedList<>());
-        }
+    
+        Vehicle firstVehicle = parkingLot.get(0);
+        vehicleJobQueues.put(firstVehicle.getVehicleId(), new LinkedList<>());
     }
 
     private void assignAllJobsToVehicles() {
@@ -91,20 +86,20 @@ public class Controller {
         }
 
         jobs.sort(Comparator.comparing(Job::getSubmissionTimestamp));
-
+        
         for (Job job : jobs) {
-            assignJobToNextAvailableVehicle(job);
+            assignJobToFirstVehicle(job);
         }
 
         calculateCompletionTimesPerVehicle();
     }
 
-    private void assignJobToNextAvailableVehicle(Job job) {
+    private void assignJobToFirstVehicle(Job job) {
         if (parkingLot == null || parkingLot.isEmpty()) {
             return;
         }
         
-        Vehicle selectedVehicle = parkingLot.get(nextVehicleIndex);
+        Vehicle selectedVehicle = parkingLot.get(0);
         int vehicleId = selectedVehicle.getVehicleId();
         
         if (vehicleJobQueues.get(vehicleId) == null) {
@@ -112,9 +107,10 @@ public class Controller {
              return;
         }
 
-        vehicleJobQueues.get(vehicleId).offer(job);
 
-        nextVehicleIndex = (nextVehicleIndex + 1) % parkingLot.size();
+        vehicleJobQueues.get(vehicleId).offer(job);
+        
+
     }
 
     private void calculateCompletionTimesPerVehicle() {
@@ -125,15 +121,12 @@ public class Controller {
             for (Job job : jobQueue) {
 
                 cumulativeTime += job.getDuration();
-                
-
                 job.setCompletionTime(cumulativeTime);
-                
 
                 jobDataManager.updateJobCompletionTime(job.getJobId(), cumulativeTime);
             }
         }
-        System.out.println("Completion times recalculated and saved to database.");
+        System.out.println("Completion times recalculated (Single Vehicle FIFO) and saved to database.");
     }
 
     public List<Job> getJobsForVehicle(int vehicleId) {
@@ -145,6 +138,7 @@ public class Controller {
     }
 
     public List<Integer> getAllVehicleIDs() {
+
         return new ArrayList<>(vehicleJobQueues.keySet());
     }
     
@@ -170,12 +164,10 @@ public class Controller {
 
     public List<Job> calculateAllCompletionTimes() {
         List<Job> allJobs = new ArrayList<>();
-        
         for (Queue<Job> jobQueue : vehicleJobQueues.values()) {
             allJobs.addAll(jobQueue);
         }
         
-
         allJobs.sort(Comparator.comparing(Job::getSubmissionTimestamp));
         
         this.jobs = allJobs;
@@ -189,9 +181,8 @@ public class Controller {
         }
         
         jobs.add(newJob);
-        assignJobToNextAvailableVehicle(newJob);
+        assignJobToFirstVehicle(newJob);
         
-
         calculateCompletionTimesPerVehicle();
     }
 
@@ -209,6 +200,7 @@ public class Controller {
             jobDataManager.updateJobCompletionTime(job.getJobId(), cumulativeTime);
         }
     }
+
 
     public void assignJobToVehicle(String vehicleID, int jobID, int redundancyLevel){
 
@@ -296,7 +288,6 @@ public class Controller {
             return -1;
         }
         
-
         for (Queue<Job> jobQueue : vehicleJobQueues.values()) {
             for (Job job : jobQueue) {
                 if (job.getJobId() == jobID) {
@@ -311,10 +302,8 @@ public class Controller {
 
     public void receiveVehicleSubmissionRequest(Owner owner, Vehicle vehicle) {
         pendingVehicleRequests.put(vehicle.getVehicleId(), new PendingVehicleRequest(owner, vehicle));
-
         owner.receiveNotification("SERVER: Received submission request for vehicle "
                 + vehicle.getLicensePlate() + ". Awaiting VC Controller approval.");
-
         System.out.println("CONTROLLER: New pending vehicle for approval from "
                 + owner.getUsername() + ". Vehicle ID: " + vehicle.getVehicleId());
     }
@@ -335,16 +324,13 @@ public class Controller {
         }
 
         boolean saved = vehicleDataManager.addVehicle(request.vehicle);
-
         if (saved) {
             refreshAndProcessData();
-
             request.owner.receiveNotification("SERVER: Your vehicle submission ("
                     + request.vehicle.getLicensePlate() + ") has been ACCEPTED.");
             System.out.println("CONTROLLER: Vehicle " + vehicleId + " accepted and saved.");
         } else {
             pendingVehicleRequests.put(vehicleId, request);
-
             request.owner.receiveNotification("SERVER: Your vehicle submission ("
                     + request.vehicle.getLicensePlate() + ") was REJECTED (Database Save Error).");
             System.err.println("CONTROLLER: Vehicle " + vehicleId + " approval failed (save error).");

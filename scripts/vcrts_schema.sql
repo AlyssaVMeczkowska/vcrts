@@ -85,6 +85,7 @@ INSERT IGNORE INTO users (user_id, account_type, first_name, last_name, email, u
 (5, 'Controller', 'Controller', 'Account', 'controller@email.com', 'controller', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', FALSE, '2025-11-03 02:31:40'),
 (6, 'Controller', 'Alyssa', 'Meczkowska', 'controller2@email.com', 'controller2', '', 'fd83787115f5ba5f7301cedc4d9a13811c5425ada361d0a0d3e300dbca2b70f2', FALSE, '2025-11-03 02:31:40');
 
+/*
 -- Insert requests
 INSERT IGNORE INTO requests (request_id, request_type, user_id, user_name, submission_timestamp, status, notification_viewed, request_data, rejection_reason) VALUES
 (1, 'JOB_SUBMISSION', 3, 'Job Client 1', '2025-11-19 03:12:43', 'ACCEPTED', TRUE, 'type: job_submission\nuser_id: 1\njob_type: Data Storage & Transfer\nduration: 2\ndeadline: 2025-11-24\ndescription: \n---\n', ''),
@@ -127,3 +128,4 @@ INSERT IGNORE INTO vehicles (vehicle_id, owner_id, request_id, vin, license_plat
 (1, 1, 19, '1G1PC5SB0E7180475', 'HUY-5810', 'Tesla', 'Y', 2025, 'Medium', '2025-12-01', '2025-12-18', 'AVAILABLE', '2025-11-19 03:19:42'),
 (2, 2, 22, '3N1AB6AP6BL602066', 'JLP-2810', 'Tesla', 'X', 2024, 'High', '2025-12-16', '2025-12-18', 'AVAILABLE', '2025-11-19 03:20:27'),
 (3, 1, 18, '1FMJK2A51DEF50669', 'XHY-5481', 'Tesla', 'X', 2024, 'Medium', '2025-11-28', '2025-12-04', 'AVAILABLE', '2025-11-19 03:21:08');
+*/
