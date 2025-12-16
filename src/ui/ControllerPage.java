@@ -40,7 +40,7 @@ public class ControllerPage extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1000, 800);
         setLocationRelativeTo(null);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);

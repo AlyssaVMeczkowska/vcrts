@@ -35,7 +35,7 @@ public class CreateAccountPage extends JFrame {
         setSize(900, 800);
         setResizable(true);
         setLocationRelativeTo(null);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //setExtendedState(JFrame.MAXIMIZED_BOTH);
         JPanel rootPanel = new JPanel(new BorderLayout());
         setContentPane(rootPanel);
         rootPanel.add(createHeader(), BorderLayout.NORTH);
