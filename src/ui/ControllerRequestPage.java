@@ -46,6 +46,7 @@ public class ControllerRequestPage extends JFrame {
 
         setTitle("VCRTS - Request Management");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(1200,800);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setLocationRelativeTo(null);
 
